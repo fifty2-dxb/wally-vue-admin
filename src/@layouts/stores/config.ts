@@ -73,6 +73,12 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
     ]
   })
 
+  // 👉 Active Organisation
+  const activeOrganisation = ref(null)
+
+  // 👉 Active Merchant
+  const activeMerchant = ref(null)
+
   // 👉 RTL
   // const isAppRTL = ref(layoutConfig.app.isRTL)
   const isAppRTL = ref(false)
@@ -111,5 +117,7 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
     isAppRTL,
     _layoutClasses,
     isVerticalNavMini,
+    activeOrganisation,
+    activeMerchant
   }
 })

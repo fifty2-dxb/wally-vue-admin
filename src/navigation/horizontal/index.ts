@@ -1,11 +1,7 @@
-import apps from './apps'
-import charts from './charts'
-import dashboard from './dashboard'
-import forms from './forms'
-import misc from './misc'
-import pages from './pages'
-import tables from './tables'
-import uiElements from './ui-elements'
 import type { HorizontalNavItems } from '@layouts/types'
+import campaign from './campaign'
+import dashboard from './dashboard'
+import help from './help'
+import settings from './settings'
 
-export default [...dashboard, ...apps, ...pages, ...uiElements, ...forms, ...tables, ...charts, ...misc] as HorizontalNavItems
+export default [...dashboard, ...campaign, ...settings, ...help] as HorizontalNavItems

@@ -1,7 +1,7 @@
-import { storeToRefs } from 'pinia'
-import { useTheme } from 'vuetify'
 import { cookieRef, useLayoutConfigStore } from '@layouts/stores/config'
 import { themeConfig } from '@themeConfig'
+import { storeToRefs } from 'pinia'
+import { useTheme } from 'vuetify'
 
 // SECTION Store
 export const useConfigStore = defineStore('config', () => {
@@ -36,6 +36,7 @@ export const useConfigStore = defineStore('config', () => {
     isVerticalNavCollapsed,
     footerType,
     isAppRTL,
+    activeOrganisation
   } = storeToRefs(useLayoutConfigStore())
 
   return {
@@ -52,6 +53,7 @@ export const useConfigStore = defineStore('config', () => {
     isVerticalNavCollapsed,
     footerType,
     isAppRTL,
+    activeOrganisation,
   }
 })
 // !SECTION
