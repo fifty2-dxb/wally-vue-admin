@@ -36,7 +36,8 @@ export const useConfigStore = defineStore('config', () => {
     isVerticalNavCollapsed,
     footerType,
     isAppRTL,
-    activeOrganisation
+    activeOrganisation,
+    activeMerchant
   } = storeToRefs(useLayoutConfigStore())
 
   return {
@@ -54,6 +55,7 @@ export const useConfigStore = defineStore('config', () => {
     footerType,
     isAppRTL,
     activeOrganisation,
+    activeMerchant
   }
 })
 // !SECTION

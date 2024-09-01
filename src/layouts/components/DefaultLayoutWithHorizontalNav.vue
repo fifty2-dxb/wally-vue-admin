@@ -23,10 +23,7 @@ const merchants = ['SupperCoffee Eindhoven', 'SupperCoffe Kadiköy']
   <HorizontalNavLayout :nav-items="navItems">
     <!-- 👉 navbar -->
     <template #navbar>
-      <RouterLink
-        to="/"
-        class="app-logo d-flex align-center gap-x-3"
-      >
+      <RouterLink to="/" class="app-logo d-flex align-center gap-x-3">
         <VNodeRenderer :nodes="themeConfig.app.logo" />
 
         <h1 class="app-title font-weight-bold leading-normal text-xl text-capitalize">
@@ -35,14 +32,10 @@ const merchants = ['SupperCoffee Eindhoven', 'SupperCoffe Kadiköy']
       </RouterLink>
       <VSpacer />
 
-      <SelectMerchant/>
+      <SelectOrganisation />
 
-      <SelectOrganisation/>
-
-      <NavBarI18n
-        v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
-        :languages="themeConfig.app.i18n.langConfig"
-      />
+      <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
+        :languages="themeConfig.app.i18n.langConfig" />
 
       <NavbarThemeSwitcher />
       <NavbarShortcuts />
