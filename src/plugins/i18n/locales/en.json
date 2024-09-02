@@ -209,5 +209,16 @@
         "item": "item"
       }
     }
-  }
+  },
+  "Campaigns": "Campaigns",
+  "My Campaigns": "My Campaigns",
+  "Create New Campaign": "Create New Campaign",
+  "Campaign Settings": "Campaign Settings",
+  "API Keys": "API Keys",
+  "Certificates": "Certificates",
+  "NFC Keys": "NFC Keys",
+  "Domain Names": "Domain Names",
+  "Languages": "Languages",
+  "Help": "Help",
+  "Resources & News": "Resources & News"
 }

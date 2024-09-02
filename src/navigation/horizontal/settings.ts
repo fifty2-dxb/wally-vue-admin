@@ -4,6 +4,11 @@ export default [
     icon: { icon: 'tabler-settings' },
     children: [
       {
+        title: 'Organisations',
+        to: 'pages-organisations',
+        icon: { icon: 'tabler-building' },
+      },
+      {
         title: 'API Keys',
         to: 'pages-api-keys',
         icon: { icon: 'tabler-api' },

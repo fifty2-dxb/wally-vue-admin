@@ -6,27 +6,41 @@ const configStore = useConfigStore()
 
 const campaigns = ref(null)
 
-watch(configStore.activeMerchant, async () => {
-  try {
-    const activeMerchant = configStore.activeMerchant;
-    const res = await $wallyApi('/campaigns/merchant/' + activeMerchant.merchantGuid, {
-      method: 'GET',
-      onResponseError({ response }) {
-        console.log(response)
-      },
-    })
+watch(
+  () => configStore.activeMerchant,  // Use a function to return the reactive property
+  async (newMerchant, oldMerchant) => {
+    console.log('active merchant changed');
+    if (newMerchant && newMerchant.merchantGuid !== (oldMerchant?.merchantGuid || '')) {
+      try {
+        const res = await $wallyApi('/campaigns/merchant/' + newMerchant.merchantGuid, {
+          method: 'GET',
+          onResponseError({ response }) {
+            console.log(response);
+          },
+        });
 
-    const { status, campaign_details } = res
+        const { status, campaign_details } = res;
 
-    if (status === 'success') {
-      console.log(campaign_details)
-      campaigns.value = campaign_details
+        if (status === 'success') {
+          console.log(campaign_details);
+          campaigns.value = campaign_details;
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }
-  catch (err) {
-    console.error(err)
-  }
-}, { deep: true })
+  },
+  { immediate: true }
+);
+
+const headers = [
+  { title: 'ID', sortable: false, key: 'id' },
+  { title: 'NAME', key: 'fullName' },
+  { title: 'EMAIL', key: 'email' },
+  { title: 'DATE', key: 'startDate' },
+  { title: 'EXPERIENCE', key: 'experience' },
+  { title: 'AGE', key: 'age' },
+]
 
 </script>
 
@@ -80,4 +94,6 @@ watch(configStore.activeMerchant, async () => {
       </VCard>
     </VCol>
   </VRow>
+
+
 </template>

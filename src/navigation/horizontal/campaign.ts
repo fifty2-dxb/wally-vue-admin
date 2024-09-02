@@ -17,12 +17,7 @@ export default [
         title: 'Campaign Settings',
         to: 'pages-campaigns-settings',
         icon: { icon: 'tabler-settings' },
-      },
-      {
-        title: 'Customer',
-        to: 'dashboards-crm',
-        icon: { icon: 'tabler-article' },
-      },
+      }
     ],
   },
 
