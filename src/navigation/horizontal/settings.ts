@@ -24,6 +24,11 @@ export default [
         icon: { icon: 'tabler-nfc' },
       },
       {
+        title: 'NFC Readers',
+        to: 'pages-readers',
+        icon: { icon: 'tabler-device-mobile' },
+      },
+      {
         title: 'Domain Names',
         to: 'dashboards-crm',
         icon: { icon: 'tabler-world' },
