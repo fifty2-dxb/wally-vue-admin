@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 interface Details {
   number: string | number
   name: string
@@ -6,7 +8,10 @@ interface Details {
   cvv: string
   isPrimary: boolean
   type: string
+  cLimit: number
+  mLimit: number
 }
+
 interface Emit {
   (e: 'submit', value: Details): void
   (e: 'update:isDialogVisible', value: boolean): void
@@ -25,6 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
     cvv: '',
     isPrimary: false,
     type: '',
+    cLimit: 0,
+    mLimit: 0,
   }),
 })
 
@@ -36,8 +43,34 @@ watch(() => props, () => {
   cardDetails.value = structuredClone(toRaw(props.cardDetails))
 })
 
-const formSubmit = () => {
-  emit('submit', cardDetails.value)
+const showSnackbar = ref(false)
+const snackbarMessage = ref('')
+const snackbarType = ref('success')
+
+const formSubmit = async () => {
+  try {
+    const res = await $wallyApi('/organisations', {
+      method: 'POST',
+      body: {
+        organisationName: cardDetails.value.name,
+        cLimit: 0,
+        mLimit: 0,
+      },
+    })
+
+    emit('submit', cardDetails.value)
+    emit('update:isDialogVisible', false)
+
+    showSnackbar.value = true
+    console.log(res)
+    snackbarMessage.value = res?.status || 'Organisation added successfully!'
+    snackbarType.value = 'success'
+
+  } catch (error) {
+    showSnackbar.value = true
+    snackbarMessage.value = error?.response?._data.message || 'An error occurred'
+    snackbarType.value = 'error'
+  }
 }
 
 const dialogModelValueUpdate = (val: boolean) => {
@@ -87,4 +120,9 @@ const dialogModelValueUpdate = (val: boolean) => {
       </VCardText>
     </VCard>
   </VDialog>
+
+  <!-- Snackbar for success or error messages -->
+  <VSnackbar v-model="showSnackbar" :color="snackbarType === 'success' ? 'success' : 'error'" location="top" right>
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>
