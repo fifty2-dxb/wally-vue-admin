@@ -14,13 +14,13 @@ userData.organisations.forEach((org: any) => {
   organisations.value.push(org.organisationName)
 })
 
-organisation.value = userData.organisations[0].organisationName
+organisation.value = userData.organisations[0]?.organisationName
 configStore.activeOrganisation = userData.organisations[0]
 
-if (userData.organisations[0].merchant.length > 0) {
-  merchants.value = userData.organisations[0].merchant;
-  merchant.value = userData.organisations[0].merchant[0].merchantName;
-  configStore.activeMerchant = userData.organisations[0].merchant[0]
+if (userData.organisations[0]?.merchant.length > 0) {
+  merchants.value = userData.organisations[0]?.merchant;
+  merchant.value = userData.organisations[0]?.merchant[0].merchantName;
+  configStore.activeMerchant = userData.organisations[0]?.merchant[0]
 }
 
 function changeOrganisation() {
