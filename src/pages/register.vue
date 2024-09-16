@@ -12,6 +12,7 @@ import authV2RegisterIllustrationDark from '@images/pages/auth-v2-register-illus
 import authV2RegisterIllustrationLight from '@images/pages/auth-v2-register-illustration-light.png'
 import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
+import { useUserStore } from '@/stores/user'
 
 const imageVariant = useGenerateImageVariant(authV2RegisterIllustrationLight,
   authV2RegisterIllustrationDark,
@@ -45,52 +46,45 @@ const errors = ref<Record<string, string | undefined>>({
   password: undefined,
 })
 
+const userStore = useUserStore();
+
 const refVForm = ref<VForm>()
 
 const router = useRouter()
 
 const showSnackbar = ref(false)
 const snackbarMessage = ref('')
-const snackbarType = ref('success') // 'success' or 'error'
+const snackbarType = ref('success')
 
 const register = async () => {
   try {
-    const res = await $wallyApi('/users/register', {
-      method: 'POST',
-      body: {
-        email: form.value.email,
-        password: form.value.password,
-        name: form.value.name,
-        cLimit: form.value.cLimit,
-        mLimit: form.value.mLimit,
-        oLimit: form.value.oLimit,
-        revokeAccess: form.value.revokeAccess,
-        LastLogonTime: new Date().toISOString(),
-      },
-      onResponseError({ response }) {
-        const errorMessages = response._data.message;
+    const userData = {
+      email: form.value.email,
+      password: form.value.password,
+      name: form.value.name,
+      cLimit: form.value.cLimit,
+      mLimit: form.value.mLimit,
+      oLimit: form.value.oLimit,
+      revokeAccess: form.value.revokeAccess,
+      LastLogonTime: new Date().toISOString(),
+    };
 
-        const errorMessage = Array.isArray(errorMessages) ? errorMessages[0] : errorMessages;
-
-        showSnackbar.value = true;
-        snackbarMessage.value = errorMessage;
-        snackbarType.value = 'error';
-      },
-    })
+    await userStore.registerUser(userData);
 
     showSnackbar.value = true;
     snackbarMessage.value = 'Registration successful.';
     snackbarType.value = 'success';
-    console.log('Redirecting to: /organisations');
 
-    setTimeout(() => {
-      router.replace('/pages/organisations');
-    }, 3000);
-
-  } catch (err) {
-    console.error(err);
+    router.push('/pages/organisations');
+  } catch (error) {
+    showSnackbar.value = true;
+    snackbarType.value = 'error';
+    const errorMessages = Array.isArray(error.response?._data?.message)
+      ? error.response._data.message.join(', ')
+      : error.response?._data?.message || "An error occurred";
+    snackbarMessage.value = errorMessages
   }
-};
+}
 
 const onSubmit = () => {
   refVForm.value?.validate().then(({ valid: isValid }) => {
