@@ -1,121 +1,98 @@
 <script setup lang="ts">
-import { ref, watch, toRaw, watchEffect } from 'vue';
+import { useOrganizationStore } from '@/stores/organization';
+import { defineEmits, defineProps, ref, watch } from 'vue';
+import { VBtn, VCard, VCardItem, VCardText, VCardTitle, VCol, VDialog, VForm, VRow, VTextField } from 'vuetify/components';
 
-interface Details {
-  organisation: {};
-  organisationGuid: string;
-  number: string | number;
-  name: string;
-  expiry: string;
-  cvv: string;
-  isPrimary: boolean;
-  type: string;
-  cLimit: number;
-  mLimit: number;
-}
-
-interface Emit {
-  (e: 'submit', value: Details): void;
-  (e: 'update:isDialogVisible', value: boolean): void;
-}
-
-interface Props {
-  cardDetails?: Details;
-  isDialogVisible: boolean;
-  organisation?: { organisationName?: string };
-  organisationGuid?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  cardDetails: () => ({
-    number: '',
-    name: '',
-    expiry: '',
-    cvv: '',
-    isPrimary: false,
-    type: '',
-    cLimit: 0,
-    mLimit: 0,
-    organisation: {},
-  }),
-  organisationGuid: '',
+const props = defineProps({
+  organisationGuid: String,
+  organisation: Object,
+  modelValue: Boolean,
 });
 
-const emit = defineEmits<Emit>();
+const emit = defineEmits<{
+  (e: 'submit', value: any): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'showSnackbarMessage', message: string, color: string): void;
+  (e: 'reset-org-details'): void;
+}>();
 
-const cardDetails = ref<Details>(structuredClone(toRaw(props.cardDetails)));
-
-watch(() => props.isDialogVisible, (newValue) => {
-  if (!newValue) {
-    // Clear input fields when dialog is closed
-    cardDetails.value = structuredClone(toRaw(props.cardDetails));
-  }
+// Organization details form model
+const orgDetails = ref({
+  organisationName: '',
+  organisationGuid: ''
 });
 
-watch(() => props, () => {
-  cardDetails.value = structuredClone(toRaw(props.cardDetails));
-});
-
-watchEffect(() => {
-  cardDetails.value.name = props.organisation?.organisationName || '';
-});
-
-const showSnackbar = ref(false);
-const snackbarMessage = ref('');
-const snackbarType = ref('success');
-
-const formSubmit = async () => {
-  try {
-    let res;
-    if (props.organisationGuid) {
-      // Edit existing organisation
-      res = await $wallyApi(`/organisations/${props.organisationGuid}`, {
-        method: 'PATCH',
-        body: {
-          organisationName: cardDetails.value.name,
-          cLimit: cardDetails.value.cLimit,
-          mLimit: cardDetails.value.mLimit,
-        },
-      });
-      snackbarMessage.value = res?.status || 'Organisation updated successfully!';
-    } else {
-      // Create new organisation
-      res = await $wallyApi('/organisations', {
-        method: 'POST',
-        body: {
-          organisationName: cardDetails.value.name,
-          cLimit: cardDetails.value.cLimit,
-          mLimit: cardDetails.value.mLimit,
-        },
-      });
-      snackbarMessage.value = res?.status || 'Organisation added successfully!';
+// Watch for organisation prop changes to populate orgDetails in edit mode
+watch(
+  () => props.organisation,
+  (val) => {
+    if (val && props.organisationGuid) {
+      orgDetails.value = {
+        organisationName: val.organisationName || '',
+        organisationGuid: props.organisationGuid,
+      };
     }
+  },
+  { immediate: true }
+);
 
-    emit('submit', cardDetails.value);
-    emit('update:isDialogVisible', false);
+// Method to reset orgDetails for "New Organisation" form
+const resetOrgDetails = () => {
+  orgDetails.value = {
+    organisationName: '',
+    organisationGuid: ''
+  };
+};
 
-    showSnackbar.value = true;
-    snackbarType.value = 'success';
+// Emit reset-org-details event to clear the form when creating a new organization
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (!props.organisationGuid && val) {
+      emit('reset-org-details');
+      resetOrgDetails();
+    }
+  }
+);
+
+// Save or update organisation
+const handleSaveOrganisation = async () => {
+  try {
+    const { organisationGuid, ...organisationData } = orgDetails.value;
+    const store = useOrganizationStore();
+
+    if (organisationGuid) {
+      // Update existing organisation
+      await store.updateOrganization(organisationGuid, {
+        ...organisationData,
+        verified_at: new Date().toISOString(),
+        cLimit: 0,
+        mLimit: 0,
+      });
+      emit('showSnackbarMessage', 'Organization updated successfully!', 'success');
+      await store.fetchOrganizations();
+      emit('update:modelValue', false);
+    } else {
+      // Add new organisation
+      await store.addOrganization({
+        ...organisationData,
+        cLimit: 0,
+        mLimit: 0,
+      });
+      emit('showSnackbarMessage', 'Organization added successfully!', 'success');
+      await store.fetchOrganizations();
+      emit('update:modelValue', false);
+    }
   } catch (error) {
-    showSnackbar.value = true;
-    snackbarMessage.value = error?.response?._data.message || 'An error occurred';
-    snackbarType.value = 'error';
+    emit('showSnackbarMessage', error.response._data.message, 'error');
   }
 };
 
-const dialogModelValueUpdate = (val: boolean) => {
-  emit('update:isDialogVisible', val);
-};
 </script>
 
 <template>
-  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 600" :model-value="props.isDialogVisible"
-    @update:model-value="dialogModelValueUpdate">
-    <!-- Dialog close btn -->
-    <DialogCloseBtn @click="dialogModelValueUpdate(false)" />
-
+  <VDialog :model-value="props.modelValue" @update:model-value="emit('update:modelValue', $event)" max-width="600px">
     <VCard class="pa-2 pa-sm-10">
-      <!-- 👉 Title -->
       <VCardItem class="text-center">
         <VCardTitle>
           <h4 class="text-h4 mb-2">
@@ -128,19 +105,17 @@ const dialogModelValueUpdate = (val: boolean) => {
       </VCardItem>
 
       <VCardText class="pt-6">
-        <VForm @submit.prevent="() => { }">
+        <VForm @submit.prevent="handleSaveOrganisation">
           <VRow>
-            <!-- Organisation Name -->
             <VCol cols="12">
-              <AppTextField v-model="cardDetails.name" label="Organisation Name" placeholder="My Company" />
+              <VTextField v-model="orgDetails.organisationName" label="Organisation Name"
+                placeholder="Organization name" required />
             </VCol>
-
-            <!-- Card actions -->
             <VCol cols="12" class="text-center">
-              <VBtn class="me-4" type="submit" @click="formSubmit">
+              <VBtn class="me-4" type="submit">
                 Submit
               </VBtn>
-              <VBtn color="secondary" variant="tonal" @click="dialogModelValueUpdate(false)">
+              <VBtn color="secondary" variant="tonal" @click="emit('update:modelValue', false)">
                 Cancel
               </VBtn>
             </VCol>
@@ -149,9 +124,4 @@ const dialogModelValueUpdate = (val: boolean) => {
       </VCardText>
     </VCard>
   </VDialog>
-
-  <!-- Snackbar for success or error messages -->
-  <VSnackbar v-model="showSnackbar" :color="snackbarType === 'success' ? 'success' : 'error'" location="top" right>
-    {{ snackbarMessage }}
-  </VSnackbar>
 </template>
