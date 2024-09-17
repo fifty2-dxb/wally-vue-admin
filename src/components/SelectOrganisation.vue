@@ -1,55 +1,60 @@
 <script setup lang="ts">
 import { useConfigStore } from '@/@core/stores/config';
+import { useOrganizationStore } from '@/stores/organization';
+import { ref, watch } from 'vue';
 
-const configStore = useConfigStore()
-const userData = useCookie('userData').value
+const configStore = useConfigStore();
+const organisationStore = useOrganizationStore();
 
-const organisations = ref([])
-const organisation = ref('')
+const organisations = ref<string[]>([]);
+const organisation = ref<string>('');
+const merchants = ref<any[]>([]);
+const merchant = ref<string>('');
 
-var merchants = ref([]);
-var merchant = ref('');
+await organisationStore.fetchOrganizations();
 
-userData.organisations.forEach((org: any) => {
-  organisations.value.push(org.organisationName)
-})
+organisations.value = organisationStore.organizations.map((org: any) => org.organisationName);
+organisation.value = organisationStore.organizations[0]?.organisationName || '';
+configStore.activeOrganisation = organisationStore.organizations[0] || {};
 
-organisation.value = userData.organisations[0]?.organisationName
-configStore.activeOrganisation = userData.organisations[0]
-
-if (userData.organisations[0]?.merchant.length > 0) {
-  merchants.value = userData.organisations[0]?.merchant;
-  merchant.value = userData.organisations[0]?.merchant[0].merchantName;
-  configStore.activeMerchant = userData.organisations[0]?.merchant[0]
+if (organisationStore.organizations[0]?.merchant?.length > 0) {
+  merchants.value = organisationStore.organizations[0]?.merchant;
+  merchant.value = merchants.value[0]?.merchantName || '';
+  configStore.activeMerchant = merchants.value[0] || {};
 }
 
 function changeOrganisation() {
-  const selectedOrganisation = userData.organisations.find((org: any) => org.organisationName === organisation.value);
-  configStore.activeOrganisation = selectedOrganisation;
-  configStore.activeMerchant = selectedOrganisation.merchant[0];
-  merchant.value = configStore.activeMerchant?.merchantName;
-  merchants = configStore.activeOrganisation.merchant;
+  const selectedOrganisation = organisationStore.organizations.find(
+    (org: any) => org.organisationName === organisation.value
+  );
+
+  if (selectedOrganisation) {
+    configStore.activeOrganisation = selectedOrganisation;
+    merchants.value = selectedOrganisation.merchant;
+    merchant.value = selectedOrganisation.merchant[0]?.merchantName || '';
+    configStore.activeMerchant = selectedOrganisation.merchant[0] || {};
+  }
 }
 
 function merchantChanged() {
-  const selectedMerchant = configStore.activeOrganisation.merchant.find((m: any) => m.merchantName === merchant.value);
-  configStore.activeMerchant = selectedMerchant;
+  const selectedMerchant = configStore.activeOrganisation.merchant.find(
+    (m: any) => m.merchantName === merchant.value
+  );
+
+  if (selectedMerchant) {
+    configStore.activeMerchant = selectedMerchant;
+  }
 }
 
-watch(organisation, () => {
-  changeOrganisation();
-});
-
-watch(merchant, () => {
-  merchantChanged();
-})
+watch(organisation, changeOrganisation);
+watch(merchant, merchantChanged);
 
 </script>
 
 <template>
-  <AppSelect v-model="merchant" class="pl-2" density="compact" :items="merchants.map(m => m.merchantName)"
+  <AppAutocomplete v-model="merchant" class="pl-2" density="compact" :items="merchants.map(m => m.merchantName)"
     placeholder="Select Merchant" />
 
-  <AppSelect v-model="organisation" class="pl-2" density="compact" :items="organisations"
+  <AppAutocomplete v-model="organisation" class="pl-2" density="compact" :items="organisations"
     placeholder="Select Organisation" />
 </template>

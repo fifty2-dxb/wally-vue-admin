@@ -32,6 +32,11 @@ const showSnackbarMessage = (message: string, color: string) => {
   showSnackbar.value = true;
 };
 
+const resetOrgDetails = () => {
+  selectedOrganisation.value = {};
+  selectedOrganisationGuid.value = '';
+};
+
 onMounted(async () => {
   try {
     await organizationStore.fetchOrganizations();
