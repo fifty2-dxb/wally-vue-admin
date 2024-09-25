@@ -133,17 +133,16 @@ const handleSnackbar = (message: string, color: string) => {
   <!-- Delete Confirmation Dialog -->
   <VDialog v-model="isDeleteOrganisationConfirmationVisible" width="400">
     <VCard>
-      <VCardTitle class="headline">Are you sure?</VCardTitle>
+      <VCardTitle class="headline">{{ $t("Are you sure?") }}</VCardTitle>
       <VCardText>
-        Do you really want to delete this organisation? This action cannot be
-        undone.
+        {{ $t("Do you really want to delete this organisation? This action cannot be undone.") }}
       </VCardText>
       <VCardActions>
         <VSpacer />
         <VBtn color="secondary" @click="isDeleteOrganisationConfirmationVisible = false">
-          Cancel
+          {{ $t("Cancel") }}
         </VBtn>
-        <VBtn color="error" @click="confirmDeleteOrganisation">Delete</VBtn>
+        <VBtn color="error" @click="confirmDeleteOrganisation">{{ $t("Delete") }}</VBtn>
       </VCardActions>
     </VCard>
   </VDialog>
@@ -151,13 +150,13 @@ const handleSnackbar = (message: string, color: string) => {
   <!-- Organisations List -->
   <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
-      <h4 class="text-h4 font-weight-medium">Organisations</h4>
-      <div class="text-body-1">Create or edit your organisations</div>
+      <h4 class="text-h4 font-weight-medium">{{ $t("Organisation") }}</h4>
+      <div class="text-body-1">{{ $t("Create or edit your organisations") }}</div>
     </div>
 
     <div class="d-flex gap-4 align-center flex-wrap">
       <VBtn @click="isNewOrganisationVisible = !isNewOrganisationVisible">
-        New Organisation
+        {{ $t("New Organisation") }}
       </VBtn>
     </div>
   </div>
@@ -167,7 +166,7 @@ const handleSnackbar = (message: string, color: string) => {
       <VCard>
         <VCardItem>
           <VCardTitle>{{ organisation?.organisationName }}</VCardTitle>
-          <VCardSubtitle>{{ organisation?.merchant.length }} Merchants</VCardSubtitle>
+          <VCardSubtitle>{{ organisation?.merchant.length }} {{ $t("Merchants") }}</VCardSubtitle>
           <template #append>
             <div class="mt-n4 me-n2">
               <MoreBtn :menuList="moreList" @option-selected="handleOptionSelected"
@@ -180,7 +179,7 @@ const handleSnackbar = (message: string, color: string) => {
           <VList class="card-list">
             <VListItem v-if="organisation?.merchant.length === 0">
               <VListItemTitle class="font-weight-medium me-4">
-                No merchants available
+                {{ $t("No Merchant Available") }}
               </VListItemTitle>
             </VListItem>
             <VListItem v-else v-for="merchant in organisation?.merchant" :key="merchant.id">
@@ -210,16 +209,16 @@ const handleSnackbar = (message: string, color: string) => {
 
   <VDialog v-model="isDeleteMerchantConfirmationVisible" width="400">
     <VCard>
-      <VCardTitle class="headline">Are you sure?</VCardTitle>
+      <VCardTitle class="headline">{{ $t("Are you sure?") }}</VCardTitle>
       <VCardText>
-        Do you really want to delete this merchant? This action cannot be undone.
+        {{ $t("Do you really want to delete this merchant? This action cannot be undone.") }}
       </VCardText>
       <VCardActions>
         <VSpacer />
         <VBtn color="secondary" @click="isDeleteMerchantConfirmationVisible = false">
-          Cancel
+          {{ $t("Cancel") }}
         </VBtn>
-        <VBtn color="error" @click="confirmDeleteMerchant">Delete</VBtn>
+        <VBtn color="error" @click="confirmDeleteMerchant">{{ $t("Delete") }}</VBtn>
       </VCardActions>
     </VCard>
   </VDialog>

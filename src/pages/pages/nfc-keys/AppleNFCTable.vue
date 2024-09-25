@@ -11,9 +11,7 @@ const apikeys = [
 </script>
 
 <template>
-  <VTable
-    class="text-no-wrap"
-  >
+  <VTable class="text-no-wrap">
     <thead>
       <tr>
         <th>
@@ -35,10 +33,7 @@ const apikeys = [
     </thead>
 
     <tbody>
-      <tr
-        v-for="item in apikeys"
-        :key="item.name"
-      >
+      <tr v-for="item in apikeys" :key="item.name">
         <td>
           {{ item.name }}
         </td>
