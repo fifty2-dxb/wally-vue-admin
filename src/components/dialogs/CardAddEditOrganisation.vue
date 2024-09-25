@@ -92,6 +92,7 @@ const handleSaveOrganisation = async () => {
 
 <template>
   <VDialog :model-value="props.modelValue" @update:model-value="emit('update:modelValue', $event)" max-width="600px">
+    <DialogCloseBtn @click="emit('update:modelValue', false)" />
     <VCard class="pa-2 pa-sm-10">
       <VCardItem class="text-center">
         <VCardTitle>

@@ -20,7 +20,7 @@ export default [
       },
       {
         title: 'NFC Keys',
-        to: 'dashboards-crm',
+        to: 'pages-nfc-keys',
         icon: { icon: 'tabler-nfc' },
       },
       {
