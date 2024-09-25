@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router/auto'
 
 const emailRouteComponent = () => import('@/pages/apps/email/index.vue')
+const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
 
 // 👉 Redirects
 export const redirects: RouteRecordRaw[] = [
@@ -31,6 +32,20 @@ export const redirects: RouteRecordRaw[] = [
     path: '/pages/account-settings',
     name: 'pages-account-settings',
     redirect: () => ({ name: 'pages-account-settings-tab', params: { tab: 'account' } }),
+  },
+  {
+    path: '/pages/account-settings',
+    name: 'pages-account-settings',
+    redirect: () => ({ name: 'pages-account-settings-tab', params: { tab: 'account' } }),
+  },
+  {
+    path: '/activation/:serialNumber',
+    name: 'activation',
+    component: activationRouteComponent,
+    props: true, 
+    meta: {
+      requiresAuth: false,
+    },
   },
 ]
 
