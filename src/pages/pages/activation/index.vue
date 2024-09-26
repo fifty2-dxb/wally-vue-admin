@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { useActivationStore } from '@/stores/activation';
 import { defineEmits, onMounted, ref } from 'vue';
-import { VBtn, VCardText, VCardTitle, VCol, VForm, VRow, VTextField } from 'vuetify/components';
+import { VBtn, VCardText, VCardTitle, VCol, VForm, VRow, VSnackbar, VTextField } from 'vuetify/components';
 
 const emit = defineEmits(['submit', 'close']);
 const enrollment = ref({
@@ -14,6 +15,14 @@ const footerLogoSrc = ref('');
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
+
+const activationStore = useActivationStore();
+
+const showSnackbar = (message: string, color: string) => {
+  snackbarMessage.value = message;
+  snackbarColor.value = color;
+  snackbarVisible.value = true;
+};
 
 const checkThemeAndSetLogo = () => {
   const theme = document.cookie
@@ -32,9 +41,8 @@ const checkThemeAndSetLogo = () => {
 
 const fetchEnrollment = async () => {
   try {
-
-    let uri = window.location.href.split('/')
-    let slug = uri.pop()
+    let uri = window.location.href.split('/');
+    let slug = uri.pop();
     const response = await $wallyApi('/events/enrollment/' + slug, { method: 'GET' });
     enrollment.value = response;
     enrollment.value.fields.forEach((field: any) => {
@@ -51,23 +59,40 @@ onMounted(() => {
   fetchEnrollment();
 });
 
-
-const showSnackbar = (message: string, color: string) => {
-  snackbarMessage.value = message;
-  snackbarColor.value = color;
-  snackbarVisible.value = true;
-};
-
-const submitForm = () => {
+const submitForm = async () => {
   const requiredFields = enrollment.value.fields.some(field => !formFields.value[field.title]);
+
   if (requiredFields) {
     showSnackbar('All fields are required.', 'error');
     return;
   }
 
-  showSnackbar('Form submitted successfully!', 'success');
-  emit('submit');
+  const formattedFormFields = Object.keys(formFields.value).reduce((acc, key) => {
+    if (key.toLowerCase() === 'phone number') {
+      acc['phonenumber'] = String(formFields.value[key]);
+    } else {
+      acc[key.toLowerCase()] = String(formFields.value[key]);
+    }
+    return acc;
+  }, {});
+
+
+  try {
+    await activationStore.addCustomerActivation(formattedFormFields);
+    showSnackbar('Form submitted successfully!', 'success');
+    emit('submit');
+    enrollment.value.fields.forEach((field: any) => {
+      formFields.value[field.title] = '';
+    });
+
+  } catch (error) {
+    showSnackbar(error.response?._data.message, 'error');
+    console.error('Error submitting form:', error);
+  }
 };
+
+
+
 </script>
 
 <template>
@@ -100,4 +125,7 @@ const submitForm = () => {
       </VRow>
     </VResponsive>
   </VContainer>
+  <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>
