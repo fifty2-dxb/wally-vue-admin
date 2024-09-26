@@ -185,12 +185,13 @@ const fieldTypes = ref([
 ]);
 
 onMounted(() => {
-  /*data.value.template.enrollmentForm.fields = [
+  data.value.template.enrollmentForm.fields = [
     { title: "Name", required: true, type: "text" },
     { title: "Surname", required: true, type: "text" },
     { title: "Phonenumber", required: true, type: "text" },
     { title: "Email", required: true, type: "text" },
-  ];*/
+  ];
+
 });
 
 const addEnrollmentForm = () => {

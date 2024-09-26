@@ -2,6 +2,8 @@
 import { ref } from 'vue';
 import WallyStepHeader from '@/components/global/WallyStepHeader.vue';
 import TemplateService from '@/services/TemplateService';
+import { useConfigStore } from '@/@core/stores/config';
+import { router } from '@/plugins/1.router';
 
 
 
@@ -38,6 +40,46 @@ const templates = ref(TemplateService.getTemplates());
 const loyaltyData = ref({
   template: templates.value[0],
 });
+
+const configStore = useConfigStore();
+const saving = ref(false);
+const saveCampaign = async () => {
+  
+  let merchantId = configStore.activeMerchant?.merchantGuid;
+  let appleSettings = {
+    "webServiceURL": "https://b390-2a02-a46d-9f37-1-ccc-d820-b275-ea8d.ngrok-free.app/",
+    "teamIdentifier": "772239U7XT",
+    "sharingProhibited": false,
+    "passTypeIdentifier": "pass.com.freshwallet.loyalhero",
+    "authenticationToken": "Lu@ByGo9G6QMepMKQxA4",
+    "associatedStoreIdentifiers": []
+  };
+  let postBody = {
+    "merchantGuid": merchantId,
+    "styleSettings": {type:"stamp",...loyaltyData.value.template,appleSettings},
+    "validFromDt": {},
+    "validTillDt": {}
+  };
+  try {
+    saving.value = true;
+    const res = await $wallyApi('/campaigns', {
+      method: 'POST',
+      onResponseError({ response }) {
+        console.log(response);
+      },
+      body: JSON.stringify(postBody),
+    });
+    saving.value = false;
+    const { status, campaign_details } = res;
+
+    if (status === 'success') {
+      router.push('/pages/campaigns');
+    }
+  } catch (err) {
+    console.error(err);
+    saving.value = false;
+  }
+};
 
 
 </script>
@@ -116,7 +158,7 @@ const loyaltyData = ref({
                       )
                     }}
                   </p>
-                  <v-btn class="mb-4 mt-2" color="primary" @click="saveCampaign()">
+                  <v-btn class="mb-4 mt-2" color="primary" @click="saveCampaign()" :loading="saving">
                     {{ $t("Submit") }}
                   </v-btn>
                 </v-col>

@@ -20,6 +20,7 @@
                         "
                         :density="data.template.enrollmentForm.design.density"
                         :class="data.template.enrollmentForm.design.textColor"
+                        class="mb-4"
                     ></v-text-field>
                 </div>
                 <v-btn
@@ -40,6 +41,7 @@
                     variant="outlined"
                     outlined
                     v-model="data.template.enrollmentForm.title"
+                    class="mb-4"
                 ></v-text-field>
                 <v-row>
                     <v-col>
@@ -68,50 +70,6 @@
                     </v-col>
                 </v-row>
 
-                <v-autocomplete
-                    label="Page Background Color"
-                    :items="backgroundColors"
-                    v-model="
-                        data.template.enrollmentForm.design.pageBackgroundColor
-                    "
-                    variant="outlined"
-                >
-                    <template v-slot:item="{ props, item }">
-                        <v-list-item
-                            v-bind="props"
-                            :class="item?.raw"
-                        ></v-list-item>
-                    </template>
-                </v-autocomplete>
-                <v-autocomplete
-                    label="Form Background Color"
-                    :items="backgroundColors"
-                    v-model="
-                        data.template.enrollmentForm.design.backgroundColor
-                    "
-                    variant="outlined"
-                >
-                    <template v-slot:item="{ props, item }">
-                        <v-list-item
-                            v-bind="props"
-                            :class="item?.raw"
-                        ></v-list-item>
-                    </template>
-                </v-autocomplete>
-                <v-autocomplete
-                    label="Field Color"
-                    :items="textColors"
-                    v-model="data.template.enrollmentForm.design.textColor"
-                    variant="outlined"
-                >
-                    <template v-slot:item="{ props, item }">
-                        <v-list-item
-                            v-bind="props"
-                            :class="item?.raw"
-                        ></v-list-item>
-                    </template>
-                </v-autocomplete>
-
                 <v-row>
                     <v-col>
                         <v-select
@@ -124,6 +82,7 @@
                             item-title="title"
                             item-value="key"
                             variant="outlined"
+                            class="mb-4"
                         ></v-select>
                     </v-col>
                     <v-col>
@@ -134,6 +93,7 @@
                                 data.template.enrollmentForm.design.buttonColor
                             "
                             variant="outlined"
+                            class="mb-4"
                         >
                             <template v-slot:item="{ props, item }">
                                 <v-list-item
