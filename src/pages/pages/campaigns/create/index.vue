@@ -41,6 +41,8 @@ const loyaltyData = ref({
   template: templates.value[0],
 });
 
+console.log(loyaltyData);
+
 const configStore = useConfigStore();
 const saving = ref(false);
 const saveCampaign = async () => {

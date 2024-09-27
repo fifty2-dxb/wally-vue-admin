@@ -1,6 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router/auto'
 
 const emailRouteComponent = () => import('@/pages/apps/email/index.vue')
+const showRouteComponent = () => import('@/pages/pages/campaigns/show/index.vue')
+const showUpdateComponent = () => import('@/pages/pages/campaigns/update/index.vue')
 
 // 👉 Redirects
 export const redirects: RouteRecordRaw[] = [
@@ -58,6 +60,16 @@ export const routes: RouteRecordRaw[] = [
     },
   },
 
+  {
+    path: '/pages/campaigns/show/:id',
+    name: 'pages-campaigns-show',
+    component: showRouteComponent,
+  },
+  {
+    path: '/pages/campaigns/update/:id',
+    name: 'pages-campaign-update',
+    component: showUpdateComponent,
+  },
   {
     path: '/dashboards/logistics',
     name: 'dashboards-logistics',
