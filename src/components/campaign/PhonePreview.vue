@@ -67,23 +67,23 @@
                                         :style="{
                                             background:
                                                 data.template.properties
-                                                    .background,
+                                                    ?.background,
                                             color: data.template.properties
-                                                .text,
+                                                ?.text,
                                         }"
                                     >
                                         <div class="apple-card-header mt-4">
                                             <img
                                                 :src="
                                                     data.template.properties
-                                                        .logo
+                                                        ?.logo
                                                 "
                                                 style="height: 37px"
                                             />
                                             <div
                                                 class="head-position"
                                                 v-if="
-                                                    data.template.fields.apple
+                                                    data.template.fields?.apple
                                                         .f1 != 'empty'
                                                 "
                                             >
@@ -93,23 +93,23 @@
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f1
-                                                        ).label
+                                                                ?.apple.f1
+                                                        )?.label
                                                     }}
                                                 </p>
                                                 <p class="head-position--value">
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f1
-                                                        ).sample
+                                                                ?.apple.f1
+                                                        )?.sample
                                                     }}
                                                 </p>
                                             </div>
                                             <div
                                                 class="head-position"
                                                 v-if="
-                                                    data.template.fields.apple
+                                                    data.template.fields?.apple
                                                         .f2 != 'empty'
                                                 "
                                             >
@@ -119,16 +119,16 @@
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f2
-                                                        ).label
+                                                                ?.apple.f2
+                                                        )?.label
                                                     }}
                                                 </p>
                                                 <p class="head-position--value">
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f2
-                                                        ).sample
+                                                                ?.apple.f2
+                                                        )?.sample
                                                     }}
                                                 </p>
                                             </div>
@@ -137,7 +137,7 @@
                                             <v-img
                                                 :src="
                                                     data.template.properties
-                                                        .stampImagePreview
+                                                        ?.stampImagePreview
                                                 "
                                                 alt=""
                                                 width="100%"
@@ -148,7 +148,7 @@
                                             <div
                                                 class="container-value"
                                                 v-if="
-                                                    data.template.fields.apple
+                                                    data.template.fields?.apple
                                                         .f3 != 'empty'
                                                 "
                                             >
@@ -156,47 +156,47 @@
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f3
-                                                        ).label
+                                                                ?.apple.f3
+                                                        )?.label
                                                     }}
                                                 </p>
                                                 <p class="field-value">
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f3
-                                                        ).sample
+                                                                ?.apple.f3
+                                                        )?.sample
                                                     }}
                                                 </p>
                                             </div>
                                             <div
                                                 class="container-value"
                                                 v-if="
-                                                    data.template.fields.apple
-                                                        .f4 != 'empty'
+                                                    data.template.fields?.apple
+                                                        ?.f4 != 'empty'
                                                 "
                                             >
                                                 <p class="field-text">
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f4
-                                                        ).label
+                                                                ?.apple.f4
+                                                        )?.label
                                                     }}
                                                 </p>
                                                 <p class="field-value">
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f4
-                                                        ).sample
+                                                                ?.apple.f4
+                                                        )?.sample
                                                     }}
                                                 </p>
                                             </div>
                                             <div
                                                 class="container-value"
                                                 v-if="
-                                                    data.template.fields.apple
+                                                    data.template.fields?.apple
                                                         .f5 != 'empty'
                                                 "
                                             >
@@ -204,16 +204,16 @@
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f5
-                                                        ).label
+                                                                ?.apple.f5
+                                                        )?.label
                                                     }}
                                                 </p>
                                                 <p class="field-value">
                                                     {{
                                                         getField(
                                                             data.template.fields
-                                                                .apple.f5
-                                                        ).sample
+                                                                ?.apple.f5
+                                                        )?.sample
                                                     }}
                                                 </p>
                                             </div>

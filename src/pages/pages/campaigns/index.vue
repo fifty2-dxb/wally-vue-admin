@@ -81,7 +81,7 @@ const headers = [
 
             <VCardActions class="justify-space-between mt-10">
 
-              <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.merchant.merchantGuid } }">
+              <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid } }">
                 <VIcon icon="tabler-folder-open" />
                 <span class="ms-2">Show Campaign</span>
               </VBtn>

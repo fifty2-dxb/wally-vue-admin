@@ -3,6 +3,8 @@ import iphoneLayout from '@images/iphoneLayout.png';
 const router = useRouter()
 
 const route = useRoute('pages-campaigns-show')
+const merchantGuid = route.params.id;
+console.log('Received merchantGuid:', merchantGuid);
 
 const widgetData = ref([
   { title: 'Customers', value: '250', icon: 'tabler-smart-home', desc: '5 new', change: 5.7 },
@@ -120,7 +122,7 @@ const showCustomer = (id: number) => {
 
               <VCardActions class="justify-space-between mt-10">
 
-                <VBtn>
+                <VBtn :to="{ name: 'pages-campaign-update', params: { id: merchantGuid } }">
                   <VIcon icon="tabler-folder" />
                   <span class="ms-2">Edit Campaign</span>
                 </VBtn>

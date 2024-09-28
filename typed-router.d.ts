@@ -120,6 +120,7 @@ declare module 'vue-router/auto-routes' {
     'pages-campaigns-create': RouteRecordInfo<'pages-campaigns-create', '/pages/campaigns/create', Record<never, never>, Record<never, never>>,
     'pages-campaigns-settings': RouteRecordInfo<'pages-campaigns-settings', '/pages/campaigns/settings', Record<never, never>, Record<never, never>>,
     'pages-campaigns-show': RouteRecordInfo<'pages-campaigns-show', '/pages/campaigns/show', Record<never, never>, Record<never, never>>,
+    'pages-campaigns-update': RouteRecordInfo<'pages-campaigns-update', '/pages/campaigns/update', Record<never, never>, Record<never, never>>,
     'pages-cards-card-actions': RouteRecordInfo<'pages-cards-card-actions', '/pages/cards/card-actions', Record<never, never>, Record<never, never>>,
     'pages-cards-card-advance': RouteRecordInfo<'pages-cards-card-advance', '/pages/cards/card-advance', Record<never, never>, Record<never, never>>,
     'pages-cards-card-basic': RouteRecordInfo<'pages-cards-card-basic', '/pages/cards/card-basic', Record<never, never>, Record<never, never>>,
