@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useConfigStore } from '@/@core/stores/config';
 import { useCertificateStore } from '@/stores/certificate';
 import { defineEmits, defineProps, ref, watch } from 'vue';
 import { VBtn, VCard, VCardItem, VCardText, VCardTitle, VCol, VDialog, VForm, VRow, VTextField } from 'vuetify/components';
@@ -29,6 +30,7 @@ watch(open, (newValue) => {
 });
 
 const certificateStore = useCertificateStore();
+const configStore = useConfigStore()
 
 watch(() => props.editCertificate, (newCertificate) => {
   if (newCertificate) {
@@ -59,6 +61,7 @@ const submitForm = async () => {
       name: name.value,
       passTypeId: '',
       url: '',
+      organisationGuid : configStore.activeOrganisation?.organisationGuid
     };
 
     try {

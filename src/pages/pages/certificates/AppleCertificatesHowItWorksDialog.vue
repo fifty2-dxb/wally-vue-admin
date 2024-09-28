@@ -23,7 +23,7 @@ const closeDialog = () => {
     <DialogCloseBtn @click="closeDialog" />
     <VCard class="pa-6">
       <VCardTitle class="text-h5 font-weight-bold">
-        Apple Wallet Certificates
+        {{ $t("Apple Wallet Certificate") }}
       </VCardTitle>
       <VDivider class="my-4" />
 
