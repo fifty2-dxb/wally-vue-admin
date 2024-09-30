@@ -14,7 +14,7 @@ const authThemeMask = useGenerateImageVariant(miscMaskLight, miscMaskDark)
         {{ $t("Successfully Activated") }}
       </h4>
       <p class="text-body-1 mb-6">
-        {{ $t("You have successfully activated Wally card") }}
+        {{ $t("You successfully activated your pass") }}
       </p>
     </div>
 
@@ -25,7 +25,7 @@ const authThemeMask = useGenerateImageVariant(miscMaskLight, miscMaskDark)
     </div>
 
     <div class="misc-avatar w-100 text-center">
-      <VImg :src="successfulylActivated" alt="activated" :max-height="$vuetify.display.smAndDown ? 350 : 500"
+      <VImg :src="successfulylActivated" alt="activated" :max-height="$vuetify.display.smAndDown ? 300 : 340"
         class="mx-auto" />
     </div>
 
