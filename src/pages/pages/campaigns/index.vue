@@ -15,7 +15,6 @@ watch(
         const res = await $wallyApi('/campaigns/merchant/' + newMerchant.merchantGuid, {
           method: 'GET',
           onResponseError({ response }) {
-            console.log(response);
           },
         });
 
