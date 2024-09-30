@@ -36,23 +36,22 @@ const fetchCampaignById = async (campaignGuid: string) => {
       onResponseError({ response }) {
       }
     });
-
-    const { status, campaign_details } = response;
+    const { status, campaign } = response;
 
     if (status === 'success') {
       loyaltyData.value = {
-        ...campaign_details,
-        template: campaign_details.styleSettings || {}
+        ...campaign,
+        template: campaign.styleSettings || {}
       };
       loading.value = false;
     }
   } catch (error) {
-    loading.value = false; 
+    loading.value = false;
   }
 };
 
 onMounted(() => {
-  fetchCampaignById(campaignGuid);
+  fetchCampaignById(campaignGuid)
 });
 
 const saveCampaign = async () => {
@@ -78,7 +77,6 @@ const saveCampaign = async () => {
     const res = await $wallyApi(`/campaigns/${campaignGuid}`, {
       method: 'PATCH',
       onResponseError({ response }) {
-        console.log(response);
       },
       body: JSON.stringify(postBody),
     });
@@ -90,7 +88,6 @@ const saveCampaign = async () => {
       router.push('/pages/campaigns');
     }
   } catch (err) {
-    console.error(err);
     saving.value = false;
   }
 };
