@@ -1,13 +1,14 @@
+import { useConfigStore } from "@/@core/stores/config";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
 export const useCertificateStore = defineStore("certificates", () => {
   const certificates = ref([]);
   const selectedCertificate = ref(null);
-
+  const configStore = useConfigStore()
   const fetchCertificates = async () => {
     try {
-      const response = await $wallyApi("/certificates", { method: "GET" });
+      const response = await $wallyApi(`/certificates/${configStore.activeOrganisation.organisationGuid}`, { method: "GET" });
       certificates.value = response.certificates || [];
     } catch (error) {
       console.error("Error fetching certificates", error);
