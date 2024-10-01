@@ -8,6 +8,16 @@ import { router } from '@/plugins/1.router';
 
 
 const currentStep = ref(0);
+const snackbarVisible = ref(false);
+const snackbarMessage = ref('');
+const snackbarColor = ref('');
+
+const showSnackbar = (message: string, color: string) => {
+  snackbarMessage.value = message;
+  snackbarColor.value = color;
+  snackbarVisible.value = true;
+};
+
 const steps = [
   {
     title: 'Select Template',
@@ -41,8 +51,6 @@ const loyaltyData = ref({
   template: templates.value[0],
 });
 
-console.log(loyaltyData);
-
 const configStore = useConfigStore();
 const saving = ref(false);
 const saveCampaign = async () => {
@@ -75,10 +83,11 @@ const saveCampaign = async () => {
     const { status, campaign_details } = res;
 
     if (status === 'success') {
+      loyaltyData.value.template = []
       router.push('/pages/campaigns');
     }
   } catch (err) {
-    console.error(err);
+    showSnackbar(err.response._data.message, 'error');
     saving.value = false;
   }
 };
@@ -189,4 +198,7 @@ const saveCampaign = async () => {
       </v-card>
     </VCol>
   </VRow>
+  <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
+  {{ snackbarMessage }}
+</VSnackbar>
 </template>

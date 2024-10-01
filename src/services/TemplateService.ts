@@ -116,9 +116,45 @@ const templates = [
         f6: "empty",
       },
     },
+    additionalFields: [
+      {
+        title: "Reward",
+        description: "Reward your customers with a special discount or item",
+        type: "Text",
+      },
+      {
+        title: "Terms",
+        description: "Enter your Terms and Conditions",
+        type: "Text",
+      },
+    ],
     enrollmentForm: {
       fields: [],
       design: {},
+    },
+    details: {
+      cardDescription: "Get rewarded after 10 purchases",
+      howToEarn: "Earn rewards by making purchases",
+      businessName: "Your Business",
+      rewardDetails: "10% off on your next purchase",
+      description: "Please provide Reward details",
+      stampSuccessMessage: "{#} more purchases for a reward!",
+      rewardSuccessMessage: "{#} more purchases for your reward!",
+      locations: [
+        {
+          name: "Main Branch",
+          address: "456 High St.",
+          display: true,
+          message: "Welcome to our Main Branch!",
+        },
+      ],
+      usefulLinks: [
+        {
+          text: "Check out our Facebook",
+          link: "http://facebook.com",
+          type: "Url",
+        },
+      ],
     },
   },
   {
@@ -152,9 +188,45 @@ const templates = [
         f6: "empty",
       },
     },
+    additionalFields: [
+      {
+        title: "Reward",
+        description: "Offer a discount or a free service to loyal customers",
+        type: "Text",
+      },
+      {
+        title: "Terms",
+        description: "Please enter your Terms and Conditions",
+        type: "Text",
+      },
+    ],
     enrollmentForm: {
       fields: [],
       design: {},
+    },
+    details: {
+      cardDescription: "Get a free haircut after 5 visits",
+      howToEarn: "Earn a stamp for every visit",
+      businessName: "Barber Shop",
+      rewardDetails: "Free haircut",
+      description: "Fill in Reward details here",
+      stampSuccessMessage: "{#} more visits until your free haircut!",
+      rewardSuccessMessage: "{#} more visits for your reward!",
+      locations: [
+        {
+          name: "Downtown Barber Shop",
+          address: "789 Salon Lane",
+          display: true,
+          message: "Visit us at our Downtown branch!",
+        },
+      ],
+      usefulLinks: [
+        {
+          text: "Follow us on Instagram",
+          link: "http://instagram.com",
+          type: "Url",
+        },
+      ],
     },
   },
   {
@@ -188,11 +260,48 @@ const templates = [
         f6: "empty",
       },
     },
+    additionalFields: [
+      {
+        title: "Reward",
+        description: "Offer beauty service discounts or free treatments",
+        type: "Text",
+      },
+      {
+        title: "Terms",
+        description: "Please add Terms and Conditions",
+        type: "Text",
+      },
+    ],
     enrollmentForm: {
       fields: [],
       design: {},
     },
+    details: {
+      cardDescription: "Get a free treatment after 5 visits",
+      howToEarn: "Earn a stamp for each beauty treatment",
+      businessName: "Beauty Salon",
+      rewardDetails: "Free beauty treatment",
+      description: "Fill in Reward details",
+      stampSuccessMessage: "{#} more visits until your free treatment!",
+      rewardSuccessMessage: "{#} more visits for your reward!",
+      locations: [
+        {
+          name: "Salon Branch",
+          address: "101 Beauty St.",
+          display: true,
+          message: "Welcome to our Salon!",
+        },
+      ],
+      usefulLinks: [
+        {
+          text: "Find us on Instagram",
+          link: "http://instagram.com",
+          type: "Url",
+        },
+      ],
+    },
   },
+
   {
     name: "Eye Brow",
     key: "eyebrow",
@@ -224,9 +333,45 @@ const templates = [
         f6: "empty",
       },
     },
+    additionalFields: [
+      {
+        title: "Reward",
+        description: "Offer discounts on eyebrow services or free services",
+        type: "Text",
+      },
+      {
+        title: "Terms",
+        description: "Please provide Terms and Conditions",
+        type: "Text",
+      },
+    ],
     enrollmentForm: {
       fields: [],
       design: {},
+    },
+    details: {
+      cardDescription: "Get a free eyebrow service after 5 visits",
+      howToEarn: "Earn a stamp for every eyebrow service",
+      businessName: "Eyebrow Salon",
+      rewardDetails: "Free eyebrow shaping",
+      description: "Fill in Reward details here",
+      stampSuccessMessage: "{#} more visits until your free service!",
+      rewardSuccessMessage: "{#} more visits for your reward!",
+      locations: [
+        {
+          name: "Downtown Eyebrow Salon",
+          address: "123 Brow St.",
+          display: true,
+          message: "Visit us at our Downtown location!",
+        },
+      ],
+      usefulLinks: [
+        {
+          text: "Follow us on Pinterest",
+          link: "http://pinterest.com",
+          type: "Url",
+        },
+      ],
     },
   },
   {
@@ -260,9 +405,45 @@ const templates = [
         f6: "empty",
       },
     },
+    additionalFields: [
+      {
+        title: "Reward",
+        description: "Provide discounts on nail services or free treatments",
+        type: "Text",
+      },
+      {
+        title: "Terms",
+        description: "Add your Terms and Conditions here",
+        type: "Text",
+      },
+    ],
     enrollmentForm: {
       fields: [],
       design: {},
+    },
+    details: {
+      cardDescription: "Get a free nail polish change after 5 visits",
+      howToEarn: "Earn a stamp for every nail service",
+      businessName: "Nail Salon",
+      rewardDetails: "Free nail service",
+      description: "Fill in Reward details here",
+      stampSuccessMessage: "{#} more visits until your free nail service!",
+      rewardSuccessMessage: "{#} more visits for your reward!",
+      locations: [
+        {
+          name: "Nail Salon Main Branch",
+          address: "456 Nail Ave.",
+          display: true,
+          message: "Welcome to our Main Branch!",
+        },
+      ],
+      usefulLinks: [
+        {
+          text: "Check out our YouTube channel",
+          link: "http://youtube.com",
+          type: "Url",
+        },
+      ],
     },
   },
 ];

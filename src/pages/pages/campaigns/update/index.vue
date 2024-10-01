@@ -11,6 +11,16 @@ const campaignGuid = route.params.id;
 const currentStep = ref(0);
 const loading = ref(true);
 
+const snackbarVisible = ref(false);
+const snackbarMessage = ref('');
+const snackbarColor = ref('');
+
+const showSnackbar = (message: string, color: string) => {
+  snackbarMessage.value = message;
+  snackbarColor.value = color;
+  snackbarVisible.value = true;
+};
+
 const steps = [
   { title: 'Card Design', icon: 'tabler-artboard' },
   { title: 'Fields', icon: 'tabler-list-details' },
@@ -46,6 +56,7 @@ const fetchCampaignById = async (campaignGuid: string) => {
       loading.value = false;
     }
   } catch (error) {
+    showSnackbar(error.response._data.message, 'error');
     loading.value = false;
   }
 };
@@ -174,4 +185,7 @@ const saveCampaign = async () => {
       </v-card>
     </v-col>
   </v-row>
+  <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
+  {{ snackbarMessage }}
+</VSnackbar>
 </template>
