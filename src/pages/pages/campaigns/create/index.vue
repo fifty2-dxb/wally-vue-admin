@@ -46,6 +46,7 @@ const steps = [
 ];
 
 const templates = ref(TemplateService.getTemplates());
+const originalTemplates = ref(JSON.parse(JSON.stringify(templates.value)));
 
 const loyaltyData = ref({
   template: templates.value[0],
@@ -54,7 +55,7 @@ const loyaltyData = ref({
 const configStore = useConfigStore();
 const saving = ref(false);
 const saveCampaign = async () => {
-  
+
   let merchantId = configStore.activeMerchant?.merchantGuid;
   let appleSettings = {
     "webServiceURL": "https://b390-2a02-a46d-9f37-1-ccc-d820-b275-ea8d.ngrok-free.app/",
@@ -66,7 +67,7 @@ const saveCampaign = async () => {
   };
   let postBody = {
     "merchantGuid": merchantId,
-    "styleSettings": {type:"stamp",...loyaltyData.value.template,appleSettings},
+    "styleSettings": { type: "stamp", ...loyaltyData.value.template, appleSettings },
     "validFromDt": {},
     "validTillDt": {}
   };
@@ -83,8 +84,12 @@ const saveCampaign = async () => {
     const { status, campaign_details } = res;
 
     if (status === 'success') {
-      loyaltyData.value.template = []
       router.push('/pages/campaigns');
+      templates.value = JSON.parse(JSON.stringify(originalTemplates.value));
+      loyaltyData.value = {
+        template: templates.value[0],
+      };
+      currentStep.value = 0;
     }
   } catch (err) {
     showSnackbar(err.response._data.message, 'error');
@@ -92,7 +97,13 @@ const saveCampaign = async () => {
   }
 };
 
-
+onBeforeMount(() => {
+  templates.value = JSON.parse(JSON.stringify(originalTemplates.value));
+  loyaltyData.value = {
+    template: templates.value[0],
+  };
+  currentStep.value = 0;
+});
 </script>
 
 <template>
