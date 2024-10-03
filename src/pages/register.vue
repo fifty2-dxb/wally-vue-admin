@@ -48,43 +48,53 @@ const errors = ref<Record<string, string | undefined>>({
 
 const userStore = useUserStore();
 
+
 const refVForm = ref<VForm>()
 
 const router = useRouter()
 
 const showSnackbar = ref(false)
 const snackbarMessage = ref('')
-const snackbarType = ref('success')
+const snackbarType = ref('success') // 'success' or 'error'
 
 const register = async () => {
   try {
-    const userData = {
-      email: form.value.email,
-      password: form.value.password,
-      name: form.value.name,
-      cLimit: form.value.cLimit,
-      mLimit: form.value.mLimit,
-      oLimit: form.value.oLimit,
-      revokeAccess: form.value.revokeAccess,
-      LastLogonTime: new Date().toISOString(),
-    };
+    const res = await $wallyApi('/users/register', {
+      method: 'POST',
+      body: {
+        email: form.value.email,
+        password: form.value.password,
+        name: form.value.name,
+        cLimit: form.value.cLimit,
+        mLimit: form.value.mLimit,
+        oLimit: form.value.oLimit,
+        revokeAccess: form.value.revokeAccess,
+        LastLogonTime: new Date().toISOString(),
+      },
+      onResponseError({ response }) {
+        const errorMessages = response._data.message;
 
-    await userStore.registerUser(userData);
+        const errorMessage = Array.isArray(errorMessages) ? errorMessages[0] : errorMessages;
+
+        showSnackbar.value = true;
+        snackbarMessage.value = errorMessage;
+        snackbarType.value = 'error';
+      },
+    })
 
     showSnackbar.value = true;
     snackbarMessage.value = 'Registration successful.';
     snackbarType.value = 'success';
+    console.log('Redirecting to: /organisations');
 
-    router.push('/pages/organisations');
-  } catch (error) {
-    showSnackbar.value = true;
-    snackbarType.value = 'error';
-    const errorMessages = Array.isArray(error.response?._data?.message)
-      ? error.response._data.message.join(', ')
-      : error.response?._data?.message || "An error occurred";
-    snackbarMessage.value = errorMessages
+    setTimeout(() => {
+      router.replace('/pages/organisations');
+    }, 3000);
+
+  } catch (err) {
+    console.error(err);
   }
-}
+};
 
 const onSubmit = () => {
   refVForm.value?.validate().then(({ valid: isValid }) => {
