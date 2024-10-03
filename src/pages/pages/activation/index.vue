@@ -16,6 +16,8 @@ const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
 const router = useRouter()
+console.log(router);
+const serialNumber = ref(router.currentRoute.value.params.serialNumber); 
 
 const activationStore = useActivationStore();
 
@@ -43,6 +45,7 @@ const checkThemeAndSetLogo = () => {
 const fetchEnrollment = async () => {
   try {
     let uri = window.location.href.split('/');
+    console.log(uri);
     let slug = uri.pop();
     const response = await $wallyApi('/events/enrollment/' + slug, { method: 'GET' });
     enrollment.value = response;
@@ -71,26 +74,34 @@ const submitForm = async () => {
   const formattedFormFields = Object.keys(formFields.value).reduce((acc, key) => {
     if (key.toLowerCase() === 'phone number') {
       acc['phonenumber'] = String(formFields.value[key]);
+    } else if (key.toLowerCase() === 'emailaddress') {
+      acc['email'] = String(formFields.value[key]);
     } else {
       acc[key.toLowerCase()] = String(formFields.value[key]);
     }
     return acc;
   }, {});
 
+  // Add the serialNumber to the form data
+  formattedFormFields['serialNumber'] = serialNumber.value;
 
   try {
+    console.log('fields',formattedFormFields);
     await activationStore.addCustomerActivation(formattedFormFields);
     showSnackbar('Form submitted successfully!', 'success');
     emit('submit');
     enrollment.value.fields.forEach((field: any) => {
       formFields.value[field.title] = '';
     });
-    router.push({ name: 'activation-success' })
+    router.push({ name: 'activation-success' });
   } catch (error) {
     showSnackbar(error.response?._data.message, 'error');
     console.error('Error submitting form:', error);
   }
 };
+
+
+
 
 </script>
 
