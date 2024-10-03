@@ -15,6 +15,7 @@ const footerLogoSrc = ref('');
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
+const router = useRouter()
 
 const activationStore = useActivationStore();
 
@@ -84,14 +85,12 @@ const submitForm = async () => {
     enrollment.value.fields.forEach((field: any) => {
       formFields.value[field.title] = '';
     });
-
+    router.push({ name: 'activation-success' })
   } catch (error) {
     showSnackbar(error.response?._data.message, 'error');
     console.error('Error submitting form:', error);
   }
 };
-
-
 
 </script>
 
