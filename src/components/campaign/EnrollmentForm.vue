@@ -83,7 +83,7 @@
           </div>
         </v-col>
         <v-col cols="12">
-          <v-radio-group>
+          <v-radio-group v-model="userAgreement">
             <v-radio label="Standard page" value="one"></v-radio>
             <v-radio label="User your own text and page" value="two"></v-radio>
           </v-radio-group>
@@ -167,6 +167,10 @@ import { ref, watch, computed, onMounted } from "vue";
 const props = defineProps(["modelValue"]);
 const emits = defineEmits(["update:modelValue"]);
 const editModal = ref(false);
+const emailMarketing = ref(false);
+const smsMarketing = ref(false);
+const userAgreement = ref("");
+
 const data = computed({
   get() {
     return props.modelValue;
@@ -192,6 +196,11 @@ onMounted(() => {
     { title: "Email", required: true, type: "text" },
   ];
 
+  if (data.value.template.enrollmentForm.marketingPreferences) {
+    emailMarketing.value = data.value.template.enrollmentForm.marketingPreferences.emailMarketing || false;
+    smsMarketing.value = data.value.template.enrollmentForm.marketingPreferences.smsMarketing || false;
+    userAgreement.value = data.value.template.enrollmentForm.marketingPreferences.userAgreement || "";
+  }
 });
 
 const addEnrollmentForm = () => {
@@ -211,4 +220,13 @@ const showEditModal = (index) => {
 const deleteField = (index) => {
   data.value.template.enrollmentForm.fields.splice(index, 1);
 };
+
+watch([emailMarketing, smsMarketing, userAgreement], () => {
+  data.value.template.enrollmentForm.marketingPreferences = {
+    emailMarketing: emailMarketing.value,
+    smsMarketing: smsMarketing.value,
+    userAgreement: userAgreement.value,
+  };
+});
+
 </script>

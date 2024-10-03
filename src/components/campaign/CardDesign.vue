@@ -297,6 +297,19 @@
                 </v-btn>
               </div>
             </template>
+            <template v-slot:default="{ isActive }">
+              <v-card>
+                <v-text class="text-h5 fw-bold text-primary text-center my-4" v-if="value.template.properties.backgroundImage">
+                  {{ $t("Preview") }}</v-text>
+                <v-img v-bind="props" :src="value.template.properties.backgroundImage" v-if="value.template.properties.backgroundImage"
+                  height="300px" class="mb-8"></v-img>
+                <v-card-text class="px-8 pt-8">
+                  <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
+                    v-model="files.backgroundImage" @change="uploadImage($event, 'backgroundImage')"></v-file-input>
+                </v-card-text>
+              </v-card>
+            </template>
+
           </v-dialog>
         </v-col>
       </v-row>
