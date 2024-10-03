@@ -35,6 +35,20 @@ export const redirects: RouteRecordRaw[] = [
     name: 'pages-account-settings',
     redirect: () => ({ name: 'pages-account-settings-tab', params: { tab: 'account' } }),
   },
+  {
+    path: '/pages/account-settings',
+    name: 'pages-account-settings',
+    redirect: () => ({ name: 'pages-account-settings-tab', params: { tab: 'account' } }),
+  },
+  {
+    path: '/activation/:serialNumber',
+    name: 'activation',
+    component: activationRouteComponent,
+    props: true, 
+    meta: {
+      requiresAuth: false,
+    },
+  },
 ]
 
 export const routes: RouteRecordRaw[] = [
