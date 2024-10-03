@@ -44,7 +44,8 @@ export const redirects: RouteRecordRaw[] = [
     meta: {
       requiresAuth: false,
     },
-    {
+  },
+  {
     path: '/activation/success',
     name: 'activation-success',
     component: activatioSuccessnRouteComponent,
