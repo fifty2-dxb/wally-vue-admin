@@ -41,7 +41,7 @@
                   height="300px" class="mb-8"></v-img>
                 <v-card-text class="px-8 pt-8">
                   <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.logo" @change="setImage('logo')"></v-file-input>
+                    v-model="files.logo" @change="uploadImage($event, 'logo')"></v-file-input>
                 </v-card-text>
               </v-card>
             </template>
@@ -75,7 +75,7 @@
                   height="300px" class="mb-8"></v-img>
                 <v-card-text class="px-8 pt-8">
                   <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.icon" @change="setImage('icon')"></v-file-input>
+                    v-model="files.icon" @change="uploadImage($event, 'icon')"></v-file-input>
                 </v-card-text>
               </v-card>
             </template>
@@ -131,7 +131,7 @@
                   class="mb-8 w-100"></v-img>
                 <v-card-text class="px-8">
                   <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.stampImage" @change="setImage('stampImage')"></v-file-input>
+                    v-model="files.stampImage" @change="uploadImage($event, 'stampImage')"></v-file-input>
                 </v-card-text>
               </v-card>
             </template>
@@ -178,7 +178,7 @@
                   " height="300px" class="mb-8"></v-img>
                 <v-card-text class="px-8 mt-3">
                   <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.unStampImage" @change="setImage('unStampImage')"></v-file-input>
+                    v-model="files.unStampImage" @change="uploadImage($event, 'unStampImage')"></v-file-input>
                 </v-card-text>
               </v-card>
             </template>
@@ -666,23 +666,25 @@ const updateStampImage = function () {
   value.value.template.properties.stampImagePreview = createLoopyLoyaltyURL();
 };
 const files = ref({});
-const setImage = function (key) {
-  const file = files.value[key];
-  console.log(value);
-  //console.log('Selected File:', file);
+async function uploadImage(event, type) {
 
-  if (!file) {
-    return;
-  }
+  const file = event.target.files[0];
 
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = (e) => {
-    this.value.template.properties[key] = e.target.result;
+  if (file) {
+    const formData = new FormData();
+    formData.append('file', file);
 
-    if (key === "stampImage" || key === "unStampImage") {
-      console.log("its StampImage");
+    try {
+      const response = await $wallyApi('/photo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const imageUrl = response.url;
+      value.value.template.properties[type] = imageUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
     }
-  };
-};
+  }
+}
 </script>

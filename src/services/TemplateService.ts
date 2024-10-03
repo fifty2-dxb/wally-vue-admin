@@ -93,10 +93,10 @@ const templates = [
     properties: {
       background: "#ffffff",
       text: "#000000",
-      appleLogo: "/images/loyalty/templates/clean-apple-logo.png",
-      googleLogo: "/images/loyalty/templates/clean-google-logo.png",
-      appleStrip: "/images/loyalty/templates/clean-apple-strip.png",
-      googleStrip: "/images/loyalty/templates/clean-google-strip.png",
+      // appleLogo: "/images/loyalty/templates/clean-apple-logo.png",
+      // googleLogo: "/images/loyalty/templates/clean-google-logo.png",
+      // appleStrip: "/images/loyalty/templates/clean-apple-strip.png",
+      // googleStrip: "/images/loyalty/templates/clean-google-strip.png",
     },
     fields: {
       apple: {
@@ -165,10 +165,10 @@ const templates = [
     properties: {
       background: "#222222",
       text: "#ffffff",
-      appleLogo: "/images/loyalty/templates/barbershop-apple-logo.png",
-      googleLogo: "/images/loyalty/templates/barbershop-google-logo.png",
-      appleStrip: "/images/loyalty/templates/barbershop-apple-strip.png",
-      googleStrip: "/images/loyalty/templates/barbershop-google-strip.png",
+      // appleLogo: "/images/loyalty/templates/barbershop-apple-logo.png",
+      // googleLogo: "/images/loyalty/templates/barbershop-google-logo.png",
+      // appleStrip: "/images/loyalty/templates/barbershop-apple-strip.png",
+      // googleStrip: "/images/loyalty/templates/barbershop-google-strip.png",
     },
     fields: {
       apple: {
@@ -237,10 +237,10 @@ const templates = [
     properties: {
       background: "#412A66",
       text: "#ffffff",
-      appleLogo: "/images/loyalty/templates/beauty-salon-apple-logo.png",
-      googleLogo: "/images/loyalty/templates/beauty-salon-google-logo.png",
-      appleStrip: "/images/loyalty/templates/beauty-salon-apple-strip.png",
-      googleStrip: "/images/loyalty/templates/beauty-salon-google-strip.png",
+      // appleLogo: "/images/loyalty/templates/beauty-salon-apple-logo.png",
+      // googleLogo: "/images/loyalty/templates/beauty-salon-google-logo.png",
+      // appleStrip: "/images/loyalty/templates/beauty-salon-apple-strip.png",
+      // googleStrip: "/images/loyalty/templates/beauty-salon-google-strip.png",
     },
     fields: {
       apple: {
@@ -310,10 +310,10 @@ const templates = [
     properties: {
       background: "#efeff1",
       text: "#000000",
-      appleLogo: "/images/loyalty/templates/eyebrow-apple-logo.png",
-      googleLogo: "/images/loyalty/templates/eyebrow-google-logo.png",
-      appleStrip: "/images/loyalty/templates/eyebrow-apple-strip.png",
-      googleStrip: "/images/loyalty/templates/eyebrow-google-strip.png",
+      // appleLogo: "/images/loyalty/templates/eyebrow-apple-logo.png",
+      // googleLogo: "/images/loyalty/templates/eyebrow-google-logo.png",
+      // appleStrip: "/images/loyalty/templates/eyebrow-apple-strip.png",
+      // googleStrip: "/images/loyalty/templates/eyebrow-google-strip.png",
     },
     fields: {
       apple: {
@@ -382,10 +382,10 @@ const templates = [
     properties: {
       background: "#10026A",
       text: "#000000",
-      appleLogo: "/images/loyalty/templates/nail-apple-logo.png",
-      googleLogo: "/images/loyalty/templates/nail-google-logo.png",
-      appleStrip: "/images/loyalty/templates/nail-apple-strip.png",
-      googleStrip: "/images/loyalty/templates/nail-google-strip.png",
+      // appleLogo: "/images/loyalty/templates/nail-apple-logo.png",
+      // googleLogo: "/images/loyalty/templates/nail-google-logo.png",
+      // appleStrip: "/images/loyalty/templates/nail-apple-strip.png",
+      // googleStrip: "/images/loyalty/templates/nail-google-strip.png",
     },
     fields: {
       apple: {
