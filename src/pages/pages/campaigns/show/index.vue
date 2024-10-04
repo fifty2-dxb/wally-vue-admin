@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import iphoneLayout from '@images/iphoneLayout.png';
+import { useCampaignStore } from '@/stores/campaign';  // Import the store
+
 const router = useRouter()
 
 const route = useRoute('pages-campaigns-show')
-const merchantGuid = route.params.id;
-console.log('Received merchantGuid:', merchantGuid);
+const campaignGuid = route.params.id;
+const campaign = ref(null)
+const customers = ref([])
+const campaignStore = useCampaignStore()
 
 const widgetData = ref([
   { title: 'Customers', value: '250', icon: 'tabler-smart-home', desc: '5 new', change: 5.7 },
@@ -14,36 +18,35 @@ const widgetData = ref([
 ])
 
 const headers = [
-  { title: 'NAME', key: 'fullName' },
-  { title: 'SURNAME', key: 'surName' },
-  { title: 'PHONENUMBER', key: 'phoneNumber' },
+  { title: 'NAME', key: 'name' },
+  { title: 'SURNAME', key: 'surname' },
+  { title: 'PHONENUMBER', key: 'phonenumber' },
   { title: 'EMAIL', key: 'email' },
   { title: 'PROMOTIONS', key: 'promotions' },
   { title: 'EDIT', key: 'edit', sortable: false },
 ]
 
-const data = [
-  {
-    id: 95,
-    fullName: 'Oktay',
-    surName: 'Curebal',
-    email: 'oktaycurebal@gmail.com',
-    phoneNumber: '058 173 62 78',
-    promotions: 'Birthday promotion'
-  },
-  {
-    responsiveId: '',
-    id: 96,
-    fullName: 'Onur',
-    surName: 'Yildiz',
-    email: 'onur.yildiz@qodify.eu',
-    phoneNumber: '058 173 62 78',
-    promotions: 'Birthday promotion'
-  }]
-
 const showCustomer = (id: number) => {
   router.push({ name: 'pages-customers-edit' })
 };
+
+const fetchCampaignDetails = async (campaignGuid: string) => {
+  try {
+    await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
+    campaign.value = campaignStore.campaign;
+
+    await campaignStore.fetchCustomerByCampaignGuid(campaignGuid);
+    customers.value = campaignStore.customers;
+
+  } catch (error) {
+    console.error('Error fetching campaign or customers:', error);
+  }
+};
+
+onMounted(() => {
+  fetchCampaignDetails(campaignGuid);
+});
+
 </script>
 
 <template>
@@ -103,7 +106,7 @@ const showCustomer = (id: number) => {
     <VCardText class="px-3">
       <VRow>
         <VCol>
-          <div class="d-flex justify-space-between flex-wrap flex-md-nowrap flex-column flex-md-row">
+          <div class="d-flex justify-space-between flex-wrap flex-md-nowrap flex-column flex-md-row" >
             <div class=" pa-5">
               <VImg width="137" height="176" style="object-fit: cover;object-position: center top;"
                 :src="iphoneLayout" />
@@ -113,16 +116,16 @@ const showCustomer = (id: number) => {
 
             <div>
               <VCardItem>
-                <VCardTitle> Supper Coffee Loyalty Card</VCardTitle>
+                <VCardTitle>{{ campaign?.campaignName }}</VCardTitle>
               </VCardItem>
 
               <VCardText>
-                The description of the loyalty
+                {{ campaign?.campaignDescription }}
               </VCardText>
 
               <VCardActions class="justify-space-between mt-10">
 
-                <VBtn :to="{ name: 'pages-campaign-update', params: { id: merchantGuid } }">
+                <VBtn :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }">
                   <VIcon icon="tabler-folder" />
                   <span class="ms-2">Edit Campaign</span>
                 </VBtn>
@@ -139,7 +142,7 @@ const showCustomer = (id: number) => {
     <VCardText class="px-3">
       <VRow>
         <VCol>
-          <VDataTable :headers="headers" :items="data" density="compact" :items-per-page="5">
+          <VDataTable :headers="headers" :items="customers" density="compact" :items-per-page="5">
             <template #item.edit="{ item }">
               <IconBtn @click="showCustomer(item.id)">
                 <VIcon icon="tabler-edit" />

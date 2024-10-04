@@ -4,8 +4,8 @@ import { ref } from "vue";
 
 export const useCampaignStore = defineStore("campaign", () => {
   const campaigns = ref([]);
-  const selectedCertificate = ref(null);
-  const configStore = useConfigStore();
+  const campaign = ref(null);
+  const customers = ref([]);
 
   const fetchCampaigns = async () => {
     try {
@@ -20,7 +20,6 @@ export const useCampaignStore = defineStore("campaign", () => {
     try {
       const response = await $wallyApi(`/campaigns/merchant/${merchantGuid}`, { method: "GET" });
       campaigns.value = response?.campaign_details || [];
-      console.log("Fetched campaigns by Merchant GUID:", campaigns.value);
     } catch (error) {
       console.error("Error fetching campaigns by merchant GUID:", error);
       throw error;
@@ -31,13 +30,26 @@ export const useCampaignStore = defineStore("campaign", () => {
     try {
       const response = await $wallyApi(`/campaigns/${campaignGuid}`, { method: "GET" });
       if (response?.campaign) {
-        campaigns.value = [response.campaign];
+        campaign.value = response.campaign;
       } else {
-        campaigns.value = [];
+        campaign.value = null;
       }
-      console.log("Fetched campaigns by GUID:", campaigns.value);
     } catch (error) {
-      console.error("Error fetching campaigns by campaign GUID:", error);
+      console.error("Error fetching campaign by campaign GUID:", error);
+      throw error;
+    }
+  };
+
+  const fetchCustomerByCampaignGuid = async (campaignGuid: string) => {
+    try {
+      const response = await $wallyApi(`/campaigns/${campaignGuid}/customers`, { method: "GET" });
+      if (response) {
+        customers.value = response.customers;
+      } else {
+        customers.value = [];
+      }
+    } catch (error) {
+      console.error("Error fetching customers by campaign GUID:", error);
       throw error;
     }
   };
@@ -55,7 +67,6 @@ export const useCampaignStore = defineStore("campaign", () => {
   };
 
   const deleteCampaign = async (campaignGuid: string) => {
-    console.log(campaignGuid);
     try {
       const response = await $wallyApi(`/campaigns/${campaignGuid}`, { method: "DELETE" });
       if (response.status === 'success') {
@@ -87,11 +98,13 @@ export const useCampaignStore = defineStore("campaign", () => {
 
   return {
     campaigns,
-    fetchCampaigns,
+    campaign,
+    customers,
     fetchCampaignByMerchantGuid,
+    fetchCampaignByCampaignGuid,
+    fetchCustomerByCampaignGuid,
     addCampaign,
-    updateCampaign,
     deleteCampaign,
-    fetchCampaignByCampaignGuid
+    updateCampaign,
   };
 });
