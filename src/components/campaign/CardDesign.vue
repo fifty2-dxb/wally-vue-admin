@@ -17,69 +17,47 @@
           <div class="text-subtitle-2 mb-3">
             {{ $t("Logo") }}
           </div>
-          <v-dialog width="500">
-            <template v-slot:activator="{ props }">
-              <div class="w-100 position-relative" v-if="value.template.properties.logo">
-                <img style="height: 60px" v-bind="props" :src="value.template.properties.logo" class="float-left" />
-
-                <v-icon v-if="value.template.properties.logo" color="red" size="small" icon="tabler-trash"
-                  class="position-absolute top-0 right-0" @click="value.template.properties.logo = ''"></v-icon>
-              </div>
-
-              <div class="w-100 position-relative" v-else>
-                <v-btn v-bind="props" class="w-100" size="small" color="primary" variant="outlined">
-                  {{ $t("Upload Image") }}
-                </v-btn>
-              </div>
-            </template>
-
-            <template v-slot:default="{ isActive }">
-              <v-card>
-                <v-text class="text-h5 fw-bold text-primary text-center my-4" v-if="value.template.properties.logo">
-                  {{ $t("Preview") }}</v-text>
-                <v-img v-bind="props" :src="value.template.properties.logo" v-if="value.template.properties.logo"
-                  height="300px" class="mb-8"></v-img>
-                <v-card-text class="px-8 pt-8">
-                  <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.logo" @change="uploadImage($event, 'logo')"></v-file-input>
-                </v-card-text>
-              </v-card>
-            </template>
-          </v-dialog>
+          <upload-and-crop v-model="value.template.properties.logo" 
+          :boxStyle="{
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#f8f8f8',
+            margin: 'auto',
+          }"
+          :options="{
+            viewMode: 1,
+            dragMode: 'move',
+            cropBoxResizable: true,
+          }"
+          :presetMode="{
+            mode: 'fixedSize',
+            width: 100,
+            height: 100,
+          }"
+          ></upload-and-crop>
         </v-col>
         <v-col cols="6">
           <div class="text-subtitle-2 mb-3">
             {{ $t("Icon") }}
           </div>
-          <v-dialog width="500">
-            <template v-slot:activator="{ props }">
-              <div class="w-100 position-relative" v-if="value.template.properties.icon">
-                <img style="height: 60px" v-bind="props" :src="value.template.properties.icon" class="float-left" />
-
-                <v-icon v-if="value.template.properties.icon" color="red" size="small" icon="tabler-trash"
-                  class="position-absolute top-0 right-0" @click="value.template.properties.icon = ''"></v-icon>
-              </div>
-
-              <div class="w-100 position-relative" v-else>
-                <v-btn v-bind="props" class="w-100" size="small" color="primary" variant="outlined">
-                  {{ $t("Upload Image") }}
-                </v-btn>
-              </div>
-            </template>
-
-            <template v-slot:default="{ isActive }">
-              <v-card>
-                <v-text class="text-h5 fw-bold text-primary text-center my-4" v-if="value.template.properties.icon">
-                  {{ $t("Preview") }}</v-text>
-                <v-img v-bind="props" :src="value.template.properties.icon" v-if="value.template.properties.icon"
-                  height="300px" class="mb-8"></v-img>
-                <v-card-text class="px-8 pt-8">
-                  <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.icon" @change="uploadImage($event, 'icon')"></v-file-input>
-                </v-card-text>
-              </v-card>
-            </template>
-          </v-dialog>
+          <upload-and-crop v-model="value.template.properties.icon" 
+          :boxStyle="{
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#f8f8f8',
+            margin: 'auto',
+          }"
+          :options="{
+            viewMode: 1,
+            dragMode: 'move',
+            cropBoxResizable: true,
+          }"
+          :presetMode="{
+            mode: 'fixedSize',
+            width: 100,
+            height: 100,
+          }"
+          ></upload-and-crop>
         </v-col>
       </v-row>
     </v-card-text>
@@ -105,37 +83,24 @@
           <div class="text-subtitle-2 text-center my-4">
             {{ $t("Or") }}
           </div>
-          <v-dialog width="500">
-            <template v-slot:activator="{ props }">
-              <div class="w-100 position-relative d-flex justify-center" v-if="value.template.properties.stampImage">
-                <img v-bind="props" :src="value.template.properties.stampImage" class="float-left w-100" />
-
-                <v-icon v-if="value.template.properties.stampImage" color="white" size="small" icon="tabler-trash"
-                  class="position-absolute top-0 right-0 border pa-3 rounded-circle bg-primary" @click="
-                    value.template.properties.stampImage = ''
-                    "></v-icon>
-              </div>
-
-              <div class="w-100 position-relative" v-else>
-                <v-btn v-bind="props" class="w-100" color="primary" variant="outlined" size="small">
-                  {{ $t("Upload Image") }}
-                </v-btn>
-              </div>
-            </template>
-
-            <template v-slot:default="{ isActive }">
-              <v-card>
-                <v-text class="text-h5 fw-bold text-primary text-center my-4">
-                  {{ $t("Preview") }}</v-text>
-                <v-img v-bind="props" :src="value.template.properties.stampImage" height="300px"
-                  class="mb-8 w-100"></v-img>
-                <v-card-text class="px-8">
-                  <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.stampImage" @change="uploadImage($event, 'stampImage')"></v-file-input>
-                </v-card-text>
-              </v-card>
-            </template>
-          </v-dialog>
+          <upload-and-crop v-model="value.template.properties.stampImage" 
+          :boxStyle="{
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#f8f8f8',
+            margin: 'auto',
+          }"
+          :options="{
+            viewMode: 1,
+            dragMode: 'move',
+            cropBoxResizable: true,
+          }"
+          :presetMode="{
+            mode: 'fixedSize',
+            width: 100,
+            height: 100,
+          }"
+          ></upload-and-crop>
         </v-col>
         <v-col cols="12" lg="6">
           <v-select :items="stampImages" :label="$t('Unstamp Icon')" class="mt-3" item-title="name"
@@ -144,45 +109,24 @@
           <div class="text-subtitle-2 text-center my-4">
             {{ $t("Or") }}
           </div>
-          <v-dialog width="500">
-            <template v-slot:activator="{ props }">
-              <div class="w-100 position-relative d-flex justify-center" v-if="value.template.properties.unStampImage">
-                <img v-bind="props" :src="value.template.properties.unStampImage
-                  " class="float-left w-100" />
-
-                <v-icon v-if="
-                  value.template.properties.unStampImage
-                " color="white" size="small" icon="tabler-trash"
-                  class="position-absolute top-0 right-0 border pa-3 rounded-circle bg-primary" @click="
-                    value.template.properties.unStampImage =
-                    ''
-                    "></v-icon>
-              </div>
-
-              <div class="w-100 position-relative" v-else>
-                <v-btn v-bind="props" class="w-100" color="primary" variant="outlined" size="small">
-                  {{ $t("Select Image") }}
-                </v-btn>
-              </div>
-            </template>
-
-            <template v-slot:default="{ isActive }">
-              <v-card>
-                <v-text class="text-h5 fw-bold text-primary text-center my-4" v-if="
-                  value.template.properties.unStampImage
-                ">
-                  {{ $t("Preview") }}</v-text>
-                <v-img v-bind="props" :src="value.template.properties.unStampImage
-                  " v-if="
-                    value.template.properties.unStampImage
-                  " height="300px" class="mb-8"></v-img>
-                <v-card-text class="px-8 mt-3">
-                  <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.unStampImage" @change="uploadImage($event, 'unStampImage')"></v-file-input>
-                </v-card-text>
-              </v-card>
-            </template>
-          </v-dialog>
+          <upload-and-crop v-model="value.template.properties.unstampImage" 
+          :boxStyle="{
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#f8f8f8',
+            margin: 'auto',
+          }"
+          :options="{
+            viewMode: 1,
+            dragMode: 'move',
+            cropBoxResizable: true,
+          }"
+          :presetMode="{
+            mode: 'fixedSize',
+            width: 100,
+            height: 100,
+          }"
+          ></upload-and-crop>
         </v-col>
       </v-row>
     </v-card-text>
@@ -450,6 +394,7 @@
 // get data from v-model
 import { ref, watch, computed, onMounted } from "vue";
 import TemplateService from "@/services/TemplateService";
+import VuePictureCropper, { cropper } from 'vue-picture-cropper'
 
 import axios from "axios";
 
@@ -678,26 +623,5 @@ const updateStampImage = function () {
 
   value.value.template.properties.stampImagePreview = createLoopyLoyaltyURL();
 };
-const files = ref({});
-async function uploadImage(event, type) {
 
-  const file = event.target.files[0];
-
-  if (file) {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await $wallyApi('/photo', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const imageUrl = response.url;
-      value.value.template.properties[type] = imageUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    }
-  }
-}
 </script>
