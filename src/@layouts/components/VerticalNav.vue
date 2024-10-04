@@ -7,6 +7,7 @@ import { VerticalNavGroup, VerticalNavLink, VerticalNavSectionTitle } from '@lay
 import { useLayoutConfigStore } from '@layouts/stores/config'
 import { injectionKeyIsVerticalNavHovered } from '@layouts/symbols'
 import type { NavGroup, NavLink, NavSectionTitle, VerticalNavItems } from '@layouts/types'
+import SelectOrganisation from '@/components/SelectOrganisation.vue'
 
 interface Props {
   tag?: string | Component
@@ -136,8 +137,12 @@ const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
           :key="index"
           :item="item"
         />
+        
       </PerfectScrollbar>
     </slot>
+    <div class="nav-footer">
+      <SelectOrganisation />
+     </div>
     <slot name="after-nav-items" />
   </Component>
 </template>
@@ -218,6 +223,16 @@ const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
   .layout-vertical-nav-collapsed & {
     &:not(.hovered) {
       inline-size: variables.$layout-vertical-nav-collapsed-width;
+    }
+  }
+  .nav-footer {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background-color: #f8f9fa;
+
+    >*:not(:last-child) {
+      margin-bottom: 1rem;
     }
   }
 }
