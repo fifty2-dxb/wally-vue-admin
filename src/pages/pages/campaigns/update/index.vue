@@ -66,7 +66,7 @@ onMounted(() => {
 const saveCampaign = async () => {
   const merchantId = configStore.activeMerchant?.merchantGuid;
   const appleSettings = {
-    webServiceURL: "https://b390-2a02-a46d-9f37-1-ccc-d820-b275-ea8d.ngrok-free.app/",
+    webServiceURL: "https://dev-api.wally.ae/",
     teamIdentifier: "772239U7XT",
     sharingProhibited: false,
     passTypeIdentifier: "pass.com.freshwallet.loyalhero",
