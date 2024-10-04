@@ -3,10 +3,12 @@ import { ref, onMounted } from 'vue';
 import WallyStepHeader from '@/components/global/WallyStepHeader.vue';
 import { useConfigStore } from '@/@core/stores/config';
 import { useRouter, useRoute } from 'vue-router';
+import { useCampaignStore } from '@/stores/campaign';
 
 const router = useRouter();
 const route = useRoute();
 const campaignGuid = route.params.id;
+const campaignStore = useCampaignStore();
 
 const currentStep = ref(0);
 const loading = ref(true);
@@ -41,17 +43,13 @@ const saving = ref(false);
 
 const fetchCampaignById = async (campaignGuid: string) => {
   try {
-    const response = await $wallyApi(`/campaigns/${campaignGuid}`, {
-      method: 'GET',
-      onResponseError({ response }) {
-      }
-    });
-    const { status, campaign } = response;
+    await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
+    const campaign = campaignStore.campaigns.find(c => c.campaignGuid === campaignGuid);
 
-    if (status === 'success') {
+    if (campaign) {
       loyaltyData.value = {
         ...campaign,
-        template: campaign.styleSettings || {}
+        template: campaign.styleSettings || {},
       };
       loading.value = false;
     }
@@ -62,44 +60,35 @@ const fetchCampaignById = async (campaignGuid: string) => {
 };
 
 onMounted(() => {
-  fetchCampaignById(campaignGuid)
+  fetchCampaignById(campaignGuid);
 });
 
 const saveCampaign = async () => {
-  let merchantId = configStore.activeMerchant?.merchantGuid;
-  let appleSettings = {
+  const merchantId = configStore.activeMerchant?.merchantGuid;
+  const appleSettings = {
     webServiceURL: "https://b390-2a02-a46d-9f37-1-ccc-d820-b275-ea8d.ngrok-free.app/",
     teamIdentifier: "772239U7XT",
     sharingProhibited: false,
     passTypeIdentifier: "pass.com.freshwallet.loyalhero",
     authenticationToken: "Lu@ByGo9G6QMepMKQxA4",
-    associatedStoreIdentifiers: []
+    associatedStoreIdentifiers: [],
   };
 
-  let postBody = {
+  const postBody = {
     merchantGuid: merchantId,
     styleSettings: { type: "stamp", ...loyaltyData.value.template, appleSettings },
     validFromDt: loyaltyData.value.validFromDt,
-    validTillDt: loyaltyData.value.validTillDt
+    validTillDt: loyaltyData.value.validTillDt,
   };
 
   try {
     saving.value = true;
-    const res = await $wallyApi(`/campaigns/${campaignGuid}`, {
-      method: 'PATCH',
-      onResponseError({ response }) {
-      },
-      body: JSON.stringify(postBody),
-    });
-
+    await campaignStore.updateCampaign(campaignGuid, postBody);
     saving.value = false;
-    const { status } = res;
-
-    if (status === 'success') {
-      router.push('/pages/campaigns');
-    }
-  } catch (err) {
+    router.push('/pages/campaigns');
+  } catch (error) {
     saving.value = false;
+    showSnackbar('Failed to update campaign', 'error');
   }
 };
 </script>

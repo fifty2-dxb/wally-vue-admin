@@ -1,36 +1,61 @@
 <script setup lang="ts">
 import { useConfigStore } from '@/@core/stores/config';
+import { useCampaignStore } from '@/stores/campaign';
 import iphoneLayout from '@images/iphoneLayout.png';
 
 const configStore = useConfigStore()
+const campaignStore = useCampaignStore(); 
 
 const campaigns = ref(null)
+const isDeleteConfirmationVisible = ref(false);
+ const campaignToDelete = ref(null)
+ const snackbarMessage = ref('');
+ const snackbarColor = ref('');
+ const showSnackbar = ref(false);
 
 watch(
-  () => configStore.activeMerchant,  // Use a function to return the reactive property
+  () => configStore.activeMerchant,
   async (newMerchant, oldMerchant) => {
-    console.log('active merchant changed');
     if (newMerchant && newMerchant.merchantGuid !== (oldMerchant?.merchantGuid || '')) {
       try {
-        const res = await $wallyApi('/campaigns/merchant/' + newMerchant.merchantGuid, {
-          method: 'GET',
-          onResponseError({ response }) {
-          },
-        });
-
-        const { status, campaign_details } = res;
-
-        if (status === 'success') {
-          console.log(campaign_details);
-          campaigns.value = campaign_details;
-        }
+        await campaignStore.fetchCampaignByMerchantGuid(newMerchant.merchantGuid);
+        campaigns.value = campaignStore.campaigns;
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching campaigns:', err);
       }
     }
   },
   { immediate: true }
 );
+
+const showSnackbarMessage = (message: string, color: string) => {
+   snackbarMessage.value = message;
+   snackbarColor.value = color;
+   showSnackbar.value = true;
+ };
+ 
+ const confirmDeleteCampaign = (campaignGuid) => {
+   campaignToDelete.value = campaignGuid;
+   isDeleteConfirmationVisible.value = true;
+ };
+ 
+ const handleDeleteCampaign = async () => {
+   try {
+     await campaignStore.deleteCampaign(campaignToDelete.value);
+     showSnackbarMessage('Campaign deleted successfully', 'success');
+   } catch (error) {
+     console.error(error);
+     showSnackbarMessage(error.response?._data.message || 'An error occurred while deleting the campaign', 'error');
+   } finally {
+     isDeleteConfirmationVisible.value = false;
+     campaignToDelete.value = null;
+   }
+};
+ 
+ const cancelDelete = () => {
+   isDeleteConfirmationVisible.value = false;
+   campaignToDelete.value = null;
+	 };
 
 const headers = [
   { title: 'ID', sortable: false, key: 'id' },
@@ -87,12 +112,29 @@ const headers = [
               </VBtn>
 
               <IconBtn color="secondary" icon="tabler-share" />
+              <IconBtn @click="confirmDeleteCampaign(c.campaignGuid)">
+                     <VIcon icon="tabler-trash" />
+	                   </IconBtn>
             </VCardActions>
           </div>
         </div>
       </VCard>
     </VCol>
   </VRow>
-
-
+  <VDialog v-model="isDeleteConfirmationVisible" width="400">
+	     <VCard>
+       <VCardTitle class="headline">{{ $t('Are you sure?') }}</VCardTitle>
+       <VCardText>
+         {{ $t('Do you really want to delete this campaign? This action cannot be undone.') }}
+       </VCardText>
+       <VCardActions>
+         <VSpacer />
+         <VBtn color="secondary" @click="cancelDelete">{{ $t('Cancel') }}</VBtn>
+         <VBtn color="error" @click="handleDeleteCampaign">{{ $t('Delete') }}</VBtn>
+       </VCardActions>
+     </VCard>
+   </VDialog>
+   <VSnackbar v-model="showSnackbar" :color="snackbarColor" :timeout="5000" location="top right">
+     {{ snackbarMessage }}
+   </VSnackbar>
 </template>

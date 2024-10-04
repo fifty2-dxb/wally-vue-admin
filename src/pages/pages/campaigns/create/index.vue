@@ -4,9 +4,10 @@ import WallyStepHeader from '@/components/global/WallyStepHeader.vue';
 import TemplateService from '@/services/TemplateService';
 import { useConfigStore } from '@/@core/stores/config';
 import { router } from '@/plugins/1.router';
+import { useCampaignStore } from '@/stores/campaign';
 
 
-
+const campaignStore = useCampaignStore()
 const currentStep = ref(0);
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
@@ -73,26 +74,17 @@ const saveCampaign = async () => {
   };
   try {
     saving.value = true;
-    const res = await $wallyApi('/campaigns', {
-      method: 'POST',
-      onResponseError({ response }) {
-        console.log(response);
-      },
-      body: JSON.stringify(postBody),
-    });
+    await campaignStore.addCampaign(postBody);
     saving.value = false;
-    const { status, campaign_details } = res;
-
-    if (status === 'success') {
-      router.push('/pages/campaigns');
-      templates.value = JSON.parse(JSON.stringify(originalTemplates.value));
-      loyaltyData.value = {
-        template: templates.value[0],
-      };
-      currentStep.value = 0;
-    }
+    
+    router.push('/pages/campaigns');
+    templates.value = JSON.parse(JSON.stringify(originalTemplates.value));
+    loyaltyData.value = {
+      template: templates.value[0],
+    };
+    currentStep.value = 0;
   } catch (err) {
-    showSnackbar(err.response._data.message, 'error');
+    showSnackbar(err.message, 'error');
     saving.value = false;
   }
 };
