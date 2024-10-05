@@ -18,10 +18,10 @@
     <template v-slot:default="{ isActive }">
       <v-card>
         <vue-picture-cropper
-            :boxStyle="boxStyle"
+            :boxStyle="props.boxStyle"
             :img="pic"
-            :options="options"
-            :presetMode="presetMode"
+            :options="props.options"
+            :presetMode="props.presetMode"
           />
         <v-card-text>
           
@@ -38,11 +38,12 @@
 </template>
 
 <script setup lang="ts">
+import { options } from '@fullcalendar/core/preact.js';
 import { ref, computed } from 'vue'
 import VuePictureCropper, { cropper } from 'vue-picture-cropper'
 
 // Props and emits setup
-const props = defineProps(["modelValue", "options", "presetMode", "boxStyle"]);
+const props = defineProps(["modelValue", "options", "presetMode", "boxStyle", "outputOptions"]);
 const emit = defineEmits(["update:modelValue"]);
 
 const dialog = ref(false);
@@ -73,7 +74,7 @@ const saveImage = async () => {
   if (!cropper) return;
   
   const base64 = cropper.getDataURL();
-  const blob: Blob | null = await cropper.getBlob();
+  const blob: Blob | null = await cropper.getBlob(props.outputOptions || {});
   if (!blob) return;
 
   const file = await cropper.getFile({
