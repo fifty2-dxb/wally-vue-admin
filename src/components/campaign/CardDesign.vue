@@ -28,11 +28,17 @@
             viewMode: 1,
             dragMode: 'move',
             cropBoxResizable: true,
+            aspectRatio: 480 / 150,
           }"
           :presetMode="{
             mode: 'fixedSize',
-            width: 100,
-            height: 100,
+            width: 480,
+            height: 150,
+          }"
+
+          :outputOptions="{
+            width: 480,
+            height: 150
           }"
           ></upload-and-crop>
         </v-col>
@@ -51,11 +57,16 @@
             viewMode: 1,
             dragMode: 'move',
             cropBoxResizable: true,
+            aspectRatio: 1 / 1,
           }"
           :presetMode="{
             mode: 'fixedSize',
-            width: 100,
-            height: 100,
+            width: 167,
+            height: 167,
+          }"
+          :outputOptions="{
+            width: 167,
+            height: 167
           }"
           ></upload-and-crop>
         </v-col>
@@ -94,11 +105,16 @@
             viewMode: 1,
             dragMode: 'move',
             cropBoxResizable: true,
+            aspectRatio: 1 / 1,
           }"
           :presetMode="{
             mode: 'fixedSize',
-            width: 100,
-            height: 100,
+            width: 200,
+            height: 200,
+          }"
+          :outputOptions="{
+            width: 200,
+            height: 200
           }"
           ></upload-and-crop>
         </v-col>
@@ -120,11 +136,16 @@
             viewMode: 1,
             dragMode: 'move',
             cropBoxResizable: true,
+            aspectRatio: 1 / 1,
           }"
           :presetMode="{
             mode: 'fixedSize',
-            width: 100,
-            height: 100,
+            width: 200,
+            height: 200,
+          }"
+          :outputOptions="{
+            width: 200,
+            height: 200
           }"
           ></upload-and-crop>
         </v-col>
