@@ -71,6 +71,37 @@
           ></upload-and-crop>
         </v-col>
       </v-row>
+      <v-row>
+        <v-col cols="12">
+          <div class="text-subtitle-2 mb-3">
+            {{ $t("Reward") }}
+          </div>
+          <upload-and-crop v-model="value.template.properties.reward" 
+          :boxStyle="{
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#f8f8f8',
+            margin: 'auto',
+          }"
+          :options="{
+            viewMode: 1,
+            dragMode: 'move',
+            cropBoxResizable: true,
+            aspectRatio: 1125 / 432,
+          }"
+          :presetMode="{
+            mode: 'fixedSize',
+            width: 1125,
+            height: 432,
+          }"
+
+          :outputOptions="{
+            width: 1125,
+            height: 432
+          }"
+          ></upload-and-crop>
+        </v-col>
+      </v-row>      
     </v-card-text>
   </v-card>
 
