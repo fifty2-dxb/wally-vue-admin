@@ -643,8 +643,8 @@ const updateStampImage = function () {
         height: 432,
         padding: 40,
         totalStamps: value.value.template.properties.stampsNumber,
-        stampImage: selectedStampImage.value,
-        unstampImage: selectedUnStampImage.value,
+        stampImage: value.value.template.properties.stampIcon,
+        unstampImage: value.value.template.properties.unStampIcon,
         backgroundColor: value.value.template.properties.rectangleBehindStamps,
         backgroundOpacity: 1,
         stampColor: value.value.template.properties.stampImageColor,
@@ -666,8 +666,7 @@ const updateStampImage = function () {
         imageType: "png",
       }),
     }).toString();
-    console.log(query, "query");
-
+    console.log(`${baseUrl}?${query}`, "url");
     return `${baseUrl}?${query}`;
   }
 
