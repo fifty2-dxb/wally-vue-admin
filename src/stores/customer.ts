@@ -26,6 +26,7 @@ export const useCustomerStore = defineStore("customer", () => {
         customer.value.serialNumber = response.serialNumber;
         customer.value.stampImageUrl = response.stampImageUrl;
         customer.value.redeemable = response.redeemable;
+        fetchLogs(id);
       } else {
         customer.value = {
           id: "",
@@ -37,6 +38,26 @@ export const useCustomerStore = defineStore("customer", () => {
       throw error;
     }
   };
+
+
+  const gettingLogs = ref(false);
+  const fetchLogs = async (id: string) => {
+    gettingLogs.value = true;
+    try {
+      const response = await $wallyApi(`/customers/${id}/logs`, { method: "GET" });
+      console.log("response", response);
+      if (response?.pass_value) {
+        customer.value.logs = response.pass_value;
+      } else {
+        customer.value.logs = [];
+      }
+    } catch (error) {
+      console.error("Error fetching logs by GUID:", error);
+      throw error;
+    } finally {
+      gettingLogs.value = false;
+    }
+  }
 
   const stamping = ref(false);
   const stamp = async (count: any) => {
@@ -90,6 +111,7 @@ export const useCustomerStore = defineStore("customer", () => {
     stamping,
     stamp,
     redeeming,
-    redeem
+    redeem,
+    gettingLogs,
   };
 });

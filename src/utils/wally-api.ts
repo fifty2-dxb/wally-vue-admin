@@ -9,6 +9,7 @@ export const $wallyApi = ofetch.create({
       options.headers = {
         ...options.headers,
         Authorization: `Bearer ${accessToken}`,
+        'ngrok-skip-browser-warning': 'true', // This is a custom header to skip the browser warning
       }
     }
   },

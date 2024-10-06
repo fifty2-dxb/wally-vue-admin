@@ -123,18 +123,23 @@ onMounted(() => {
       </VCard>
       <VCard class="mb-6">
         <v-card-title class="text-primary">{{ $t('Customer History') }}</v-card-title>
-        <v-data-table height="600"
+        <v-data-table min-height="600"
           :headers="[
             { title: 'Date', value: 'date' },
-            { title: 'Descripton', value: 'amount' },
-            { title: 'Actions', value: 'actions' },
+            { title: 'Descripton', value: 'description' },
           ]"
-          :items="[]"
-          :items-per-page="5"
+          :items="customerStore.customer.logs"
+          :items-per-page="50"
           class="elevation-1"
+          :loading="customerStore.gettingLogs"
         >
-          <template v-slot:item.actions="{ item }">
-            <v-btn color="primary" text>{{ $t('View') }}</v-btn>
+          <template v-slot:item.date="{ item }">
+            {{ item.updatedAt }}
+          </template>
+          <template v-slot:item.description="{ item }">
+            <span class="text-success" v-if="item.type=='stamp' && item.value > 0 ">Customer gained {{ item.value }} stamp. </span>
+            <span class="text-error" v-if="item.type=='stamp' && item.value < 0 ">{{  0 - item.value }} stamp reverted from the card. </span>
+            <span class="text-info" v-if="item.type=='redeem'">Customer redeemed the reward.</span>
           </template>
         </v-data-table>
       </VCard>  
