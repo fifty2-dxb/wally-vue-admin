@@ -118,67 +118,82 @@
 
       <v-row>
         <v-col cols="12" lg="6">
-          <v-select :items="stampImages" item-title="name" item-value="url" :label="$t('Stamp Icon')" class="mt-3"
-            v-model="value.template.properties.stampIcon" outlined :bg-color="'transparent'"
-            @update:modelValue="updateStampImage">
-          </v-select>
-          <div class="text-subtitle-2 text-center my-4">
-            {{ $t("Or") }}
-          </div>
-          <upload-and-crop v-model="value.template.properties.stampImageUrl" 
-          :boxStyle="{
-            width: '100%',
-            height: '100%',
-            backgroundColor: '#f8f8f8',
-            margin: 'auto',
-          }"
-          :options="{
-            viewMode: 1,
-            dragMode: 'move',
-            cropBoxResizable: true,
-            aspectRatio: 1 / 1,
-          }"
-          :presetMode="{
-            mode: 'fixedSize',
-            width: 200,
-            height: 200,
-          }"
-          :outputOptions="{
-            width: 200,
-            height: 200
-          }"
-          ></upload-and-crop>
+          <v-row>
+            <v-col>
+              <v-select :items="stampImages" item-title="name" item-value="url" :label="$t('Stamp Icon')" class="mt-3"
+                v-model="value.template.properties.stampIcon" outlined :bg-color="'transparent'"
+                @update:modelValue="updateStampImage">
+              </v-select>
+              <div class="text-subtitle-2 text-center my-4">
+                {{ $t("Or") }}
+              </div>
+              <upload-and-crop v-model="value.template.properties.stampImageUrl" 
+              :boxStyle="{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#f8f8f8',
+                margin: 'auto',
+              }"
+              :options="{
+                viewMode: 1,
+                dragMode: 'move',
+                cropBoxResizable: true,
+                aspectRatio: 1 / 1,
+              }"
+              :presetMode="{
+                mode: 'fixedSize',
+                width: 200,
+                height: 200,
+              }"
+              :outputOptions="{
+                width: 200,
+                height: 200
+              }"
+              ></upload-and-crop>
+            </v-col>
+            <v-col sm="2" v-show="!!value.template.properties.stampIcon">
+              <v-img :src="'https://api.loopyloyalty.com/images/stampImage/' + value.template.properties.stampIcon" class="w-100"></v-img>
+            </v-col>
+          </v-row>
         </v-col>
+        <v-divider vertical></v-divider>
         <v-col cols="12" lg="6">
-          <v-select :items="stampImages" :label="$t('Unstamp Icon')" class="mt-3" item-title="name"
-            :bg-color="'transparent'" item-value="url" v-model="value.template.properties.unStampIcon"
-            @update:modelValue="updateStampImage"></v-select>
-          <div class="text-subtitle-2 text-center my-4">
-            {{ $t("Or") }}
-          </div>
-          <upload-and-crop v-model="value.template.properties.unstampImageUrl" 
-          :boxStyle="{
-            width: '100%',
-            height: '100%',
-            backgroundColor: '#f8f8f8',
-            margin: 'auto',
-          }"
-          :options="{
-            viewMode: 1,
-            dragMode: 'move',
-            cropBoxResizable: true,
-            aspectRatio: 1 / 1,
-          }"
-          :presetMode="{
-            mode: 'fixedSize',
-            width: 200,
-            height: 200,
-          }"
-          :outputOptions="{
-            width: 200,
-            height: 200
-          }"
-          ></upload-and-crop>
+          <v-row>
+            <v-col>
+              <v-select :items="stampImages" :label="$t('Unstamp Icon')" class="mt-3" item-title="name"
+                :bg-color="'transparent'" item-value="url" v-model="value.template.properties.unStampIcon"
+                @update:modelValue="updateStampImage"></v-select>
+              <div class="text-subtitle-2 text-center my-4">
+                {{ $t("Or") }}
+              </div>
+              <upload-and-crop v-model="value.template.properties.unstampImageUrl" 
+              :boxStyle="{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#f8f8f8',
+                margin: 'auto',
+              }"
+              :options="{
+                viewMode: 1,
+                dragMode: 'move',
+                cropBoxResizable: true,
+                aspectRatio: 1 / 1,
+              }"
+              :presetMode="{
+                mode: 'fixedSize',
+                width: 200,
+                height: 200,
+              }"
+              :outputOptions="{
+                width: 200,
+                height: 200
+              }"
+              ></upload-and-crop>
+            </v-col>
+            <v-col sm="2" v-show="!!value.template.properties.unStampIcon">
+              <v-img :src="'https://api.loopyloyalty.com/images/stampImage/' + value.template.properties.unStampIcon" class="w-100"></v-img>
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-card-text>
