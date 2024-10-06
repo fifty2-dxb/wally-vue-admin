@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router/auto'
 const emailRouteComponent = () => import('@/pages/apps/email/index.vue')
 const showRouteComponent = () => import('@/pages/pages/campaigns/show/index.vue')
 const showUpdateComponent = () => import('@/pages/pages/campaigns/update/index.vue')
+const showCustomerComponent = () => import('@/pages/pages/customers/show/index.vue')
 const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
 const activatioSuccessnRouteComponent = () => import ('@/pages/pages/activation/success-activation.vue')
 
@@ -103,5 +104,10 @@ export const routes: RouteRecordRaw[] = [
     path: '/apps/ecommerce/dashboard',
     name: 'apps-ecommerce-dashboard',
     component: () => import('@/pages/dashboards/ecommerce.vue'),
+  },
+  {
+    path: '/pages/customers/show/:id',
+    name: 'pages-customers-show',
+    component: showCustomerComponent,
   },
 ]

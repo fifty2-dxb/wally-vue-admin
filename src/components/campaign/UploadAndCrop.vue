@@ -78,7 +78,7 @@ const saveImage = async () => {
   if (!blob) return;
 
   const file = await cropper.getFile({
-    fileName: 'logoimage',
+    fileName: 'logoimage.png',
   });
 
   const formData = new FormData();

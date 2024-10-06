@@ -26,10 +26,6 @@ const headers = [
   { title: 'EDIT', key: 'edit', sortable: false },
 ]
 
-const showCustomer = (id: number) => {
-  router.push({ name: 'pages-customers-edit' })
-};
-
 const fetchCampaignDetails = async (campaignGuid: string) => {
   try {
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
@@ -144,7 +140,7 @@ onMounted(() => {
         <VCol>
           <VDataTable :headers="headers" :items="customers" density="compact" :items-per-page="5">
             <template #item.edit="{ item }">
-              <IconBtn @click="showCustomer(item.id)">
+              <IconBtn :to="{ name: 'pages-customers-show', params: { id: item.id } }">
                 <VIcon icon="tabler-edit" />
               </IconBtn>
             </template>

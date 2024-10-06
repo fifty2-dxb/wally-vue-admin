@@ -66,7 +66,8 @@
           }"
           :outputOptions="{
             width: 167,
-            height: 167
+            height: 167,
+            fileName: 'iconfile.png',
           }"
           ></upload-and-crop>
         </v-col>
