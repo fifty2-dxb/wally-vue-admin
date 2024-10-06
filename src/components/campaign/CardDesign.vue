@@ -125,7 +125,7 @@
           <div class="text-subtitle-2 text-center my-4">
             {{ $t("Or") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.stampImage" 
+          <upload-and-crop v-model="value.template.properties.stampImageUrl" 
           :boxStyle="{
             width: '100%',
             height: '100%',
@@ -156,7 +156,7 @@
           <div class="text-subtitle-2 text-center my-4">
             {{ $t("Or") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.unstampImage" 
+          <upload-and-crop v-model="value.template.properties.unstampImageUrl" 
           :boxStyle="{
             width: '100%',
             height: '100%',
@@ -486,6 +486,7 @@ onMounted(() => {
       previewContainer.className = "";
     }
   }; // Check if this logs to the console
+  updateStampImage();
 });
 
 const isOpen = ref([0]);
@@ -634,37 +635,59 @@ const stampImages = ref([
   "salad",
 ]);
 
+watch(
+  () => value.value.template.properties,
+  (newValue) => {
+    updateStampImage();
+  },
+  { deep: true }
+);
+
 const updateStampImage = function () {
   function createLoopyLoyaltyURL() {
     const baseUrl = "https://api.loopyloyalty.com/images";
+
+
+    let loopyparams = {
+      width: 1125,
+      height: 432,
+      padding: 40,
+      totalStamps: value.value.template.properties.stampsNumber,
+      backgroundColor: value.value.template.properties.rectangleBehindStamps,
+      backgroundOpacity: 1,
+      stampColor: value.value.template.properties.stampImageColor,
+      stampOpacity: 1,
+      unstampColor: value.value.template.properties.unStampImageColor,
+      unstampOpacity: 1,
+      placeholders: true,
+      placeholderColor: value.value.template.properties.circle,
+      placeholderOpacity: 1,
+      placeholderBorderColor: value.value.template.properties.circleBorder,
+      placeholderBorderOpacity: 1,
+      rewardsPlaceholders: true,
+      rewardBorderColor: "#000000",
+      rewardBorderOpacity: 1,
+      rewardBackgroundColor: "#000000",
+      rewardBackgroundOpacity: 1,
+      rewardPositions: 0,
+      stampedStatus: 3,
+      imageType: "png",
+    };
+
+    if(value.value.template.properties.stampImageUrl) {
+      loopyparams.stampImageUrl = value.value.template.properties.stampImageUrl;
+    } else {
+      loopyparams.stampImage = value.value.template.properties.stampIcon;
+    }
+
+    if(value.value.template.properties.unstampImageUrl) {
+      loopyparams.unstampImageUrl = value.value.template.properties.unstampImageUrl;
+    } else {
+      loopyparams.unstampImage = value.value.template.properties.unStampIcon;
+    }
+
     const query = new URLSearchParams({
-      json: JSON.stringify({
-        width: 1125,
-        height: 432,
-        padding: 40,
-        totalStamps: value.value.template.properties.stampsNumber,
-        stampImage: value.value.template.properties.stampIcon,
-        unstampImage: value.value.template.properties.unStampIcon,
-        backgroundColor: value.value.template.properties.rectangleBehindStamps,
-        backgroundOpacity: 1,
-        stampColor: value.value.template.properties.stampImageColor,
-        stampOpacity: 1,
-        unstampColor: value.value.template.properties.unStampImageColor,
-        unstampOpacity: 1,
-        placeholders: true,
-        placeholderColor: value.value.template.properties.circle,
-        placeholderOpacity: 1,
-        placeholderBorderColor: value.value.template.properties.circleBorder,
-        placeholderBorderOpacity: 1,
-        rewardsPlaceholders: true,
-        rewardBorderColor: "#000000",
-        rewardBorderOpacity: 1,
-        rewardBackgroundColor: "#000000",
-        rewardBackgroundOpacity: 1,
-        rewardPositions: 0,
-        stampedStatus: 3,
-        imageType: "png",
-      }),
+      json: JSON.stringify(loopyparams),
     }).toString();
     console.log(`${baseUrl}?${query}`, "url");
     return `${baseUrl}?${query}`;
