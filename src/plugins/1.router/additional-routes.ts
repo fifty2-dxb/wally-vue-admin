@@ -6,6 +6,7 @@ const showUpdateComponent = () => import('@/pages/pages/campaigns/update/index.v
 const showCustomerComponent = () => import('@/pages/pages/customers/show/index.vue')
 const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
 const activatioSuccessnRouteComponent = () => import ('@/pages/pages/activation/success-activation.vue')
+const notFoundRouteComponent = () => import ('@/pages/[...error].vue')
 
 // 👉 Redirects
 export const redirects: RouteRecordRaw[] = [
@@ -52,6 +53,15 @@ export const redirects: RouteRecordRaw[] = [
     component: activatioSuccessnRouteComponent,
     meta: {
       requiresAuth: false,
+    },
+  },
+  {
+    path: '/:pathMatch(.*)*', 
+    name: '404',
+    component: notFoundRouteComponent,
+    meta: {
+      layout: 'blank',
+      public: true,
     },
   },
 ]
