@@ -258,74 +258,66 @@
     </v-card-text>
     <v-divider></v-divider>
     <v-card-subtitle>Background</v-card-subtitle>
-    <v-card-text>
-      <v-row no-gutters>
-        <v-col cols="6" lg="4" class="mb-4">
-          <div class="text-subtitle-2 mb-2">
-            {{ $t("Rectangle behind stamps") }}
-          </div>
-          <div class="ps-2" style="width: 45px; height: 45px">
-            <div></div>
-            <v-dialog width="300">
-              <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" :style="{
-                  backgroundColor:
-                    value.template.properties
-                      .rectangleBehindStamps + ' !important',
-                }" style="width: 100%; height: 100%">
-                </v-btn>
-              </template>
+<v-card-text>
+  <v-row no-gutters>
+    <v-col cols="6" lg="4" class="mb-4">
+      <div class="text-subtitle-2 mb-2">
+        {{ $t("Rectangle behind stamps") }}
+      </div>
+      <div class="ps-2" style="width: 45px; height: 45px">
+        <div></div>
+        <v-dialog width="300">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" :style="{
+              backgroundColor:
+                value.template.properties
+                  .rectangleBehindStamps + ' !important',
+            }" style="width: 100%; height: 100%">
+            </v-btn>
+          </template>
 
-              <template v-slot:default="{ isActive }">
-                <v-sheet>
-                  <v-color-picker v-model="value.template.properties
-                    .rectangleBehindStamps
-                    " @update:model-value="updateStampImage"></v-color-picker>
-                </v-sheet>
-              </template>
-            </v-dialog>
-          </div>
-        </v-col>
+          <template v-slot:default="{ isActive }">
+            <v-sheet>
+              <v-color-picker v-model="value.template.properties
+                .rectangleBehindStamps
+                " @update:model-value="updateStampImage"></v-color-picker>
+            </v-sheet>
+          </template>
+        </v-dialog>
+      </div>
+    </v-col>
 
-        <v-col cols="6" lg="6" class="mb-4">
-          <div class="text-subtitle-2 mb-2">
-            {{ $t("Upload a background image") }}
-          </div>
-          <v-dialog width="500">
-            <template v-slot:activator="{ props }">
-              <div class="w-100 position-relative d-flex justify-center"
-                v-if="value.template.properties.backgroundImage">
-                <img v-bind="props" :src="value.template.properties.backgroundImage" class="float-left" />
+    <v-col cols="6" lg="6" class="mb-4">
+      <div class="text-subtitle-2 mb-2">
+        {{ $t("Upload a background image") }}
+      </div>
 
-                <v-icon v-if="value.template.properties.backgroundImage" color="red" size="small" icon="tabler-trash"
-                  class="position-absolute top-0 end-0 border p-4 rounded-circle bg-primary" @click="
-                    value.template.properties.backgroundImage = ''
-                    "></v-icon>
-              </div>
-
-              <div class="w-100 position-relative" v-else>
-                <v-btn v-bind="props" class="w-100" color="primary" variant="outlined" size="small">
-                  {{ $t("Select Image") }}
-                </v-btn>
-              </div>
-            </template>
-            <template v-slot:default="{ isActive }">
-              <v-card>
-                <v-text class="text-h5 fw-bold text-primary text-center my-4" v-if="value.template.properties.backgroundImage">
-                  {{ $t("Preview") }}</v-text>
-                <v-img v-bind="props" :src="value.template.properties.backgroundImage" v-if="value.template.properties.backgroundImage"
-                  height="300px" class="mb-8"></v-img>
-                <v-card-text class="px-8 pt-8">
-                  <v-file-input label="Select Image" prepend-icon="tabler-photo-up" background="transparent"
-                    v-model="files.backgroundImage" @change="uploadImage($event, 'backgroundImage')"></v-file-input>
-                </v-card-text>
-              </v-card>
-            </template>
-
-          </v-dialog>
-        </v-col>
-      </v-row>
-    </v-card-text>
+      <upload-and-crop v-model="value.template.properties.backgroundImage" 
+        :boxStyle="{
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#f8f8f8',
+          margin: 'auto',
+        }"
+        :options="{
+          viewMode: 1,
+          dragMode: 'move',
+          cropBoxResizable: true,
+          aspectRatio: 16 / 9,
+        }"
+        :presetMode="{
+          mode: 'fixedSize',
+          width: 1920,
+          height: 1080,
+        }"
+        :outputOptions="{
+          width: 1920,
+          height: 1080
+        }"
+      ></upload-and-crop>
+    </v-col>
+  </v-row>
+</v-card-text>
     <v-divider></v-divider>
     <v-card-subtitle>Stamp</v-card-subtitle>
     <v-card-text>

@@ -404,6 +404,7 @@ declare module 'vue' {
     TiptapEditor: typeof import('./src/@core/components/TiptapEditor.vue')['default']
     ToDeleteAppleWalletHowItWorks: typeof import('./src/components/dialogs/toDeleteAppleWalletHowItWorks.vue')['default']
     TwoFactorAuthDialog: typeof import('./src/components/dialogs/TwoFactorAuthDialog.vue')['default']
+    UploadAndCrop: typeof import('./src/components/campaign/UploadAndCrop.vue')['default']
     UserInfoEditDialog: typeof import('./src/components/dialogs/UserInfoEditDialog.vue')['default']
     UserUpgradePlanDialog: typeof import('./src/components/dialogs/UserUpgradePlanDialog.vue')['default']
     VueApexCharts: typeof import('vue3-apexcharts')['default']
