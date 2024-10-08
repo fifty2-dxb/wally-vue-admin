@@ -4,6 +4,7 @@ import WallyStepHeader from '@/components/global/WallyStepHeader.vue';
 import { useConfigStore } from '@/@core/stores/config';
 import { useRouter, useRoute } from 'vue-router';
 import { useCampaignStore } from '@/stores/campaign';
+import CampaignSettings from '@/components/campaign/CampaignSettings.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -28,6 +29,7 @@ const steps = [
   { title: 'Fields', icon: 'tabler-list-details' },
   { title: 'Additional Info', icon: 'tabler-info-square' },
   { title: 'Enrollment Form', icon: 'tabler-user-plus' },
+  { title: 'Settings', icon: 'tabler-settings' },
   { title: 'Done', icon: 'tabler-square-rounded-check' },
 ];
 
@@ -123,7 +125,7 @@ const saveCampaign = async () => {
     <v-col cols="12">
       <v-card>
         <v-row>
-          <v-col cols="12" :lg="currentStep == 4 ? '12' : '8'" class="elevation-0">
+          <v-col cols="12" :lg="currentStep == 5 ? '12' : '8'" class="elevation-0">
             <div v-if="currentStep == 0">
               <CardDesign v-model="loyaltyData" />
             </div>
@@ -137,6 +139,9 @@ const saveCampaign = async () => {
               <EnrollmentForm v-model="loyaltyData" />
             </div>
             <div v-if="currentStep == 4">
+              <CampaignSettings v-model="loyaltyData" />
+            </div>            
+            <div v-if="currentStep == 5">
               <v-row>
                 <v-col class="text-center" cols="12">
                   <h3 class="text-h4 pt-4 pb-2">
@@ -167,7 +172,7 @@ const saveCampaign = async () => {
           </v-col>
           <v-divider vertical></v-divider>
           <v-col cols="12" lg="4" class="lg:order-last" v-if="currentStep != 5">
-            <PhonePreview :data="loyaltyData" v-if="currentStep != 4" />
+            <PhonePreview :data="loyaltyData" v-if="currentStep != 3" />
             <FormPreview :data="loyaltyData" class="mt-3 pr-2" v-else />
           </v-col>
         </v-row>

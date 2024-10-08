@@ -52,9 +52,11 @@ watch(merchant, merchantChanged);
 </script>
 
 <template>
-  <AppAutocomplete v-model="merchant" class="pl-2" density="compact" :items="merchants.map(m => m.merchantName)"
+  <AppAutocomplete
+v-model="merchant" class="pl-2" density="compact" :items="merchants.map(m => m.merchantName)"
     placeholder="Select Merchant" />
 
-  <AppAutocomplete v-model="organisation" class="pl-2" density="compact" :items="organisations"
+  <AppAutocomplete
+v-model="organisation" class="pl-2" density="compact" :items="organisations"
     placeholder="Select Organisation" />
 </template>
