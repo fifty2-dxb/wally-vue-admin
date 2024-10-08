@@ -101,17 +101,15 @@ onMounted(() => {
   <VCard class="mb-6">
     <VCardText class="px-3">
       <VRow>
-        <VCol>
-          <div class="d-flex justify-space-between flex-wrap flex-md-nowrap flex-column flex-md-row" >
-            <div class=" pa-5">
-              <VImg width="137" height="176" style="object-fit: cover;object-position: center top;"
-                :src="iphoneLayout" />
+        <v-col sm="12" md="3">
+          <div class="ma-auto pa-5 text-center">
+              <img width="100px" :src="campaign?.styleSettings.campaignPreview"
+                style="border-radius: 5px; border: 1px solid #ccc;" />
             </div>
-
-            <VDivider :vertical="$vuetify.display.mdAndUp" />
-
-            <div>
-              <VCardItem>
+        </v-col>
+        <VDivider :vertical="$vuetify.display.mdAndUp" />
+        <v-col sm="12" md="9">
+          <VCardItem>
                 <VCardTitle>{{ campaign?.campaignName }}</VCardTitle>
               </VCardItem>
 
@@ -128,9 +126,8 @@ onMounted(() => {
 
                 <IconBtn color="secondary" icon="tabler-share" />
               </VCardActions>
-            </div>
-          </div>
-        </VCol>
+
+        </v-col>
       </VRow>
     </VCardText>
   </VCard>

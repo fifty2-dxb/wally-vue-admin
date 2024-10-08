@@ -4,14 +4,14 @@ import { useCampaignStore } from '@/stores/campaign';
 import iphoneLayout from '@images/iphoneLayout.png';
 
 const configStore = useConfigStore()
-const campaignStore = useCampaignStore(); 
+const campaignStore = useCampaignStore();
 
 const campaigns = ref(null)
 const isDeleteConfirmationVisible = ref(false);
- const campaignToDelete = ref(null)
- const snackbarMessage = ref('');
- const snackbarColor = ref('');
- const showSnackbar = ref(false);
+const campaignToDelete = ref(null)
+const snackbarMessage = ref('');
+const snackbarColor = ref('');
+const showSnackbar = ref(false);
 
 watch(
   () => configStore.activeMerchant,
@@ -29,33 +29,33 @@ watch(
 );
 
 const showSnackbarMessage = (message: string, color: string) => {
-   snackbarMessage.value = message;
-   snackbarColor.value = color;
-   showSnackbar.value = true;
- };
- 
- const confirmDeleteCampaign = (campaignGuid) => {
-   campaignToDelete.value = campaignGuid;
-   isDeleteConfirmationVisible.value = true;
- };
- 
- const handleDeleteCampaign = async () => {
-   try {
-     await campaignStore.deleteCampaign(campaignToDelete.value);
-     showSnackbarMessage('Campaign deleted successfully', 'success');
-   } catch (error) {
-     console.error(error);
-     showSnackbarMessage(error.response?._data.message || 'An error occurred while deleting the campaign', 'error');
-   } finally {
-     isDeleteConfirmationVisible.value = false;
-     campaignToDelete.value = null;
-   }
+  snackbarMessage.value = message;
+  snackbarColor.value = color;
+  showSnackbar.value = true;
 };
- 
- const cancelDelete = () => {
-   isDeleteConfirmationVisible.value = false;
-   campaignToDelete.value = null;
-	 };
+
+const confirmDeleteCampaign = (campaignGuid) => {
+  campaignToDelete.value = campaignGuid;
+  isDeleteConfirmationVisible.value = true;
+};
+
+const handleDeleteCampaign = async () => {
+  try {
+    await campaignStore.deleteCampaign(campaignToDelete.value);
+    showSnackbarMessage('Campaign deleted successfully', 'success');
+  } catch (error) {
+    console.error(error);
+    showSnackbarMessage(error.response?._data.message || 'An error occurred while deleting the campaign', 'error');
+  } finally {
+    isDeleteConfirmationVisible.value = false;
+    campaignToDelete.value = null;
+  }
+};
+
+const cancelDelete = () => {
+  isDeleteConfirmationVisible.value = false;
+  campaignToDelete.value = null;
+};
 
 const headers = [
   { title: 'ID', sortable: false, key: 'id' },
@@ -88,14 +88,15 @@ const headers = [
     <!-- 👉 Apple iPhone 11 Pro -->
     <VCol sm="6" cols="12" v-for="c in campaigns">
       <VCard>
-        <div class="d-flex justify-space-between flex-wrap flex-md-nowrap flex-column flex-md-row">
-          <div class="ma-auto pa-5">
-            <VImg width="137" height="176" style="object-fit: cover;object-position: center top;" :src="iphoneLayout" />
-          </div>
-
+        <v-row>
+          <v-col sm="12" md="4">
+            <div class="ma-auto pa-5 text-center">
+              <img width="100px" :src="c.styleSettings.campaignPreview"
+                style="border-radius: 5px; border: 1px solid #ccc;" />
+            </div>
+          </v-col>
           <VDivider :vertical="$vuetify.display.mdAndUp" />
-
-          <div>
+          <v-col sm="12" md="8">
             <VCardItem>
               <VCardTitle>{{ c.campaignName }}</VCardTitle>
             </VCardItem>
@@ -113,28 +114,29 @@ const headers = [
 
               <IconBtn color="secondary" icon="tabler-share" />
               <IconBtn @click="confirmDeleteCampaign(c.campaignGuid)">
-                     <VIcon icon="tabler-trash" />
-	                   </IconBtn>
+                <VIcon icon="tabler-trash" />
+              </IconBtn>
             </VCardActions>
-          </div>
-        </div>
+          </v-col>
+        </v-row>
+
       </VCard>
     </VCol>
   </VRow>
   <VDialog v-model="isDeleteConfirmationVisible" width="400">
-	     <VCard>
-       <VCardTitle class="headline">{{ $t('Are you sure?') }}</VCardTitle>
-       <VCardText>
-         {{ $t('Do you really want to delete this campaign? This action cannot be undone.') }}
-       </VCardText>
-       <VCardActions>
-         <VSpacer />
-         <VBtn color="secondary" @click="cancelDelete">{{ $t('Cancel') }}</VBtn>
-         <VBtn color="error" @click="handleDeleteCampaign">{{ $t('Delete') }}</VBtn>
-       </VCardActions>
-     </VCard>
-   </VDialog>
-   <VSnackbar v-model="showSnackbar" :color="snackbarColor" :timeout="5000" location="top right">
-     {{ snackbarMessage }}
-   </VSnackbar>
+    <VCard>
+      <VCardTitle class="headline">{{ $t('Are you sure?') }}</VCardTitle>
+      <VCardText>
+        {{ $t('Do you really want to delete this campaign? This action cannot be undone.') }}
+      </VCardText>
+      <VCardActions>
+        <VSpacer />
+        <VBtn color="secondary" @click="cancelDelete">{{ $t('Cancel') }}</VBtn>
+        <VBtn color="error" @click="handleDeleteCampaign">{{ $t('Delete') }}</VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+  <VSnackbar v-model="showSnackbar" :color="snackbarColor" :timeout="5000" location="top right">
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>

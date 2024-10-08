@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import html2canvas from 'html2canvas'; // Import html2canvas
 import WallyStepHeader from '@/components/global/WallyStepHeader.vue';
 import { useConfigStore } from '@/@core/stores/config';
 import { useRouter, useRoute } from 'vue-router';
 import { useCampaignStore } from '@/stores/campaign';
 import CampaignSettings from '@/components/campaign/CampaignSettings.vue';
+
+declare const $wallyApi: any; // Declare $wallyApi if not already declared
 
 const router = useRouter();
 const route = useRoute();
@@ -55,8 +58,8 @@ const fetchCampaignById = async (campaignGuid: string) => {
       };
       loading.value = false;
     }
-  } catch (error) {
-    showSnackbar(error.response._data.message, 'error');
+  } catch (error: any) {
+    showSnackbar(error.response?._data?.message || 'Error fetching campaign', 'error');
     loading.value = false;
   }
 };
@@ -64,6 +67,19 @@ const fetchCampaignById = async (campaignGuid: string) => {
 onMounted(() => {
   fetchCampaignById(campaignGuid);
 });
+
+// Function to convert Data URL to Blob
+function dataURLtoBlob(dataurl: string) {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)![1];
+  const bstr = atob(arr[1]); // atob decodes base64
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while(n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], {type:mime});
+}
 
 const saveCampaign = async () => {
   const merchantId = configStore.activeMerchant?.merchantGuid;
@@ -85,10 +101,37 @@ const saveCampaign = async () => {
 
   try {
     saving.value = true;
+
+    // Get the DOM element with id 'applePreview'
+    const element = document.getElementById('applePreview');
+
+    if (!element) {
+      throw new Error('Preview element not found');
+    }
+
+    // Capture screenshot
+    const canvas = await html2canvas(element);
+    const dataUrl = canvas.toDataURL('image/png');
+    const blob = dataURLtoBlob(dataUrl);
+
+    const formData = new FormData();
+    formData.append('file', blob, 'screenshot.png');
+
+    const response = await $wallyApi('/photo', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const imageUrl = response.url;
+
+    // Assign the imageUrl to styleSettings in postBody
+    postBody.styleSettings.campaignPreview = imageUrl;
+
+    // Proceed with saving the campaign
     await campaignStore.updateCampaign(campaignGuid, postBody);
     saving.value = false;
     router.push('/pages/campaigns');
-  } catch (error) {
+  } catch (error: any) {
     saving.value = false;
     showSnackbar('Failed to update campaign', 'error');
   }
@@ -155,7 +198,8 @@ const saveCampaign = async () => {
                   </v-btn>
                 </v-col>
                 <v-col cols="12" lg="12" class="d-flex justify-center align-center">
-                  <PhonePreview :data="loyaltyData" :seeAll="true" />
+                  
+                    <PhonePreview :data="loyaltyData" :seeAll="true" />
                 </v-col>
               </v-row>
             </div>
@@ -180,6 +224,6 @@ const saveCampaign = async () => {
     </v-col>
   </v-row>
   <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
-  {{ snackbarMessage }}
-</VSnackbar>
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>
