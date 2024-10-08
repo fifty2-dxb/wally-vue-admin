@@ -229,7 +229,7 @@ const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
     display: flex;
     flex-direction: column;
     padding: 1rem;
-    background-color: #f8f9fa;
+    background-color: rgba(var(--v-theme-on-surface), var(--v-hover-opacity));
 
     >*:not(:last-child) {
       margin-bottom: 1rem;
