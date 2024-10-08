@@ -9,8 +9,13 @@ export const setupGuards = (router: _RouterTyped<RouteNamedMap & { [key: string]
      * If it's a public route, continue navigation. This kind of pages are allowed to visited by login & non-login users. Basically, without any restrictions.
      * Examples of public routes are, 404, under maintenance, etc.
      */
-    if (to.meta.public)
-      return
+    if (to.matched.length === 0) {
+      return { name: '404' };
+    }
+
+    if (to.meta.requiresAuth === false || to.meta.public === true) {
+      return true;
+    }
 
     /**
      * Check if user is logged in by checking if token & user data exists in local storage
@@ -30,8 +35,11 @@ export const setupGuards = (router: _RouterTyped<RouteNamedMap & { [key: string]
         return undefined
     }
 
-    if (!canNavigate(to) && to.matched.length) {
-      /* eslint-disable indent */
+    /*
+      If the user doesn't have permission to access the route (`canNavigate` returns false),
+      and the route is matched, redirect to the login or not-authorized page.
+     */
+    if (!canNavigate(to)) {
       return isLoggedIn
         ? { name: 'not-authorized' }
         : {
@@ -40,8 +48,8 @@ export const setupGuards = (router: _RouterTyped<RouteNamedMap & { [key: string]
               ...to.query,
               to: to.fullPath !== '/' ? to.path : undefined,
             },
-          }
-      /* eslint-enable indent */
+          };
     }
-  })
-}
+    return true;
+  });
+};
