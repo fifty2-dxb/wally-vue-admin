@@ -110,7 +110,7 @@ const saveCampaign = async () => {
     }
 
     // Capture screenshot
-    const canvas = await html2canvas(element);
+    const canvas = await html2canvas(element,{useCORS: true });
     const dataUrl = canvas.toDataURL('image/png');
     const blob = dataURLtoBlob(dataUrl);
 
