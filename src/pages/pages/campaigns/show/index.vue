@@ -1,21 +1,23 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import iphoneLayout from '@images/iphoneLayout.png';
 import { useCampaignStore } from '@/stores/campaign';  // Import the store
 
-const router = useRouter()
+const router = useRouter();
 
-const route = useRoute('pages-campaigns-show')
-const campaignGuid = route.params.id;
-const campaign = ref(null)
-const customers = ref([])
-const campaignStore = useCampaignStore()
+const route = useRoute();
+const campaignGuid = route.params.id as string;
+const campaign = ref(null);
+const customers = ref([]);
+const campaignStore = useCampaignStore();
 
 const widgetData = ref([
   { title: 'Customers', value: '250', icon: 'tabler-smart-home', desc: '5 new', change: 5.7 },
   { title: 'Push Notifications', value: '85', icon: 'tabler-brand-apple', desc: '21k orders', change: 12.4 },
   { title: 'Android Notifications', value: '5', icon: 'tabler-brand-android', desc: '6k orders' },
   { title: 'Total Stamps', value: '375', icon: 'tabler-rubber-stamp', desc: '150 orders', change: -3.5 },
-])
+]);
 
 const headers = [
   { title: 'NAME', key: 'name' },
@@ -24,7 +26,7 @@ const headers = [
   { title: 'EMAIL', key: 'email' },
   { title: 'PROMOTIONS', key: 'promotions' },
   { title: 'EDIT', key: 'edit', sortable: false },
-]
+];
 
 const fetchCampaignDetails = async (campaignGuid: string) => {
   try {
@@ -33,7 +35,6 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
 
     await campaignStore.fetchCustomerByCampaignGuid(campaignGuid);
     customers.value = campaignStore.customers;
-
   } catch (error) {
     console.error('Error fetching campaign or customers:', error);
   }
@@ -43,6 +44,29 @@ onMounted(() => {
   fetchCampaignDetails(campaignGuid);
 });
 
+// Function to convert hex color to RGBA with opacity
+function hexToRgba(hex: string, opacity: number) {
+  let c: any;
+  if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+    c = hex.substring(1).split('');
+    if (c.length == 3) {
+      c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+    }
+    c = '0x' + c.join('');
+    const r = (Number(c) >> 16) & 255;
+    const g = (Number(c) >> 8) & 255;
+    const b = Number(c) & 255;
+    return `rgba(${r},${g},${b},${opacity})`;
+  }
+  // If invalid hex color, default to transparent black
+  return `rgba(0,0,0,${opacity})`;
+}
+
+// Computed property to get the background color with opacity
+const backgroundColorWithOpacity = computed(() => {
+  const hexColor = campaign.value?.styleSettings?.properties?.background || '#000000';
+  return hexToRgba(hexColor, 0.3);
+});
 </script>
 
 <template>
@@ -81,7 +105,7 @@ onMounted(() => {
                   </div>
 
                   <VChip v-if="data.change" label :color="data.change > 0 ? 'success' : 'error'" size="small">
-                    {{ prefixWithPlus(data.change) }}%
+                    {{ data.change > 0 ? '+' : '' }}{{ data.change }}%
                   </VChip>
                 </div>
               </div>
@@ -99,34 +123,38 @@ onMounted(() => {
     </VCardText>
   </VCard>
   <VCard class="mb-6">
-    <VCardText class="px-3">
+    <VCardText class="pa-0">
       <VRow>
-        <v-col sm="12" md="3">
-          <div class="ma-auto pa-5 text-center">
-              <img width="100px" :src="campaign?.styleSettings.campaignPreview"
-                style="border-radius: 5px; border: 1px solid #ccc;" />
-            </div>
+        <v-col sm="12" md="3" :style="{ backgroundColor: backgroundColorWithOpacity }">
+          <div
+            class="ma-auto pa-5 text-center"
+            
+          >
+            <img
+              width="100px"
+              :src="campaign?.styleSettings.campaignPreview"
+              style="border-radius: 5px; border: 1px solid #ccc;"
+            />
+          </div>
         </v-col>
         <VDivider :vertical="$vuetify.display.mdAndUp" />
         <v-col sm="12" md="9">
           <VCardItem>
-                <VCardTitle>{{ campaign?.campaignName }}</VCardTitle>
-              </VCardItem>
+            <VCardTitle>{{ campaign?.campaignName }}</VCardTitle>
+          </VCardItem>
 
-              <VCardText>
-                {{ campaign?.campaignDescription }}
-              </VCardText>
+          <VCardText>
+            {{ campaign?.campaignDescription }}
+          </VCardText>
 
-              <VCardActions class="justify-space-between mt-10">
+          <VCardActions class="justify-space-between mt-10">
+            <VBtn :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }">
+              <VIcon icon="tabler-folder" />
+              <span class="ms-2">Edit Campaign</span>
+            </VBtn>
 
-                <VBtn :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }">
-                  <VIcon icon="tabler-folder" />
-                  <span class="ms-2">Edit Campaign</span>
-                </VBtn>
-
-                <IconBtn color="secondary" icon="tabler-share" />
-              </VCardActions>
-
+            <IconBtn color="secondary" icon="tabler-share" />
+          </VCardActions>
         </v-col>
       </VRow>
     </VCardText>

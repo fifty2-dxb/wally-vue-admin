@@ -46,8 +46,8 @@
                                             </div>
                                         </div>
                                         <div class="apple-strip-image">
-                                            <v-img :src="data.template.properties?.stampImagePreview" alt=""
-                                                width="100%" cover></v-img>
+                                            <img :src="data.template.properties?.stampImagePreview" alt=""
+                                                width="100%" cover></img>
                                         </div>
                                         <div class="apple-fields">
                                             <div class="container-value"

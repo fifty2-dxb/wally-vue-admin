@@ -1,17 +1,41 @@
 <script setup lang="ts">
 import { useConfigStore } from '@/@core/stores/config';
 import { useCampaignStore } from '@/stores/campaign';
+import { ref, computed, watch } from 'vue';
+
 import iphoneLayout from '@images/iphoneLayout.png';
 
-const configStore = useConfigStore()
+const configStore = useConfigStore();
 const campaignStore = useCampaignStore();
 
-const campaigns = ref(null)
+const campaigns = ref(null);
 const isDeleteConfirmationVisible = ref(false);
-const campaignToDelete = ref(null)
+const campaignToDelete = ref(null);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
 const showSnackbar = ref(false);
+
+const hexToRgba = (hex: string, opacity: number) => {
+  let c: any;
+  if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+    c = hex.substring(1).split('');
+    if (c.length == 3) {
+      c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+    }
+    c = '0x' + c.join('');
+    const r = (Number(c) >> 16) & 255;
+    const g = (Number(c) >> 8) & 255;
+    const b = Number(c) & 255;
+    return `rgba(${r},${g},${b},${opacity})`;
+  }
+  // If invalid hex color, default to transparent black
+  return `rgba(0,0,0,${opacity})`;
+};
+
+const getBackgroundColor = (campaign) => {
+  const hexColor = campaign.styleSettings?.properties?.background || '#000000';
+  return hexToRgba(hexColor, 0.3);
+};
 
 watch(
   () => configStore.activeMerchant,
@@ -45,7 +69,10 @@ const handleDeleteCampaign = async () => {
     showSnackbarMessage('Campaign deleted successfully', 'success');
   } catch (error) {
     console.error(error);
-    showSnackbarMessage(error.response?._data.message || 'An error occurred while deleting the campaign', 'error');
+    showSnackbarMessage(
+      error.response?._data.message || 'An error occurred while deleting the campaign',
+      'error'
+    );
   } finally {
     isDeleteConfirmationVisible.value = false;
     campaignToDelete.value = null;
@@ -64,8 +91,7 @@ const headers = [
   { title: 'DATE', key: 'startDate' },
   { title: 'EXPERIENCE', key: 'experience' },
   { title: 'AGE', key: 'age' },
-]
-
+];
 </script>
 
 <template>
@@ -80,19 +106,22 @@ const headers = [
     </div>
 
     <div class="d-flex gap-4 align-center flex-wrap">
-
       <VBtn @click="$router.push('/pages/campaigns/create')">Create new campaign</VBtn>
     </div>
   </div>
   <VRow>
-    <!-- 👉 Apple iPhone 11 Pro -->
-    <VCol sm="6" cols="12" v-for="c in campaigns">
+    <VCol sm="6" cols="12" v-for="c in campaigns" :key="c.campaignGuid">
       <VCard>
         <v-row>
-          <v-col sm="12" md="4">
-            <div class="ma-auto pa-5 text-center">
-              <img width="100px" :src="c.styleSettings.campaignPreview"
-                style="border-radius: 5px; border: 1px solid #ccc;" />
+          <v-col sm="12" md="4" :style="{ backgroundColor: getBackgroundColor(c) }">
+            <div
+              class="ma-auto pa-5 text-center"
+            >
+              <img
+                width="100px"
+                :src="c.styleSettings.campaignPreview"
+                style="border-radius: 5px; border: 1px solid #ccc;"
+              />
             </div>
           </v-col>
           <VDivider :vertical="$vuetify.display.mdAndUp" />
@@ -106,7 +135,6 @@ const headers = [
             </VCardText>
 
             <VCardActions class="justify-space-between mt-10">
-
               <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid } }">
                 <VIcon icon="tabler-folder-open" />
                 <span class="ms-2">Show Campaign</span>
@@ -119,7 +147,6 @@ const headers = [
             </VCardActions>
           </v-col>
         </v-row>
-
       </VCard>
     </VCol>
   </VRow>
