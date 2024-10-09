@@ -103,12 +103,12 @@
         <tbody>
           <tr v-for="item in data.template.details.locations" :key="item.name">
             <td>{{ item.name }}</td>
-            <td>{{ item.address }}</td>
+            <td>{{ item.formattedAddress ? item.formattedAddress : item.address }}</td>
             <td>
               <v-switch v-model="item.display" color="primary" />
             </td>
             <td>
-              <v-textarea v-model="item.message" rows="2" bg-color="transparent" />
+              <v-textarea v-model="item.message" rows="2" bg-color="transparent" placeholder="Enter message..." />
             </td>
             <td>
               <v-icon color="red" size="24" icon="tabler-trash" @click="deleteLocation(index)"></v-icon>
@@ -126,64 +126,64 @@
     </v-card-actions>
 
     <v-dialog v-model="dialog" max-width="1200">
-  <v-card>
-    <v-card-title>
-      <span class="text-h6">{{ $t("Add Location") }}</span>
-    </v-card-title>
-    <v-divider class="my-2" />
-    <v-card-text>
-      <v-container>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field v-model="locationName" label="Location Name" class="mb-6"></v-text-field>
-            <v-text-field v-model="address" label="Enter address" @input="onAddressInput"></v-text-field>
+      <v-card>
+        <v-card-title>
+          <span class="text-h6">{{ $t("Add Location") }}</span>
+        </v-card-title>
+        <v-divider class="my-2" />
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="locationName" label="Location Name" class="mb-6"></v-text-field>
+                <v-text-field v-model="address" label="Enter address" @input="onAddressInput"></v-text-field>
 
-            <v-list v-if="suggestions?.length">
-              <v-list-item v-for="(suggestion, index) in suggestions" :key="index"
-                @click="selectSuggestion(suggestion)" class="suggestion-item">
-                {{ suggestion?.formatted_address }}
-              </v-list-item>
-            </v-list>
+                <v-list v-if="suggestions?.length">
+                  <v-list-item v-for="(suggestion, index) in suggestions" :key="index"
+                    @click="selectSuggestion(suggestion)" class="suggestion-item">
+                    {{ suggestion?.formatted_address }}
+                  </v-list-item>
+                </v-list>
 
-            <v-card-actions class="advanced-btn-padding">
-              <v-btn text color="primary" @click="toggleAdvancedFields" class="advanced-btn">
-                {{ advancedFieldsVisible ? "Hide Advanced" : "Show Advanced" }}
-                <v-icon icon="tabler-chevron-down" size="small"></v-icon>
-              </v-btn>
-            </v-card-actions>
+                <v-card-actions class="advanced-btn-padding">
+                  <v-btn text color="primary" @click="toggleAdvancedFields" class="advanced-btn">
+                    {{ advancedFieldsVisible ? "Hide Advanced" : "Show Advanced" }}
+                    <v-icon icon="tabler-chevron-down" size="small"></v-icon>
+                  </v-btn>
+                </v-card-actions>
 
-            <v-expand-transition>
-              <v-row v-if="advancedFieldsVisible">
-                <v-col cols="6">
-                  <v-text-field v-model="latitude" label="Latitude" class="mb-6"></v-text-field>
-                </v-col>
-                <v-col cols="6">
-                  <v-text-field v-model="longitude" label="Longitude" class="mb-6"></v-text-field>
-                </v-col>
-              </v-row>
-            </v-expand-transition>
+                <v-expand-transition>
+                  <v-row v-if="advancedFieldsVisible">
+                    <v-col cols="6">
+                      <v-text-field v-model="latitude" label="Latitude" class="mb-6"></v-text-field>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-text-field v-model="longitude" label="Longitude" class="mb-6"></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-expand-transition>
 
-            <v-textarea v-model="formattedAddress" label="Address to display" class="mb-6"></v-textarea>
-          </v-col>
+                <v-textarea v-model="formattedAddress" label="Address to display" class="mb-6"></v-textarea>
+              </v-col>
 
-          <v-col cols="12" md="6">
-            <v-responsive>
-              <GoogleMap ref="googleMap" :api-key="googleApiKey" style="width: 100%; height: 300px;" :center="center" :zoom="15" @click="updateLatLng">
-                <Marker :options="{ position: { lat: Number(latitude), lng: Number(longitude) } }" />
-              </GoogleMap>
-            </v-responsive>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-card-text>
-    <v-divider class="my-4" />
-    <v-card-actions>
-      <v-btn color="primary" @click="addLocation">{{$t("Add Location")}}</v-btn>
-      <v-btn color="secondary" @click="closeDialog">{{$t("Close")}}</v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
-
+              <v-col cols="12" md="6">
+                <v-responsive>
+                  <GoogleMap ref="googleMap" :api-key="googleApiKey" style="width: 100%; height: 300px;"
+                    :center="center" :zoom="15" @click="updateLatLng">
+                    <Marker :options="{ position: { lat: Number(latitude), lng: Number(longitude) } }" />
+                  </GoogleMap>
+                </v-responsive>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-divider class="my-4" />
+        <v-card-actions>
+          <v-btn color="primary" @click="addLocation">{{ $t("Add Location") }}</v-btn>
+          <v-btn color="secondary" @click="closeDialog">{{ $t("Close") }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 
   <v-divider class=""></v-divider>
@@ -398,11 +398,11 @@ const deleteUsefulLink = (index) => {
 const addLocation = () => {
   data.value.template.details.locations.push({
     name: locationName.value,
-    address: address.value,
+    address: formattedAddress.value || address.value,
     latitude: latitude.value,
     longitude: longitude.value,
     display: true,
-    message: formattedAddress.value
+    message: ''
   });
   resetLocationFields();
   dialog.value = false;
