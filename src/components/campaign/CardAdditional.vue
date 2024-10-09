@@ -94,9 +94,7 @@
         <thead>
           <tr>
             <th class="text-left">{{ $t("Location") }}</th>
-            <th class="text-left">
-              {{ $t("Adress on Card") }}
-            </th>
+            <th class="text-left">{{ $t("Adress on Card") }}</th>
             <th class="text-left">{{ $t("Display") }}</th>
             <th class="text-left">{{ $t("Message") }}</th>
             <th class="text-left"></th>
@@ -107,66 +105,86 @@
             <td>{{ item.name }}</td>
             <td>{{ item.address }}</td>
             <td>
-              <v-switch v-model="item.display" color="primary" class="text-left"></v-switch>
+              <v-switch v-model="item.display" color="primary" />
             </td>
             <td>
-              <v-textarea v-model="item.message" class="text-left mt-3" bg-color="transparent" rows="2"></v-textarea>
+              <v-textarea v-model="item.message" rows="2" bg-color="transparent" />
             </td>
             <td>
-              <v-icon class="mr-3" color="red" size="24" icon="mdi mdi-delete" @click="deleteLocation(index)"></v-icon>
+              <v-icon color="red" size="24" icon="mdi mdi-delete" @click="deleteLocation(index)"></v-icon>
             </td>
           </tr>
         </tbody>
       </v-table>
     </v-card-text>
+
     <v-card-actions>
-      <v-btn text color="primary" variant="outlined" @click="
-        locationModal = true;
-      newLocation = {};
-      " class="ms-auto">
+      <v-btn text color="primary" variant="outlined" @click="dialog = true; newLocation = {}" class="ms-auto">
         <v-icon icon="tabler-plus" size="x-small" class="pe-2" left></v-icon>
         {{ $t("Add Location") }}
       </v-btn>
     </v-card-actions>
-    <v-dialog v-model="locationModal" width="500">
-      <v-card>
-        <v-card-title>
-          <span class="text-h5">{{ $t("Add Location") }}</span>
-        </v-card-title>
-        <v-card-text class="pa-3">
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field name="input-7-1" variant="outlined" label="Location Name" auto-grow
-                  v-model="newLocation.name"></v-text-field>
-                <v-text-field name="input-7-1" variant="outlined" label="Address" auto-grow
-                  v-model="newLocation.address"></v-text-field>
-                <v-textarea name="input-7-1" variant="outlined" label="Message" auto-grow
-                  v-model="newLocation.message"></v-textarea>
 
-                <v-row>
-                  <v-col cols="12">
-                    <v-switch v-model="newLocation.display" color="primary" label="Display on Card"></v-switch>
-                  </v-col>
-                </v-row>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="primary" text @click="locationModal = false">
-            {{ $t("Close") }}
-          </v-btn>
+    <v-dialog v-model="dialog" max-width="1200">
+  <v-card>
+    <v-card-title>
+      <span class="text-h6">{{ $t("Add Location") }}</span>
+    </v-card-title>
+    <v-divider class="my-2" />
+    <v-card-text>
+      <v-container>
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="locationName" label="Location Name" class="mb-6"></v-text-field>
+            <v-text-field v-model="address" label="Enter address" @input="onAddressInput"></v-text-field>
 
-          <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="addLocation()">
-            {{ $t("Add Location") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+            <v-list v-if="suggestions?.length">
+              <v-list-item v-for="(suggestion, index) in suggestions" :key="index"
+                @click="selectSuggestion(suggestion)" class="suggestion-item">
+                {{ suggestion?.formatted_address }}
+              </v-list-item>
+            </v-list>
+
+            <v-card-actions class="advanced-btn-padding">
+              <v-btn text color="primary" @click="toggleAdvancedFields" class="advanced-btn">
+                {{ advancedFieldsVisible ? "Hide Advanced" : "Show Advanced" }}
+                <v-icon icon="tabler-chevron-down" size="small"></v-icon>
+              </v-btn>
+            </v-card-actions>
+
+            <v-expand-transition>
+              <v-row v-if="advancedFieldsVisible">
+                <v-col cols="6">
+                  <v-text-field v-model="latitude" label="Latitude" class="mb-6"></v-text-field>
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field v-model="longitude" label="Longitude" class="mb-6"></v-text-field>
+                </v-col>
+              </v-row>
+            </v-expand-transition>
+
+            <v-textarea v-model="formattedAddress" label="Address to display" class="mb-6"></v-textarea>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <v-responsive>
+              <GoogleMap ref="googleMap" :api-key="googleApiKey" style="width: 100%; height: 300px;" :center="center" :zoom="15" @click="updateLatLng">
+                <Marker :options="{ position: { lat: Number(latitude), lng: Number(longitude) } }" />
+              </GoogleMap>
+            </v-responsive>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-card-text>
+    <v-divider class="my-4" />
+    <v-card-actions>
+      <v-btn color="primary" @click="addLocation">{{$t("Add Location")}}</v-btn>
+      <v-btn color="secondary" @click="closeDialog">{{$t("Close")}}</v-btn>
+    </v-card-actions>
   </v-card>
+</v-dialog>
 
+  </v-card>
 
   <v-divider class=""></v-divider>
 
@@ -219,19 +237,119 @@
 </template>
 
 <script setup>
-// get data from v-model
-import { ref, watch, computed } from "vue";
+import { ref, reactive, watch, computed } from "vue";
+import { GoogleMap, Marker } from 'vue3-google-map'
+import axios from 'axios';
 
 const props = defineProps(["modelValue"]);
 const emits = defineEmits(["update:modelValue"]);
 const editModal = ref(false);
-const locationModal = ref(false);
-const newLocation = ref({
-  name: "",
-  address: "",
-  display: true,
-  message: "",
+const dialog = ref(false);
+const locationName = ref('');
+const address = ref('');
+const formattedAddress = ref('');
+const center = reactive({ lat: 25.1972295, lng: 55.279747 });
+const suggestions = ref([]);
+const latitude = ref(center.lat);
+const longitude = ref(center.lng);
+const googleMap = ref(null);
+const advancedFieldsVisible = ref(false);
+const googleApiKey = import.meta.env.VITE_APP_WALLY_GOOGLE_KEY
+
+let debounceTimeout = null;
+let marker = null;
+
+const toggleAdvancedFields = () => {
+  advancedFieldsVisible.value = !advancedFieldsVisible.value;
+};
+
+const updateLatLng = (e) => {
+  const lat = e.latLng.lat();
+  const lng = e.latLng.lng();
+
+  latitude.value = lat;
+  longitude.value = lng;
+
+  center.lat = lat;
+  center.lng = lng;
+
+  updateMarkerPosition(lat, lng);
+};
+
+const createMarker = (map, lat, lng) => {
+  if (!marker) {
+    marker = new google.maps.Marker({
+      position: { lat, lng },
+      map: map,
+    });
+  }
+};
+
+const updateMarkerPosition = (lat, lng) => {
+  if (marker) {
+    marker.setPosition({ lat, lng });
+  }
+};
+
+watch([latitude, longitude], ([newLat, newLng]) => {
+  const lat = parseFloat(newLat);
+  const lng = parseFloat(newLng);
+
+  if (isFinite(lat) && isFinite(lng)) {
+    center.lat = lat;
+    center.lng = lng;
+
+    if (googleMap.value && googleMap.value.map) {
+      const map = googleMap.value.map;
+
+      createMarker(map, lat, lng);
+      updateMarkerPosition(lat, lng);
+
+      map.setCenter({ lat, lng });
+      map.panTo({ lat, lng });
+    }
+  } else {
+    console.warn('Invalid latitude or longitude input.');
+  }
 });
+
+const onAddressInput = () => {
+  if (debounceTimeout) {
+    clearTimeout(debounceTimeout);
+  }
+  
+  debounceTimeout = setTimeout(async () => {
+    if (address.value.length > 2) {
+      await fetchAddressSuggestions(address.value);
+    } else {
+      suggestions.value = [];
+    }
+  }, 300);
+};
+
+const fetchAddressSuggestions = async (query) => {
+  try {
+    const apiKey = googleApiKey
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${apiKey}`
+    );
+    suggestions.value = response.data.results;
+  } catch (error) {
+    console.error('Error fetching address suggestions:', error);
+    suggestions.value = [];
+  }
+};
+
+const selectSuggestion = (suggestion) => {
+  address.value = suggestion.formatted_address;
+  latitude.value = suggestion.geometry.location.lat;
+  longitude.value = suggestion.geometry.location.lng;
+
+  center.lat = latitude.value;
+  center.lng = longitude.value;
+
+  suggestions.value = [];
+};
 
 const fieldTypes = ref([
   { name: "Text", key: "text" },
@@ -239,6 +357,7 @@ const fieldTypes = ref([
   { name: "Email", key: "email" },
   { name: "URL", key: "url" },
 ]);
+
 const data = computed({
   get() {
     return props.modelValue;
@@ -247,6 +366,14 @@ const data = computed({
     emit("update:modelValue", value);
   },
 });
+
+const resetLocationFields = () => {
+  locationName.value = '';
+  address.value = '';
+  latitude.value = center.lat;
+  longitude.value = center.lng;
+  formattedAddress.value = '';
+};
 
 const addAdditionalField = () => {
   data.value.template.additionalFields.push({
@@ -269,8 +396,16 @@ const deleteUsefulLink = (index) => {
 };
 
 const addLocation = () => {
-  data.value.template.details.locations.push(newLocation.value);
-  locationModal.value = false;
+  data.value.template.details.locations.push({
+    name: locationName.value,
+    address: address.value,
+    latitude: latitude.value,
+    longitude: longitude.value,
+    display: true,
+    message: formattedAddress.value
+  });
+  resetLocationFields();
+  dialog.value = false;
 };
 
 const deleteLocation = (index) => {
@@ -286,4 +421,25 @@ const showEditModal = (index) => {
 const deleteField = (index) => {
   data.value.template.additionalFields.value.splice(index, 1);
 };
+
+const closeDialog = () => {
+  resetLocationFields();
+  dialog.value = false;
+};
+
 </script>
+
+<style lang="scss" scoped>
+.pac-container {
+  z-index: 10000 !important;
+}
+.v-list-item {
+  cursor: pointer;
+}
+.advanced-btn-padding {
+  padding: 12px 0 12px;
+}
+.advanced-btn{
+  padding-inline: 2.5px;
+}
+</style>

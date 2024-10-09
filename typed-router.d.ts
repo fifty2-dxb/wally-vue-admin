@@ -136,6 +136,7 @@ declare module 'vue-router/auto-routes' {
     'pages-certificates-google-certificate-table': RouteRecordInfo<'pages-certificates-google-certificate-table', '/pages/certificates/GoogleCertificateTable', Record<never, never>, Record<never, never>>,
     'pages-certificates-upload-certificate-dialog': RouteRecordInfo<'pages-certificates-upload-certificate-dialog', '/pages/certificates/UploadCertificateDialog', Record<never, never>, Record<never, never>>,
     'pages-customers-edit': RouteRecordInfo<'pages-customers-edit', '/pages/customers/edit', Record<never, never>, Record<never, never>>,
+    'pages-customers-show': RouteRecordInfo<'pages-customers-show', '/pages/customers/show', Record<never, never>, Record<never, never>>,
     'pages-dialog-examples': RouteRecordInfo<'pages-dialog-examples', '/pages/dialog-examples', Record<never, never>, Record<never, never>>,
     'pages-faq': RouteRecordInfo<'pages-faq', '/pages/faq', Record<never, never>, Record<never, never>>,
     'pages-icons': RouteRecordInfo<'pages-icons', '/pages/icons', Record<never, never>, Record<never, never>>,
