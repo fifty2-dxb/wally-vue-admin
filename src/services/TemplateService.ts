@@ -4,6 +4,7 @@ const templates = [
     key: "wally-membership",
     description: "Wally Membership",
     image: "/images/loyalty/templates/wally-fit.png",
+    type: "membership",
     properties: {
       icon: "/images/loyalty/templates/wally-google-logo.png",
       logo: "/images/loyalty/templates/wally-apple-logo.png",
@@ -90,6 +91,7 @@ const templates = [
     key: "wally",
     description: "Wally Stamp",
     image: "/images/loyalty/templates/wally-prw.png",
+    type: "stamp",
     properties: {
       icon: "/images/loyalty/templates/wally-google-logo.png",
       logo: "/images/loyalty/templates/wally-apple-logo.png",
@@ -176,6 +178,7 @@ const templates = [
     key: "wally",
     description: "Wally template",
     image: "/images/loyalty/templates/wally-prw.png",
+    type: "stamp",
     properties: {
       icon: "/images/loyalty/templates/wally-google-logo.png",
       logo: "/images/loyalty/templates/wally-apple-logo.png",
@@ -262,6 +265,7 @@ const templates = [
     key: "clean",
     description: "Clean template",
     image: "/images/loyalty/templates/clean-prw.png",
+    type: "stamp",
     properties: {
       background: "#ffffff",
       text: "#000000",
@@ -334,6 +338,7 @@ const templates = [
     key: "barbershop",
     description: "Barber Shop template",
     image: "/images/loyalty/templates/barbershop-prw.png",
+    type: "stamp",
     properties: {
       background: "#222222",
       text: "#ffffff",
@@ -406,6 +411,7 @@ const templates = [
     key: "beauty-salon",
     description: "Beauty Salon template",
     image: "/images/loyalty/templates/beauty-salon-prw.png",
+    type: "stamp",
     properties: {
       background: "#412A66",
       text: "#ffffff",
@@ -479,6 +485,7 @@ const templates = [
     key: "eyebrow",
     description: "Eye Brow template",
     image: "/images/loyalty/templates/eyebrow-prw.png",
+    type: "stamp",
     properties: {
       background: "#efeff1",
       text: "#000000",
@@ -551,6 +558,7 @@ const templates = [
     key: "nail",
     description: "Nail Salon template",
     image: "/images/loyalty/templates/nail-prw.png",
+    type: "stamp",
     properties: {
       background: "#10026A",
       text: "#000000",

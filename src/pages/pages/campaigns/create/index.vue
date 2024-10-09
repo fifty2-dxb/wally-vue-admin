@@ -15,6 +15,8 @@ const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
 
+const campaignType = ref('All');
+
 // Removed phonePreview ref since we'll use the DOM element by ID
 // const phonePreview = ref(null);
 
@@ -53,6 +55,15 @@ const steps = [
 
 const templates = ref(TemplateService.getTemplates());
 const originalTemplates = ref(JSON.parse(JSON.stringify(templates.value)));
+
+const filteredTemplates = ref(
+  computed(() => {
+    if (campaignType.value === 'All') {
+      return templates.value;
+    }
+    return templates.value.filter((template) => template.type === campaignType.value);
+  })
+);
 
 const loyaltyData = ref({
   template: templates.value[0],
@@ -144,6 +155,9 @@ onBeforeMount(() => {
   };
   currentStep.value = 0;
 });
+
+
+
 </script>
 
 <template>
@@ -179,7 +193,6 @@ onBeforeMount(() => {
           >
             <div v-if="currentStep == 0">
               <!-- Your content for step 0 -->
-              <!-- For example: -->
               <v-card
                 class="elevation-0"
                 title="Select Template"
@@ -187,7 +200,76 @@ onBeforeMount(() => {
               >
                 <v-container>
                   <v-row>
-                    <v-col cols="6" lg="3" v-for="template in templates">
+                    <v-col>
+                      <v-card
+                        rounded="lg"
+                        :style="
+                          campaignType == 'All'
+                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                            : ''
+                        "
+                        :class="
+                          campaignType == 'All'
+                            ? 'border'
+                            : 'border border-dashed elevation-0'
+                        "
+                        @click="campaignType = 'All'"
+                      >
+                        <v-card-text class="text-center py-2">
+                          <div class="text-h6 font-weight-medium">
+                            ALL
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                    <v-col>
+                      <v-card
+                        rounded="lg"
+                        :style="
+                          campaignType == 'membership'
+                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                            : ''
+                        "
+                        :class="
+                          campaignType == 'membership'
+                            ? 'border'
+                            : 'border border-dashed elevation-0'
+                        "
+                        @click="campaignType = 'membership'"
+                      >
+                        <v-card-text class="text-center py-2">
+                          <div class="text-h6 font-weight-medium">
+                            MEMBERSHIP CARD
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                    <v-col>
+                      <v-card
+                        rounded="lg"
+                        :style="
+                          campaignType == 'stamp'
+                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                            : ''
+                        "
+                        :class="
+                          campaignType == 'stamp'
+                            ? 'border'
+                            : 'border border-dashed elevation-0'
+                        "
+                        @click="campaignType = 'stamp'"
+                      >
+                        <v-card-text class="text-center py-2">
+                          <div class="text-h6 font-weight-medium">
+                            STAMP CARD
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                  <v-divider class="my-3"></v-divider>
+                  <v-row>
+                    <v-col cols="6" lg="3" v-for="template in filteredTemplates">
                       <v-card
                         @click="loyaltyData.template = template"
                         rounded="lg"
