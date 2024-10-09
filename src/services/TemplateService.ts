@@ -68,14 +68,7 @@ const templates = [
       description: "Please fill in your Reward Details",
       stampSuccessMessage: "{#} more stamps until your free coffee!",
       rewardSuccessMessage: "{#} more stamps until your free coffee!",
-      locations: [
-        {
-          name: "Main Location",
-          address: "123 Main St.",
-          display: true,
-          message: "Welcome to our Main Location!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Follow us on twitter",
@@ -154,14 +147,7 @@ const templates = [
       description: "Please fill in your Reward Details",
       stampSuccessMessage: "{#} more stamps until your free coffee!",
       rewardSuccessMessage: "{#} more stamps until your free coffee!",
-      locations: [
-        {
-          name: "Main Location",
-          address: "123 Main St.",
-          display: true,
-          message: "Welcome to our Main Location!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Follow us on twitter",
@@ -240,14 +226,7 @@ const templates = [
       description: "Please fill in your Reward Details",
       stampSuccessMessage: "{#} more stamps until your free coffee!",
       rewardSuccessMessage: "{#} more stamps until your free coffee!",
-      locations: [
-        {
-          name: "Main Location",
-          address: "123 Main St.",
-          display: true,
-          message: "Welcome to our Main Location!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Follow us on twitter",
@@ -312,14 +291,7 @@ const templates = [
       description: "Please provide Reward details",
       stampSuccessMessage: "{#} more purchases for a reward!",
       rewardSuccessMessage: "{#} more purchases for your reward!",
-      locations: [
-        {
-          name: "Main Branch",
-          address: "456 High St.",
-          display: true,
-          message: "Welcome to our Main Branch!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Check out our Facebook",
@@ -384,14 +356,7 @@ const templates = [
       description: "Fill in Reward details here",
       stampSuccessMessage: "{#} more visits until your free haircut!",
       rewardSuccessMessage: "{#} more visits for your reward!",
-      locations: [
-        {
-          name: "Downtown Barber Shop",
-          address: "789 Salon Lane",
-          display: true,
-          message: "Visit us at our Downtown branch!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Follow us on Instagram",
@@ -456,14 +421,7 @@ const templates = [
       description: "Fill in Reward details",
       stampSuccessMessage: "{#} more visits until your free treatment!",
       rewardSuccessMessage: "{#} more visits for your reward!",
-      locations: [
-        {
-          name: "Salon Branch",
-          address: "101 Beauty St.",
-          display: true,
-          message: "Welcome to our Salon!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Find us on Instagram",
@@ -529,14 +487,7 @@ const templates = [
       description: "Fill in Reward details here",
       stampSuccessMessage: "{#} more visits until your free service!",
       rewardSuccessMessage: "{#} more visits for your reward!",
-      locations: [
-        {
-          name: "Downtown Eyebrow Salon",
-          address: "123 Brow St.",
-          display: true,
-          message: "Visit us at our Downtown location!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Follow us on Pinterest",
@@ -601,14 +552,7 @@ const templates = [
       description: "Fill in Reward details here",
       stampSuccessMessage: "{#} more visits until your free nail service!",
       rewardSuccessMessage: "{#} more visits for your reward!",
-      locations: [
-        {
-          name: "Nail Salon Main Branch",
-          address: "456 Nail Ave.",
-          display: true,
-          message: "Welcome to our Main Branch!",
-        },
-      ],
+      locations: [],
       usefulLinks: [
         {
           text: "Check out our YouTube channel",

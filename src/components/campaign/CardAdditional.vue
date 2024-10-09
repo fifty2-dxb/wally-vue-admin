@@ -111,7 +111,7 @@
               <v-textarea v-model="item.message" rows="2" bg-color="transparent" />
             </td>
             <td>
-              <v-icon color="red" size="24" icon="mdi mdi-delete" @click="deleteLocation(index)"></v-icon>
+              <v-icon color="red" size="24" icon="tabler-trash" @click="deleteLocation(index)"></v-icon>
             </td>
           </tr>
         </tbody>
