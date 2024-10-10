@@ -101,7 +101,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in data.template.details.locations" :key="item.name">
+          <tr v-for="(item,index) in data.template.details.locations" :key="item.name">
             <td>{{ item.name }}</td>
             <td>{{ item.formattedAddress ? item.formattedAddress : item.address }}</td>
             <td>
@@ -110,6 +110,9 @@
             <td>
               <v-textarea v-model="item.message" rows="2" bg-color="transparent" placeholder="Enter message..." />
             </td>
+            <td>
+                    <v-icon size="24" icon="tabler-pencil" @click="editLocation(index)" ></v-icon>
+                    </td>
             <td>
               <v-icon color="red" size="24" icon="tabler-trash" @click="deleteLocation(index)"></v-icon>
             </td>
@@ -126,64 +129,68 @@
     </v-card-actions>
 
     <v-dialog v-model="dialog" max-width="1200">
-      <v-card>
-        <v-card-title>
-          <span class="text-h6">{{ $t("Add Location") }}</span>
-        </v-card-title>
-        <v-divider class="my-2" />
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="locationName" label="Location Name" class="mb-6"></v-text-field>
-                <v-text-field v-model="address" label="Enter address" @input="onAddressInput"></v-text-field>
+    <v-card>
+      <v-card-title>
+        <span class="text-h6">{{ editMode ? $t("Edit Location") : $t("Add Location") }}</span>
+      </v-card-title>
+      <v-divider class="my-2" />
+      <v-card-text>
+        <v-container>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field v-model="locationName" label="Location Name" class="mb-6"></v-text-field>
+              <v-text-field v-model="address" label="Enter address" @input="onAddressInput"></v-text-field>
+              
+              <!-- Address Suggestions -->
+              <v-list v-if="suggestions?.length">
+                <v-list-item v-for="(suggestion, index) in suggestions" :key="index"
+                  @click="selectSuggestion(suggestion)" class="suggestion-item">
+                  {{ suggestion?.formatted_address }}
+                </v-list-item>
+              </v-list>
 
-                <v-list v-if="suggestions?.length">
-                  <v-list-item v-for="(suggestion, index) in suggestions" :key="index"
-                    @click="selectSuggestion(suggestion)" class="suggestion-item">
-                    {{ suggestion?.formatted_address }}
-                  </v-list-item>
-                </v-list>
+              <!-- Advanced Fields -->
+              <v-card-actions class="advanced-btn-padding">
+                <v-btn text color="primary" @click="toggleAdvancedFields" class="advanced-btn">
+                  {{ advancedFieldsVisible ? "Hide Advanced" : "Show Advanced" }}
+                  <v-icon icon="tabler-chevron-down" size="small"></v-icon>
+                </v-btn>
+              </v-card-actions>
 
-                <v-card-actions class="advanced-btn-padding">
-                  <v-btn text color="primary" @click="toggleAdvancedFields" class="advanced-btn">
-                    {{ advancedFieldsVisible ? "Hide Advanced" : "Show Advanced" }}
-                    <v-icon icon="tabler-chevron-down" size="small"></v-icon>
-                  </v-btn>
-                </v-card-actions>
+              <v-expand-transition>
+                <v-row v-if="advancedFieldsVisible">
+                  <v-col cols="6">
+                    <v-text-field v-model="latitude" label="Latitude" class="mb-6"></v-text-field>
+                  </v-col>
+                  <v-col cols="6">
+                    <v-text-field v-model="longitude" label="Longitude" class="mb-6"></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-expand-transition>
 
-                <v-expand-transition>
-                  <v-row v-if="advancedFieldsVisible">
-                    <v-col cols="6">
-                      <v-text-field v-model="latitude" label="Latitude" class="mb-6"></v-text-field>
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field v-model="longitude" label="Longitude" class="mb-6"></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-expand-transition>
+              <v-textarea v-model="formattedAddress" label="Address to display" class="mb-6"></v-textarea>
+            </v-col>
 
-                <v-textarea v-model="formattedAddress" label="Address to display" class="mb-6"></v-textarea>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-responsive>
-                  <GoogleMap ref="googleMap" :api-key="googleApiKey" style="width: 100%; height: 300px;"
-                    :center="center" :zoom="15" @click="updateLatLng">
-                    <Marker :options="{ position: { lat: Number(latitude), lng: Number(longitude) } }" />
-                  </GoogleMap>
-                </v-responsive>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider class="my-4" />
-        <v-card-actions>
-          <v-btn color="primary" @click="addLocation">{{ $t("Add Location") }}</v-btn>
-          <v-btn color="secondary" @click="closeDialog">{{ $t("Close") }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+            <v-col cols="12" md="6">
+              <v-responsive>
+                <GoogleMap ref="googleMap" :api-key="googleApiKey" style="width: 100%; height: 300px;"
+                  :center="center" :zoom="15" @click="updateLatLng">
+                  <Marker :options="{ position: { lat: Number(latitude), lng: Number(longitude) } }" />
+                </GoogleMap>
+              </v-responsive>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+      <v-divider class="my-4" />
+      <v-card-actions>
+        <v-btn color="primary" @click="editMode ? updateLocation() : addLocation()">
+          {{ editMode ? $t("Update Location") : $t("Add Location") }}
+        </v-btn>
+        <v-btn color="secondary" @click="closeDialog">{{ $t("Close") }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   </v-card>
 
   <v-divider class=""></v-divider>
@@ -218,7 +225,7 @@
                 bg-color="transparent" outlined dense></v-select>
             </td>
             <td class="text-end">
-              <v-icon class="mr-3" color="red" size="24" icon="mdi mdi-delete"
+              <v-icon class="mr-3" color="red" size="24" icon="tabler-trash"
                 @click="deleteUsefulLink(index)"></v-icon>
             </td>
           </tr>
@@ -255,6 +262,9 @@ const longitude = ref(center.lng);
 const googleMap = ref(null);
 const advancedFieldsVisible = ref(false);
 const googleApiKey = import.meta.env.VITE_APP_WALLY_GOOGLE_KEY
+const editMode = ref(false);
+let selectedLocationIndex = ref(null); 
+
 
 let debounceTimeout = null;
 let marker = null;
@@ -407,6 +417,38 @@ const addLocation = () => {
   resetLocationFields();
   dialog.value = false;
 };
+const editLocation = (index) => {
+  const location = data.value.template.details.locations[index];
+  
+  locationName.value = location.name;
+  address.value = location.address;
+  formattedAddress.value = location.formattedAddress;
+  latitude.value = location.latitude;
+  longitude.value = location.longitude;
+
+  center.lat = latitude.value;
+  center.lng = longitude.value;
+
+  selectedLocationIndex.value = index;
+  editMode.value = true;
+  dialog.value = true;
+};
+
+const updateLocation = () => {
+  if (selectedLocationIndex.value !== null) {
+    const location = data.value.template.details.locations[selectedLocationIndex.value];
+
+    location.name = locationName.value;
+    location.address = address.value;
+    location.formattedAddress = formattedAddress.value;
+    location.latitude = latitude.value;
+    location.longitude = longitude.value;
+
+    resetLocationFields();
+    dialog.value = false;
+    editMode.value = false;
+  }
+};
 
 const deleteLocation = (index) => {
   data.value.template.details.locations.splice(index, 1);
@@ -425,6 +467,7 @@ const deleteField = (index) => {
 const closeDialog = () => {
   resetLocationFields();
   dialog.value = false;
+  editMode.value = false;
 };
 
 </script>
