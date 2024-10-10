@@ -17,188 +17,219 @@
           <div class="text-subtitle-2 mb-3">
             {{ $t("Logo") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.logo" 
-          :boxStyle="{
+          <upload-and-crop v-model="value.template.properties.logo" :boxStyle="{
             width: '100%',
             height: '100%',
             backgroundColor: '#f8f8f8',
             margin: 'auto',
-          }"
-          :options="{
+          }" :options="{
             viewMode: 1,
             dragMode: 'move',
             cropBoxResizable: true,
             aspectRatio: 480 / 150,
-          }"
-          :presetMode="{
+          }" :presetMode="{
             mode: 'fixedSize',
             width: 480,
             height: 150,
-          }"
-
-          :outputOptions="{
+          }" :outputOptions="{
             width: 480,
             height: 150
-          }"
-          ></upload-and-crop>
+          }"></upload-and-crop>
         </v-col>
         <v-col cols="6">
           <div class="text-subtitle-2 mb-3">
             {{ $t("Icon") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.icon" 
-          :boxStyle="{
+          <upload-and-crop v-model="value.template.properties.icon" :boxStyle="{
             width: '100%',
             height: '100%',
             backgroundColor: '#f8f8f8',
             margin: 'auto',
-          }"
-          :options="{
+          }" :options="{
             viewMode: 1,
             dragMode: 'move',
             cropBoxResizable: true,
             aspectRatio: 1 / 1,
-          }"
-          :presetMode="{
+          }" :presetMode="{
             mode: 'fixedSize',
             width: 167,
             height: 167,
-          }"
-          :outputOptions="{
+          }" :outputOptions="{
             width: 167,
             height: 167,
             fileName: 'iconfile.png',
-          }"
-          ></upload-and-crop>
+          }"></upload-and-crop>
         </v-col>
       </v-row>
-      <v-row>
+      <v-row v-show="value.template.type == 'stamp'">
         <v-col cols="12">
           <div class="text-subtitle-2 mb-3">
             {{ $t("Reward") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.reward" 
-          :boxStyle="{
+          <upload-and-crop v-model="value.template.properties.reward" :boxStyle="{
             width: '100%',
             height: '100%',
             backgroundColor: '#f8f8f8',
             margin: 'auto',
-          }"
-          :options="{
+          }" :options="{
             viewMode: 1,
             dragMode: 'move',
             cropBoxResizable: true,
             aspectRatio: 1125 / 432,
-          }"
-          :presetMode="{
+          }" :presetMode="{
             mode: 'fixedSize',
             width: 1125,
             height: 432,
-          }"
-
-          :outputOptions="{
+          }" :outputOptions="{
             width: 1125,
             height: 432
-          }"
-          ></upload-and-crop>
-        </v-col>
-      </v-row>      
-    </v-card-text>
-  </v-card>
-
-  <v-divider></v-divider>
-
-  <v-card class="elevation-0" :title="$t('Stamps')">
-    <v-card-text>
-      <v-select :items="[
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-        20, 25, 30,
-      ]" :label="$t('Please Select Stamps Number')" class="mt-3 mb-6" v-model="value.template.properties.stampsNumber"
-        outlined @update:modelValue="updateStampImage" :bg-color="'transparent'">
-      </v-select>
-
-      <v-row>
-        <v-col cols="12" lg="6">
-          <v-row>
-            <v-col>
-              <v-select :items="stampImages" item-title="name" item-value="url" :label="$t('Stamp Icon')" class="mt-3"
-                v-model="value.template.properties.stampIcon" outlined :bg-color="'transparent'"
-                @update:modelValue="updateStampImage">
-              </v-select>
-              <div class="text-subtitle-2 text-center my-4">
-                {{ $t("Or") }}
-              </div>
-              <upload-and-crop v-model="value.template.properties.stampImageUrl" 
-              :boxStyle="{
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#f8f8f8',
-                margin: 'auto',
-              }"
-              :options="{
-                viewMode: 1,
-                dragMode: 'move',
-                cropBoxResizable: true,
-                aspectRatio: 1 / 1,
-              }"
-              :presetMode="{
-                mode: 'fixedSize',
-                width: 200,
-                height: 200,
-              }"
-              :outputOptions="{
-                width: 200,
-                height: 200
-              }"
-              ></upload-and-crop>
-            </v-col>
-            <v-col sm="2" v-show="!!value.template.properties.stampIcon">
-              <v-img :src="'https://api.loopyloyalty.com/images/stampImage/' + value.template.properties.stampIcon" class="w-100"></v-img>
-            </v-col>
-          </v-row>
-        </v-col>
-        <v-divider vertical></v-divider>
-        <v-col cols="12" lg="6">
-          <v-row>
-            <v-col>
-              <v-select :items="stampImages" :label="$t('Unstamp Icon')" class="mt-3" item-title="name"
-                :bg-color="'transparent'" item-value="url" v-model="value.template.properties.unStampIcon"
-                @update:modelValue="updateStampImage"></v-select>
-              <div class="text-subtitle-2 text-center my-4">
-                {{ $t("Or") }}
-              </div>
-              <upload-and-crop v-model="value.template.properties.unstampImageUrl" 
-              :boxStyle="{
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#f8f8f8',
-                margin: 'auto',
-              }"
-              :options="{
-                viewMode: 1,
-                dragMode: 'move',
-                cropBoxResizable: true,
-                aspectRatio: 1 / 1,
-              }"
-              :presetMode="{
-                mode: 'fixedSize',
-                width: 200,
-                height: 200,
-              }"
-              :outputOptions="{
-                width: 200,
-                height: 200
-              }"
-              ></upload-and-crop>
-            </v-col>
-            <v-col sm="2" v-show="!!value.template.properties.unStampIcon">
-              <v-img :src="'https://api.loopyloyalty.com/images/stampImage/' + value.template.properties.unStampIcon" class="w-100"></v-img>
-            </v-col>
-          </v-row>
+          }"></upload-and-crop>
         </v-col>
       </v-row>
     </v-card-text>
   </v-card>
+  <v-divider></v-divider>
+  <div v-show="value.template.type == 'membership'">
+    <v-card class="elevation-0" :title="$t('Strip Images')">
+      <v-card-text>
+        <v-row>
+          <v-col cols="6">
+            <div class="text-subtitle-2 mb-3">
+              {{ $t("Apple") }}
+            </div>
+            <upload-and-crop v-model="value.template.properties.stripImagePreviewApple" :boxStyle="{
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#f8f8f8',
+              margin: 'auto',
+            }" :options="{
+            viewMode: 1,
+            dragMode: 'move',
+            cropBoxResizable: true,
+            aspectRatio: 1125 / 432,
+          }" :presetMode="{
+            mode: 'fixedSize',
+            width: 1125,
+            height: 432,
+          }" :outputOptions="{
+            width: 1125,
+            height: 432
+          }"></upload-and-crop>
+          </v-col>
+          <v-col cols="6">
+            <div class="text-subtitle-2 mb-3">
+              {{ $t("Google") }}
+            </div>
+            <upload-and-crop v-model="value.template.properties.stripImagePreviewGoogle" :boxStyle="{
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#f8f8f8',
+              margin: 'auto',
+            }" :options="{
+            viewMode: 1,
+            dragMode: 'move',
+            cropBoxResizable: true,
+            aspectRatio: 1125 / 432,
+          }" :presetMode="{
+            mode: 'fixedSize',
+            width: 1125,
+            height: 432,
+          }" :outputOptions="{
+            width: 1125,
+            height: 432,
+            fileName: 'iconfile.png',
+          }"></upload-and-crop>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </div>
+  <div v-show="value.template.type == 'stamp'">
+    <v-card class="elevation-0" :title="$t('Stamps')">
+      <v-card-text>
+        <v-select :items="[
+          1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+          20, 25, 30,
+        ]" :label="$t('Please Select Stamps Number')" class="mt-3 mb-6"
+          v-model="value.template.properties.stampsNumber" outlined @update:modelValue="updateStampImage"
+          :bg-color="'transparent'">
+        </v-select>
+
+        <v-row>
+          <v-col cols="12" lg="6">
+            <v-row>
+              <v-col>
+                <v-select :items="stampImages" item-title="name" item-value="url" :label="$t('Stamp Icon')" class="mt-3"
+                  v-model="value.template.properties.stampIcon" outlined :bg-color="'transparent'"
+                  @update:modelValue="updateStampImage">
+                </v-select>
+                <div class="text-subtitle-2 text-center my-4">
+                  {{ $t("Or") }}
+                </div>
+                <upload-and-crop v-model="value.template.properties.stampImageUrl" :boxStyle="{
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: '#f8f8f8',
+                  margin: 'auto',
+                }" :options="{
+                  viewMode: 1,
+                  dragMode: 'move',
+                  cropBoxResizable: true,
+                  aspectRatio: 1 / 1,
+                }" :presetMode="{
+                mode: 'fixedSize',
+                width: 200,
+                height: 200,
+              }" :outputOptions="{
+                width: 200,
+                height: 200
+              }"></upload-and-crop>
+              </v-col>
+              <v-col sm="2" v-show="!!value.template.properties.stampIcon">
+                <v-img :src="'https://api.loopyloyalty.com/images/stampImage/' + value.template.properties.stampIcon"
+                  class="w-100"></v-img>
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-divider vertical></v-divider>
+          <v-col cols="12" lg="6">
+            <v-row>
+              <v-col>
+                <v-select :items="stampImages" :label="$t('Unstamp Icon')" class="mt-3" item-title="name"
+                  :bg-color="'transparent'" item-value="url" v-model="value.template.properties.unStampIcon"
+                  @update:modelValue="updateStampImage"></v-select>
+                <div class="text-subtitle-2 text-center my-4">
+                  {{ $t("Or") }}
+                </div>
+                <upload-and-crop v-model="value.template.properties.unstampImageUrl" :boxStyle="{
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: '#f8f8f8',
+                  margin: 'auto',
+                }" :options="{
+                  viewMode: 1,
+                  dragMode: 'move',
+                  cropBoxResizable: true,
+                  aspectRatio: 1 / 1,
+                }" :presetMode="{
+                mode: 'fixedSize',
+                width: 200,
+                height: 200,
+              }" :outputOptions="{
+                width: 200,
+                height: 200
+              }"></upload-and-crop>
+              </v-col>
+              <v-col sm="2" v-show="!!value.template.properties.unStampIcon">
+                <v-img :src="'https://api.loopyloyalty.com/images/stampImage/' + value.template.properties.unStampIcon"
+                  class="w-100"></v-img>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </div>
 
   <v-divider></v-divider>
 
@@ -256,172 +287,169 @@
         </v-col>
       </v-row>
     </v-card-text>
-    <v-divider></v-divider>
-    <v-card-subtitle>Background</v-card-subtitle>
-<v-card-text>
-  <v-row no-gutters>
-    <v-col cols="6" lg="4" class="mb-4">
-      <div class="text-subtitle-2 mb-2">
-        {{ $t("Rectangle behind stamps") }}
-      </div>
-      <div class="ps-2" style="width: 45px; height: 45px">
-        <div></div>
-        <v-dialog width="300">
-          <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" :style="{
-              backgroundColor:
-                value.template.properties
-                  .rectangleBehindStamps + ' !important',
-            }" style="width: 100%; height: 100%">
-            </v-btn>
-          </template>
+    <div v-show="value.template.type == 'stamp'">
+      <v-divider></v-divider>
+      <v-card-subtitle>Background</v-card-subtitle>
+      <v-card-text>
+        <v-row no-gutters>
+          <v-col cols="6" lg="4" class="mb-4">
+            <div class="text-subtitle-2 mb-2">
+              {{ $t("Rectangle behind stamps") }}
+            </div>
+            <div class="ps-2" style="width: 45px; height: 45px">
+              <div></div>
+              <v-dialog width="300">
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" :style="{
+                    backgroundColor:
+                      value.template.properties
+                        .rectangleBehindStamps + ' !important',
+                  }" style="width: 100%; height: 100%">
+                  </v-btn>
+                </template>
 
-          <template v-slot:default="{ isActive }">
-            <v-sheet>
-              <v-color-picker v-model="value.template.properties
-                .rectangleBehindStamps
-                " @update:model-value="updateStampImage"></v-color-picker>
-            </v-sheet>
-          </template>
-        </v-dialog>
-      </div>
-    </v-col>
+                <template v-slot:default="{ isActive }">
+                  <v-sheet>
+                    <v-color-picker v-model="value.template.properties
+                      .rectangleBehindStamps
+                      " @update:model-value="updateStampImage"></v-color-picker>
+                  </v-sheet>
+                </template>
+              </v-dialog>
+            </div>
+          </v-col>
 
-    <v-col cols="6" lg="6" class="mb-4">
-      <div class="text-subtitle-2 mb-2">
-        {{ $t("Upload a background image") }}
-      </div>
+          <v-col cols="6" lg="6" class="mb-4">
+            <div class="text-subtitle-2 mb-2">
+              {{ $t("Upload a background image") }}
+            </div>
 
-      <upload-and-crop v-model="value.template.properties.backgroundImage" 
-        :boxStyle="{
-          width: '100%',
-          height: '100%',
-          backgroundColor: '#f8f8f8',
-          margin: 'auto',
-        }"
-        :options="{
-          viewMode: 1,
-          dragMode: 'move',
-          cropBoxResizable: true,
-          aspectRatio: 16 / 9,
-        }"
-        :presetMode="{
-          mode: 'fixedSize',
-          width: 1920,
-          height: 1080,
-        }"
-        :outputOptions="{
+            <upload-and-crop v-model="value.template.properties.backgroundImage" :boxStyle="{
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#f8f8f8',
+              margin: 'auto',
+            }" :options="{
+              viewMode: 1,
+              dragMode: 'move',
+              cropBoxResizable: true,
+              aspectRatio: 16 / 9,
+            }" :presetMode="{
+            mode: 'fixedSize',
+            width: 1920,
+            height: 1080,
+          }" :outputOptions="{
           width: 1920,
           height: 1080
-        }"
-      ></upload-and-crop>
-    </v-col>
-  </v-row>
-</v-card-text>
-    <v-divider></v-divider>
-    <v-card-subtitle>Stamp</v-card-subtitle>
-    <v-card-text>
-      <v-row class="mt-2" no-gutters>
-        <v-col cols="6" lg="3">
-          <div class="text-subtitle-2 mb-2">
-            {{ $t("Stamp Circle") }}
-          </div>
-          <div class="ps-2" style="width: 45px; height: 45px">
-            <div></div>
-            <v-dialog width="300">
-              <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" :style="{
-                  backgroundColor:
-                    value.template.properties.circle + ' !important',
-                }" style="width: 100%; height: 100%">
-                </v-btn>
-              </template>
+        }"></upload-and-crop>
+          </v-col>
+        </v-row>
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-subtitle>Stamp</v-card-subtitle>
+      <v-card-text>
+        <v-row class="mt-2" no-gutters>
+          <v-col cols="6" lg="3">
+            <div class="text-subtitle-2 mb-2">
+              {{ $t("Stamp Circle") }}
+            </div>
+            <div class="ps-2" style="width: 45px; height: 45px">
+              <div></div>
+              <v-dialog width="300">
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" :style="{
+                    backgroundColor:
+                      value.template.properties.circle + ' !important',
+                  }" style="width: 100%; height: 100%">
+                  </v-btn>
+                </template>
 
-              <template v-slot:default="{ isActive }">
-                <v-sheet>
-                  <v-color-picker v-model="value.template.properties.circle"
-                    @update:model-value="updateStampImage"></v-color-picker>
-                </v-sheet>
-              </template>
-            </v-dialog>
-          </div>
-        </v-col>
+                <template v-slot:default="{ isActive }">
+                  <v-sheet>
+                    <v-color-picker v-model="value.template.properties.circle"
+                      @update:model-value="updateStampImage"></v-color-picker>
+                  </v-sheet>
+                </template>
+              </v-dialog>
+            </div>
+          </v-col>
 
-        <v-col cols="6" lg="3">
-          <div class="text-subtitle-2 mb-2">
-            {{ $t("Circle Border") }}
-          </div>
-          <div class="ps-2" style="width: 45px; height: 45px">
-            <div></div>
-            <v-dialog width="300">
-              <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" :style="{
-                  backgroundColor:
-                    value.template.properties.circleBorder + ' !important',
-                }" style="width: 100%; height: 100%">
-                </v-btn>
-              </template>
+          <v-col cols="6" lg="3">
+            <div class="text-subtitle-2 mb-2">
+              {{ $t("Circle Border") }}
+            </div>
+            <div class="ps-2" style="width: 45px; height: 45px">
+              <div></div>
+              <v-dialog width="300">
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" :style="{
+                    backgroundColor:
+                      value.template.properties.circleBorder + ' !important',
+                  }" style="width: 100%; height: 100%">
+                  </v-btn>
+                </template>
 
-              <template v-slot:default="{ isActive }">
-                <v-sheet>
-                  <v-color-picker v-model="value.template.properties.circleBorder
-                    " @update:model-value="updateStampImage"></v-color-picker>
-                </v-sheet>
-              </template>
-            </v-dialog>
-          </div>
-        </v-col>
-        <v-col cols="6" lg="3">
-          <div class="text-subtitle-2 mb-2">
-            {{ $t("Stamp Image") }}
-          </div>
-          <div class="ps-2" style="width: 45px; height: 45px">
-            <div></div>
-            <v-dialog width="300">
-              <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" :style="{
-                  backgroundColor:
-                    value.template.properties.stampImageColor + ' !important',
-                }" style="width: 100%; height: 100%">
-                </v-btn>
-              </template>
+                <template v-slot:default="{ isActive }">
+                  <v-sheet>
+                    <v-color-picker v-model="value.template.properties.circleBorder
+                      " @update:model-value="updateStampImage"></v-color-picker>
+                  </v-sheet>
+                </template>
+              </v-dialog>
+            </div>
+          </v-col>
+          <v-col cols="6" lg="3">
+            <div class="text-subtitle-2 mb-2">
+              {{ $t("Stamp Image") }}
+            </div>
+            <div class="ps-2" style="width: 45px; height: 45px">
+              <div></div>
+              <v-dialog width="300">
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" :style="{
+                    backgroundColor:
+                      value.template.properties.stampImageColor + ' !important',
+                  }" style="width: 100%; height: 100%">
+                  </v-btn>
+                </template>
 
-              <template v-slot:default="{ isActive }">
-                <v-sheet>
-                  <v-color-picker v-model="value.template.properties.stampImageColor
-                    " @update:model-value="updateStampImage"></v-color-picker>
-                </v-sheet>
-              </template>
-            </v-dialog>
-          </div>
-        </v-col>
+                <template v-slot:default="{ isActive }">
+                  <v-sheet>
+                    <v-color-picker v-model="value.template.properties.stampImageColor
+                      " @update:model-value="updateStampImage"></v-color-picker>
+                  </v-sheet>
+                </template>
+              </v-dialog>
+            </div>
+          </v-col>
 
-        <v-col cols="6" lg="3">
-          <div class="text-subtitle-2 mb-2">
-            {{ $t("Unstamp Image") }}
-          </div>
-          <div class="ps-2" style="width: 45px; height: 45px">
-            <div></div>
-            <v-dialog width="300">
-              <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" :style="{
-                  backgroundColor:
-                    value.template.properties.unStampImageColor + ' !important',
-                }" style="width: 100%; height: 100%">
-                </v-btn>
-              </template>
+          <v-col cols="6" lg="3">
+            <div class="text-subtitle-2 mb-2">
+              {{ $t("Unstamp Image") }}
+            </div>
+            <div class="ps-2" style="width: 45px; height: 45px">
+              <div></div>
+              <v-dialog width="300">
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" :style="{
+                    backgroundColor:
+                      value.template.properties.unStampImageColor + ' !important',
+                  }" style="width: 100%; height: 100%">
+                  </v-btn>
+                </template>
 
-              <template v-slot:default="{ isActive }">
-                <v-sheet>
-                  <v-color-picker v-model="value.template.properties.unStampImageColor
-                    " @update:model-value="updateStampImage"></v-color-picker>
-                </v-sheet>
-              </template>
-            </v-dialog>
-          </div>
-        </v-col>
-      </v-row>
-    </v-card-text>
+                <template v-slot:default="{ isActive }">
+                  <v-sheet>
+                    <v-color-picker v-model="value.template.properties.unStampImageColor
+                      " @update:model-value="updateStampImage"></v-color-picker>
+                  </v-sheet>
+                </template>
+              </v-dialog>
+            </div>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </div>
   </v-card>
 </template>
 
@@ -641,51 +669,51 @@ const stampImages = ref([
   "running",
   "sad-emoji",
   "salad",
-  "sandwich", 
-  "shades", 
-  "shave", 
-  "shorts", 
-  "skateboard", 
+  "sandwich",
+  "shades",
+  "shave",
+  "shorts",
+  "skateboard",
   "smoothie",
-  "snooker", 
-  "snooker2", 
-  "snooker3", 
-  "spanner", 
-  "spectacles", 
-  "stamp-tick", 
-  "stamp1", 
+  "snooker",
+  "snooker2",
+  "snooker3",
+  "spanner",
+  "spectacles",
+  "stamp-tick",
+  "stamp1",
   "stamp2",
   "stamp3",
   "stamp4",
   "stamp5",
-  "star", 
+  "star",
   "star2",
-  "sterling", 
+  "sterling",
   "stones",
-  "sun", 
-  "surfboard", 
-  "surfboard2", 
-  "swimming", 
-  "t-shirt", 
+  "sun",
+  "surfboard",
+  "surfboard2",
+  "swimming",
+  "t-shirt",
   "t-shirt2",
   "t-shirt3",
-  "taco", 
+  "taco",
   "teacher",
-  "teacher2", 
+  "teacher2",
   "teapot",
   "theatre",
   "tick",
   "tick2",
-  "tools", 
-  "towel", 
+  "tools",
+  "towel",
   "train",
-  "tree", 
-  "truck", 
-  "tumbler", 
-  "weights", 
-  "whistle", 
-  "wine", 
-  "world", 
+  "tree",
+  "truck",
+  "tumbler",
+  "weights",
+  "whistle",
+  "wine",
+  "world",
   "yoga",
 ]);
 
@@ -728,13 +756,13 @@ const updateStampImage = function () {
       imageType: "png",
     };
 
-    if(value.value.template.properties.stampImageUrl) {
+    if (value.value.template.properties.stampImageUrl) {
       loopyparams.stampImageUrl = value.value.template.properties.stampImageUrl;
     } else {
       loopyparams.stampImage = value.value.template.properties.stampIcon;
     }
 
-    if(value.value.template.properties.unstampImageUrl) {
+    if (value.value.template.properties.unstampImageUrl) {
       loopyparams.unstampImageUrl = value.value.template.properties.unstampImageUrl;
     } else {
       loopyparams.unstampImage = value.value.template.properties.unStampIcon;

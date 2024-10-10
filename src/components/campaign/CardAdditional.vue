@@ -60,12 +60,13 @@
       <v-text-field v-model="data.template.details.cardDescription" :label="$t('Card Description')"
         class="mb-6"></v-text-field>
       <v-textarea v-model="data.template.details.howToEarn" :label="$t('How to customers earn 1 stamp')"
-        bg-color="transparent" class="mb-6"></v-textarea>
+        bg-color="transparent" class="mb-6"  v-show="data.template.type == 'stamp'"></v-textarea>
       <v-text-field v-model="data.template.details.businessName" :label="$t('Business Name')"
         class="mb-6"></v-text-field>
     </v-card-text>
   </v-card>
 
+<div v-show="data.template.type == 'stamp'">
   <v-divider></v-divider>
 
   <v-card class="elevation-0" :title="$t('Reward & Stamp Messages')">
@@ -85,6 +86,7 @@
         " class="mb-6"></v-text-field>
     </v-card-text>
   </v-card>
+</div>
 
   <v-divider></v-divider>
 

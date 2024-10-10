@@ -46,7 +46,7 @@
                                             </div>
                                         </div>
                                         <div class="apple-strip-image">
-                                            <img :src="data.template.properties?.stampImagePreview" alt=""
+                                            <img :src="data.template.type=='membership' ? data.template.properties?.stripImagePreviewApple : data.template.properties?.stampImagePreview" alt=""
                                                 width="100%" cover></img>
                                         </div>
                                         <div class="apple-fields">
@@ -135,7 +135,7 @@
                                             </div>
                                         </div>
                                         <div class="GoogleCardContainer--strip"
-                                            :style="'background-image: url('+data.template.properties?.stampImagePreview+');'"
+                                            :style="'background-image: url('+(data.template.type=='membership' ? data.template.properties?.stripImagePreviewGoogle : data.template.properties?.stampImagePreview)+');'"
                                             bis_skin_checked="1"></div>
                                     </section>
                                     <div data-v-49c5ed53="" class="google-device-btn-info cursor-link"
