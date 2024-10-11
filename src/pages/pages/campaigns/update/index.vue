@@ -87,7 +87,7 @@ const saveCampaign = async () => {
     webServiceURL: "https://dev-api.wally.ae/",
     teamIdentifier: "772239U7XT",
     sharingProhibited: false,
-    passTypeIdentifier: "pass.com.freshwallet.loyalty",
+    passTypeIdentifier: "pass.com.wally.loyalty",
     authenticationToken: "Lu@ByGo9G6QMepMKQxA4",
     associatedStoreIdentifiers: [],
   };
