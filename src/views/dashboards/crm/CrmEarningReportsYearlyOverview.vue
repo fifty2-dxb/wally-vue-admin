@@ -18,7 +18,7 @@ const chartConfigs = computed(() => {
 
   return [
     {
-      title: 'Orders',
+      title: 'Stamps',
       icon: 'tabler-shopping-cart',
       chartOptions: {
         chart: {
@@ -158,7 +158,7 @@ const chartConfigs = computed(() => {
       ],
     },
     {
-      title: 'Sales',
+      title: 'Redeem',
       icon: 'tabler-chart-bar',
       chartOptions: {
         chart: {
@@ -297,7 +297,7 @@ const chartConfigs = computed(() => {
       ],
     },
     {
-      title: 'Profit',
+      title: 'Active',
       icon: 'tabler-currency-dollar',
       chartOptions: {
         chart: {
@@ -436,7 +436,7 @@ const chartConfigs = computed(() => {
       ],
     },
     {
-      title: 'Income',
+      title: 'Rewards',
       icon: 'tabler-chart-pie-2',
       chartOptions: {
         chart: {
@@ -585,8 +585,8 @@ const moreList = [
 
 <template>
   <VCard
-    title="Earning Reports"
-    subtitle="Yearly Earnings Overview"
+    title="Loyalty Stamp Reports"
+    subtitle="Yearly Stamp Overview"
   >
     <template #append>
       <div class="mt-n4 me-n2">

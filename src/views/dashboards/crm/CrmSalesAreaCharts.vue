@@ -78,7 +78,7 @@ const chartOptions = {
   <VCard>
     <VCardItem class="pb-3">
       <VCardTitle>
-        Sales
+        Redeemed
       </VCardTitle>
       <VCardSubtitle>
         Last Year
