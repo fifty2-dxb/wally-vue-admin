@@ -21,7 +21,9 @@ const templates = [
       circleBorder: "",
       background: "#ffffff",
       text: "#000000",
-      stampImagePreview: "/images/loyalty/templates/wally-apple-strip-gym.png",
+      stampImagePreview: "",
+      stripImagePreviewApple: "/images/loyalty/templates/wally-apple-strip-gym.png",
+      stripImagePreviewGoogle: "/images/loyalty/templates/wally-apple-strip-gym.png",
       // appleLogo: "/images/loyalty/templates/wally-apple-logo.png",
       // googleLogo: "/images/loyalty/templates/wally-google-logo.png",
       // appleStrip: "/images/loyalty/templates/wally-apple-strip.png",
@@ -46,11 +48,6 @@ const templates = [
       },
     },
     additionalFields: [
-      {
-        title: "Reward",
-        description: "Reward your customers with a free item or a discount",
-        type: "Text",
-      },
       {
         title: "Terms",
         description: "Please fill in your Terms and Condition",
