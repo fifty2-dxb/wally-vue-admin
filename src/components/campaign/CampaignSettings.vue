@@ -20,6 +20,18 @@
     </v-card-text>
   </v-card>
 
+  <v-divider></v-divider>
+
+<v-card class="elevation-0" :title="$t('Integrations')">
+  <v-card-text>
+    <v-checkbox v-model="data.template.appleSettings.sharingProhibited" label="AppyBee" class="mb-6"></v-checkbox>
+    <v-text-field  :label="$t('k_account_id')"
+    class="mb-6"></v-text-field>
+    <v-text-field  :label="$t('k_account_secret')"
+    class="mb-6"></v-text-field>
+  </v-card-text>
+</v-card>
+
 
 </template>
 

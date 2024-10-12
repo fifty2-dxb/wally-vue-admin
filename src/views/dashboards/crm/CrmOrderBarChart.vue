@@ -199,7 +199,7 @@ const chartOptions = computed(() => {
 <template>
   <VCard>
     <VCardItem class="pb-3">
-      <VCardTitle>Orders</VCardTitle>
+      <VCardTitle>Stamps Issued</VCardTitle>
       <VCardSubtitle>Last Week</VCardSubtitle>
     </VCardItem>
 

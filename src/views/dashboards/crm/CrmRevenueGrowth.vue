@@ -189,7 +189,7 @@ const chartOptions = computed(() => {
       <div class="d-flex flex-column">
         <div class="mb-auto">
           <h5 class="text-h5 text-no-wrap mb-2">
-            Revenue Growth
+            Redemtion Trends
           </h5>
           <div class="text-body-1">
             Weekly Report
@@ -198,7 +198,7 @@ const chartOptions = computed(() => {
 
         <div>
           <h5 class="text-h3 mb-2">
-            $4,673
+            4,673
           </h5>
           <VChip
             label

@@ -6,11 +6,11 @@ const vuetifyTheme = useTheme()
 
 const series = [
   {
-    name: 'Sales',
+    name: 'Issued',
     data: [32, 27, 27, 30, 25, 25],
   },
   {
-    name: 'Visits',
+    name: 'Redeemed',
     data: [25, 35, 20, 20, 20, 20],
   },
 ]
@@ -115,7 +115,7 @@ const moreList = [
 <template>
   <VCard>
     <VCardItem class="pb-4">
-      <VCardTitle>Sales</VCardTitle>
+      <VCardTitle>Stamp Activity</VCardTitle>
       <VCardSubtitle>Last 6 Months</VCardSubtitle>
 
       <template #append>
