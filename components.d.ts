@@ -28,6 +28,7 @@ declare module 'vue' {
     AppTextarea: typeof import('./src/@core/components/app-form-elements/AppTextarea.vue')['default']
     AppTextField: typeof import('./src/@core/components/app-form-elements/AppTextField.vue')['default']
     BuyNow: typeof import('./src/@core/components/BuyNow.vue')['default']
+    CampaignSettings: typeof import('./src/components/campaign/CampaignSettings.vue')['default']
     CardAddEditDialog: typeof import('./src/components/dialogs/CardAddEditDialog.vue')['default']
     CardAddEditMerchant: typeof import('./src/components/dialogs/CardAddEditMerchant.vue')['default']
     CardAddEditOrganisation: typeof import('./src/components/dialogs/CardAddEditOrganisation.vue')['default']

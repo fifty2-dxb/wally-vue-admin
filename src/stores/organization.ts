@@ -8,7 +8,7 @@ export const useOrganizationStore = defineStore("organization", () => {
   const fetchOrganizations = async () => {
     try {
       const response = await $wallyApi("/organisations", { method: "GET" });
-      organizations.value = response.organisation_details || [];
+      organizations.value = response || [];
     } catch (error) {}
   };
 
