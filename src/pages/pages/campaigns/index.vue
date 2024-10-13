@@ -84,6 +84,12 @@ const cancelDelete = () => {
   campaignToDelete.value = null;
 };
 
+const getPlatformUrl = (campaign: any) => {
+  const platformUrl = `/platform/${campaign.campaignGuid}`
+
+  window.open(platformUrl, '_blank')
+}
+
 const headers = [
   { title: 'ID', sortable: false, key: 'id' },
   { title: 'NAME', key: 'fullName' },
@@ -140,7 +146,7 @@ const headers = [
                 <span class="ms-2">Show Campaign</span>
               </VBtn>
 
-              <IconBtn color="secondary" icon="tabler-share" />
+              <IconBtn @click="getPlatformUrl(c)" color="secondary" icon="tabler-share" />
               <IconBtn @click="confirmDeleteCampaign(c.campaignGuid)">
                 <VIcon icon="tabler-trash" />
               </IconBtn>

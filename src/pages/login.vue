@@ -113,21 +113,11 @@ const onSubmit = () => {
       <VCard flat :max-width="500" class="mt-12 mt-sm-0 pa-4">
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Welcome to <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
+            Welcome to <span class="text-capitalize"> Wally{{ themeConfig.app.title }} </span>! 👋🏻
           </h4>
           <p class="mb-0">
             Please sign-in to your account and start the adventure
           </p>
-        </VCardText>
-        <VCardText>
-          <VAlert color="primary" variant="tonal">
-            <p class="text-sm mb-2">
-              Admin Email: <strong>admin@demo.com</strong> / Pass: <strong>admin</strong>
-            </p>
-            <p class="text-sm mb-0">
-              Client Email: <strong>client@demo.com</strong> / Pass: <strong>client</strong>
-            </p>
-          </VAlert>
         </VCardText>
         <VCardText>
           <VForm ref="refVForm" @submit.prevent="onSubmit">
@@ -164,16 +154,6 @@ const onSubmit = () => {
                 <RouterLink class="text-primary ms-1" :to="{ name: 'register' }">
                   Create an account
                 </RouterLink>
-              </VCol>
-              <VCol cols="12" class="d-flex align-center">
-                <VDivider />
-                <span class="mx-4">or</span>
-                <VDivider />
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol cols="12" class="text-center">
-                <AuthProvider />
               </VCol>
             </VRow>
           </VForm>
