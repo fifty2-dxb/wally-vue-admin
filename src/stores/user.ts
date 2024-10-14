@@ -4,6 +4,7 @@ import { ref } from "vue";
 export const useUserStore = defineStore("user", () => {
   const user = ref([]);
   const selectedUser = ref(null);
+  const ability = useAbility()
 
   const fetcUserData = async () => {
     try {
@@ -22,6 +23,25 @@ export const useUserStore = defineStore("user", () => {
       });
       return response;
     } catch (error) {
+      throw error;
+    }
+  };
+
+  const logoutUser = async () => {
+    try {
+      const response = await $wallyApi("/users/logout", {
+        method: "POST",
+      });
+      
+      useCookie('accessToken').value = null;
+      useCookie('userData').value = null;
+      useCookie('userAbilityRules').value = null;
+      
+      ability.update([]);
+  
+      return response;
+    } catch (error) {
+      console.error("Error during logout:", error);
       throw error;
     }
   };
@@ -62,6 +82,7 @@ export const useUserStore = defineStore("user", () => {
     user,
     selectedUser,
     loginUser,
+    logoutUser,
     registerUser,
     fetcUserData,
     updateUser,
