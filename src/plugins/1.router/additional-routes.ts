@@ -22,7 +22,7 @@ export const redirects: RouteRecordRaw[] = [
       const userRole = 'admin'
 
       if (userRole === 'admin')
-        return { name: 'dashboards-crm' }
+        return { name: 'pages-campaigns' }
       if (userRole === 'client')
         return { name: 'access-control' }
 
