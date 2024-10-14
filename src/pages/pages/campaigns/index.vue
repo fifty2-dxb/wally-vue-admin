@@ -8,7 +8,7 @@ import iphoneLayout from '@images/iphoneLayout.png';
 const configStore = useConfigStore();
 const campaignStore = useCampaignStore();
 
-const campaigns = ref(null);
+const campaigns = ref([]);
 const isDeleteConfirmationVisible = ref(false);
 const campaignToDelete = ref(null);
 const snackbarMessage = ref('');
@@ -67,6 +67,9 @@ const handleDeleteCampaign = async () => {
   try {
     await campaignStore.deleteCampaign(campaignToDelete.value);
     showSnackbarMessage('Campaign deleted successfully', 'success');
+    await campaignStore.fetchCampaignByMerchantGuid(configStore.activeMerchant.merchantGuid);
+    campaigns.value = campaignStore.campaigns;
+
   } catch (error) {
     console.error(error);
     showSnackbarMessage(
