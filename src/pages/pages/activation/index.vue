@@ -16,7 +16,6 @@ const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
 const router = useRouter()
-console.log(router);
 const serialNumber = ref(router.currentRoute.value.params.serialNumber); 
 
 const activationStore = useActivationStore();
@@ -45,7 +44,6 @@ const checkThemeAndSetLogo = () => {
 const fetchEnrollment = async () => {
   try {
     let uri = window.location.href.split('/');
-    console.log(uri);
     let slug = uri.pop();
     const response = await $wallyApi('/events/enrollment/' + slug, { method: 'GET' });
     enrollment.value = response;
@@ -86,7 +84,6 @@ const submitForm = async () => {
   formattedFormFields['serialNumber'] = serialNumber.value;
 
   try {
-    console.log('fields',formattedFormFields);
     await activationStore.addCustomerActivation(formattedFormFields);
     showSnackbar('Form submitted successfully!', 'success');
     emit('submit');

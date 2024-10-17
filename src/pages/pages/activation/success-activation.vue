@@ -19,7 +19,7 @@ const authThemeMask = useGenerateImageVariant(miscMaskLight, miscMaskDark)
     </div>
 
     <div class="d-flex justify-center mb-8 mt-6">
-      <VBtn to="/" class="mb-11">
+      <VBtn to="/" class="mb-11" href="https://wally.ae">
         Back to Home
       </VBtn>
     </div>
