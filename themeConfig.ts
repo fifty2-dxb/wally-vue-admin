@@ -3,16 +3,30 @@ import { Skins } from '@core/enums'
 import { breakpointsVuetifyV3 } from '@vueuse/core'
 import { VIcon } from 'vuetify/components/VIcon'
 
+import darkLogo from '@images/wally-new-dark.png';
+import lightLogo from '@images/wally-white.png';
 // ❗ Logo SVG must be imported with ?raw suffix
-import logo from '@images/wally-new-dark.png';
 
 import { AppContentLayoutNav, ContentWidth, FooterType, NavbarType } from '@layouts/enums'
+
+
+const getLogoByTheme = () => {
+  const theme = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('-theme='))
+    ?.split('=')[1];
+  
+  return theme === 'dark' ? lightLogo : darkLogo;
+};
 
 export const { themeConfig, layoutConfig } = defineThemeConfig({
   app: {
     title: '',
-    logo: h('img', { src: logo, alt: 'Wally Logo', style: 'max-height: 65px; line-height:0;' }),
-    contentWidth: ContentWidth.Boxed,
+    logo: h('img', { 
+      src: getLogoByTheme(), 
+      alt: 'Wally Logo', 
+      style: 'max-height: 65px; line-height:0;' 
+    }),    contentWidth: ContentWidth.Boxed,
     contentLayoutNav: AppContentLayoutNav.Horizontal,
     overlayNavFromBreakpoint: breakpointsVuetifyV3.lg - 1, // 1 for matching with vuetify breakpoint. Docs: https://next.vuetifyjs.com/en/features/display-and-platform/
     i18n: {
