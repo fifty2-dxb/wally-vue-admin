@@ -149,12 +149,12 @@ const onSubmit = () => {
               </VCol>
 
               <!-- create account -->
-              <VCol cols="12" class="text-center">
+              <!-- <VCol cols="12" class="text-center">
                 <span>New on our platform?</span>
                 <RouterLink class="text-primary ms-1" :to="{ name: 'register' }">
                   Create an account
                 </RouterLink>
-              </VCol>
+              </VCol> -->
             </VRow>
           </VForm>
         </VCardText>
