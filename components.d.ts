@@ -409,5 +409,6 @@ declare module 'vue' {
     UserInfoEditDialog: typeof import('./src/components/dialogs/UserInfoEditDialog.vue')['default']
     UserUpgradePlanDialog: typeof import('./src/components/dialogs/UserUpgradePlanDialog.vue')['default']
     WallyStepHeader: typeof import('./src/components/global/WallyStepHeader.vue')['default']
+    WelcomeToPlatform: typeof import('./src/components/campaign/WelcomeToPlatform.vue')['default']
   }
 }

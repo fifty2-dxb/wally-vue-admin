@@ -7,6 +7,7 @@ const showCustomerComponent = () => import('@/pages/pages/customers/show/index.v
 const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
 const activatioSuccessnRouteComponent = () => import ('@/pages/pages/activation/success-activation.vue')
 const platformChooseRouteComponent = () => import ('@/pages/pages/platform/index.vue')
+const welcomeToPlatform = () => import ('@/components/campaign/WelcomeToPlatform.vue')
 const notFoundRouteComponent = () => import ('@/pages/[...error].vue')
 
 // 👉 Redirects
@@ -52,6 +53,15 @@ export const redirects: RouteRecordRaw[] = [
     path: '/activation/success',
     name: 'activation-success',
     component: activatioSuccessnRouteComponent,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/welcome',
+    name: 'welcome',
+    component: welcomeToPlatform,
+    props: true, 
     meta: {
       requiresAuth: false,
     },
