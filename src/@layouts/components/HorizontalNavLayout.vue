@@ -1,16 +1,16 @@
+
 <script lang="ts" setup>
+import { useRoute } from 'vue-router';
 import { HorizontalNav } from '@layouts/components';
 import type { HorizontalNavItems } from '@layouts/types';
-
-// ℹ️ Using import from `@layouts` causing build to hangup
-// import { useLayouts } from '@layouts'
 import { useLayoutConfigStore } from '@layouts/stores/config';
 
 defineProps<{
   navItems: HorizontalNavItems
 }>()
 
-const configStore = useLayoutConfigStore()
+const configStore = useLayoutConfigStore();
+const route = useRoute();
 </script>
 
 <template>
@@ -19,17 +19,18 @@ const configStore = useLayoutConfigStore()
     :class="configStore._layoutClasses"
   >
     <div
-      class="layout-navbar-and-nav-container"
+      class="layout-navbar-and-nav-container" 
       :class="configStore.isNavbarBlurEnabled && 'header-blur'"
     >
       <!-- 👉 Navbar -->
-      <div class="layout-navbar">
+      <div class="layout-navbar"  v-if="route.path !== '/login'">
         <div class="navbar-content-container">
           <slot name="navbar" />
         </div>
       </div>
-      <!-- 👉 Navigation -->
-      <div class="layout-horizontal-nav">
+      
+      <!-- 👉 Conditional Navigation -->
+      <div class="layout-horizontal-nav" v-if="route.path !== '/login'">
         <div class="horizontal-nav-content-container">
           <HorizontalNav :nav-items="navItems" />
         </div>
@@ -48,6 +49,7 @@ const configStore = useLayoutConfigStore()
     </footer>
   </div>
 </template>
+
 
 <style lang="scss">
 @use "@configured-variables" as variables;

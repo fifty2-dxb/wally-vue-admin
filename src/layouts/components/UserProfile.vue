@@ -1,23 +1,25 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user';
+import { useUserStore } from "@/stores/user";
+import { getActivePinia } from "pinia";
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const userStore = useUserStore();
-const router = useRouter()
-const ability = useAbility()
 
 // TODO: Get type from backend
 const userData = useCookie<any>('userData')
 
+const resetAllPiniaStores = () => {
+  getActivePinia()._s.forEach(store => store.$reset());
+};
+
 const logout = async () => {
   try {
     await userStore.logoutUser();
-    await router.push('/login');
+    resetAllPiniaStoress();
   } catch (error) {
     console.error("Logout failed:", error);
   }
 };
-
 
 const userProfileList = [
   { type: 'divider' },
@@ -28,9 +30,11 @@ const userProfileList = [
   { type: 'navItem', icon: 'tabler-currency-dollar', title: 'Pricing', to: { name: 'pages-pricing' } },
   { type: 'navItem', icon: 'tabler-question-mark', title: 'FAQ', to: { name: 'pages-faq' } },
 ]
+
 </script>
 
 <template>
+  
   <VBadge
     v-if="userData"
     dot

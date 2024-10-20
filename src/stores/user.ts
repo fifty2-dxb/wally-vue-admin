@@ -38,7 +38,7 @@ export const useUserStore = defineStore("user", () => {
       useCookie('userAbilityRules').value = null;
       
       ability.update([]);
-  
+      window.location.replace('/login');
       return response;
     } catch (error) {
       console.error("Error during logout:", error);

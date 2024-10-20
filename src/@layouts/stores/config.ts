@@ -104,6 +104,11 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
     return computed(() => isVerticalNavCollapsed.value && !isVerticalNavHoveredLocal.value && !isLessThanOverlayNavBreakpoint.value)
   }
 
+  const resetStore = () => {
+    activeOrganisation.value = null;
+    activeMerchant.value = null;
+  };
+
   return {
     appContentWidth,
     appContentLayoutNav,
@@ -118,6 +123,7 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
     _layoutClasses,
     isVerticalNavMini,
     activeOrganisation,
-    activeMerchant
+    activeMerchant,
+    resetStore
   }
 })
