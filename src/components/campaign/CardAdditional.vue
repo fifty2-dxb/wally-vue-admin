@@ -276,8 +276,8 @@ const toggleAdvancedFields = () => {
 };
 
 const updateLatLng = (e) => {
-  const lat = e.latLng.lat();
-  const lng = e.latLng.lng();
+ const lat = parseFloat(e.latLng.lat());
+  const lng = parseFloat(e.latLng.lng());
 
   latitude.value = lat;
   longitude.value = lng;
