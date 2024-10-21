@@ -6,6 +6,8 @@ export const useCustomerStore = defineStore("customer", () => {
   const customer = ref({
     id: "",
     serialNumber: "",
+    stats: [],
+    type: "",
   });
 
   const fetchCustomers = async () => {
@@ -26,6 +28,8 @@ export const useCustomerStore = defineStore("customer", () => {
         customer.value.serialNumber = response.serialNumber;
         customer.value.stampImageUrl = response.stampImageUrl;
         customer.value.redeemable = response.redeemable;
+        customer.value.stats = response.stats;
+        customer.value.type = response.type;
         fetchLogs(id);
       } else {
         customer.value = {

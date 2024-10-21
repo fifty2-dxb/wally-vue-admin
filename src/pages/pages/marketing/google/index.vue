@@ -1,15 +1,87 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import { useConfigStore } from '@/@core/stores/config';
+import { useCampaignStore } from '@/stores/campaign';
+import { useMarketingStore } from '@/stores/marketing';
+
+const configStore = useConfigStore();
+const campaignStore = useCampaignStore();
+const marketingStore = useMarketingStore()
+
+const contactMethod = ref('Phone number');
+const message = ref<string>('');
+const selectedCampaign = ref('');
+const notificationData = ref(null);
+
+onMounted(async () => {
+  try {
+    const platform = 'google';
+    const merchantGuid = configStore.activeMerchant?.merchantGuid;
+    await marketingStore.fetchMarketingData(platform, merchantGuid);
+  } catch (error) {
+    console.error("Error fetching marketing data:", error);
+  }
+});
+
+const sendNotification = async () => {
+  const payload = {
+    campaignGuid: campaignStore.campaigns.find(c => c.campaignName === selectedCampaign.value)?.campaignGuid || '',
+    merchantGuid: configStore.activeMerchant?.merchantGuid,
+    platform: 'google',
+    message: message.value,
+  };
+
+  try {
+    const addedData = await marketingStore.addMarketing(payload);
+    notificationData.value = addedData.data;
+
+    const platform = 'google';
+    const merchantGuid = configStore.activeMerchant?.merchantGuid;
+    await marketingStore.fetchMarketingData(platform, merchantGuid);
+  } catch (error) {
+    console.error(error);
+  }
+};
 </script>
 
 <template>
-  <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
-    <div class="d-flex flex-column justify-center">
-      <h4 class="text-h4 font-weight-medium">
-        Marketing
-      </h4>
-      <div class="text-body-1">
-        Google Push Marketing
-      </div>
-    </div>
-  </div> 
+  <VRow>
+    <VCol cols="12" lg="8">
+      <VCard title="Select Campaign" subtitle="Select the campaign to send notification to" class="mb-6">
+        <VSelect class="mb-10 pl-2 px-4" density="compact" v-model="selectedCampaign"
+          :items="campaignStore.campaigns.map(c => c.campaignName)" placeholder="Select Campaign" label="Campaign" />
+      </VCard>
+
+      <VCard title="Audience" subtitle="Select the campaign for marketing." class="mb-6">
+        <VCardText>
+          <VRadioGroup v-model="contactMethod" class="mb-4">
+            <VRadio label="Send to all the users of the campaign" value="all campaign user" />
+            <VRadio label="Send to particular user(s)" value="specific user" />
+          </VRadioGroup>
+        </VCardText>
+      </VCard>
+
+      <VCard title="Message" subtitle="Write message for the campaign" class="mb-6 elevation-0">
+        <VCardText>
+          <VForm @submit.prevent="sendNotification">
+            <VRow>
+              <VCol cols="12">
+                <AppTextarea v-model="message" label="Message" type="text"
+                  placeholder="Write message for notification here" />
+              </VCol>
+              <VCol cols="12" class="d-flex gap-4">
+                <VBtn type="submit">
+                  Submit
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
+      </VCard>
+    </VCol>
+    <v-divider vertical></v-divider>
+    <VCol cols="12" lg="4" class="lg:order-last">
+      <GooglePhonePreview :notificationData="notificationData" />
+    </VCol>
+  </VRow>
 </template>

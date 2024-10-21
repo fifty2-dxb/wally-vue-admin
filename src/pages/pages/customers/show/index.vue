@@ -40,7 +40,7 @@ onMounted(() => {
   </div>
   <v-row>
     <v-col md="4" sm="12">
-      <VCard class="mb-6" >
+      <VCard class="mb-6" v-if="customerStore.customer.type == 'stamp'">
         <v-img :src="customerStore.customer.stampImageUrl"></v-img>
         <v-card-actions class="pt-3 justify-space-between">
           <v-btn :color="customerStore.customer.redeemable ? '' : 'success'" @click="customerStore.stamp(1)" :loading="customerStore.stamping" :disabled="customerStore.customer.redeemable"><v-icon size="22" class="mr-2">tabler-rubber-stamp</v-icon> Stamp</v-btn>
@@ -99,24 +99,12 @@ onMounted(() => {
       </VCard>
     </v-col>
     <v-col md="8" sm="12">
-      <VCard class="mb-6" >
+      <VCard class="mb-6" v-if="customerStore.customer.stats.length > 0">
         <v-row>
-          <v-col md="4">
-            <v-card-title class="text-primary">Total Amount Of Sales</v-card-title>
+          <v-col md="4" v-for="stat in customerStore.customer.stats">
+            <v-card-title class="text-primary">{{$t(stat.label)}}</v-card-title>
             <v-card-text>
-              <h2>0.00</h2>
-            </v-card-text>
-          </v-col>
-          <v-col md="4">
-            <v-card-title class="text-primary">Sales Count</v-card-title>
-            <v-card-text>
-              <h2>0</h2>
-            </v-card-text>
-          </v-col>
-          <v-col md="4">
-            <v-card-title class="text-primary">Average Check</v-card-title>
-            <v-card-text>
-              <h2>0.00</h2>
+              <h2>{{ stat.value }}</h2>
             </v-card-text>
           </v-col>
         </v-row>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { load } from 'webfontloader';
 
 definePage({
   meta: {
@@ -12,6 +13,7 @@ const googleLogo = new URL('@images/google-wallet.svg', import.meta.url).href;
 const appleLogo = new URL('@images/apple-wallet.svg', import.meta.url).href;
 
 const platform = ref(0);
+
 const steps = [
   { title: 'Apple', icon: 'tabler-brand-apple', cardTitle: 'Add card to Apple Wallet', cardDescription: 'To add the card to the Apple Wallet app, press the button below.', buttonText: 'Save to phone', logo: appleLogo, showButton: false },
   { title: 'Google', icon: 'tabler-brand-android', cardTitle: 'Add card to Google Pay', cardDescription: 'To add the card press the button below. Perhaps you will need to log in to your Google account.', buttonText: 'Save to phone', logo: googleLogo, showButton: true },
@@ -24,14 +26,17 @@ const route = useRoute();
 const fetchPlatformData = async () => {
   try {
     const response = await $wallyApi(`/campaigns/platform/${route.params.id}`, { method: "GET" });
+
     platformData.value = response || {};
   } catch (error) {
     console.error("Error fetching campaigns", error);
   }
 };
 
+const googleLoading = ref(false);
 const downloadGoogleCard = async () => {
   try {
+    googleLoading.value = true;
     console.log(platformData);
 
     // Fetch the Google Wallet link from the API
@@ -47,13 +52,19 @@ const downloadGoogleCard = async () => {
       console.error("Google Wallet URL not found in the response");
     }
 
+    googleLoading.value = false;
+
   } catch (error) {
+    googleLoading.value = false;
     console.error("Error fetching Google Wallet link", error);
   }
 };
 
+const appleLoading = ref(false);
+
 const downloadAppleCard = async () => {
   try {
+    appleLoading.value = true;
     console.log(platformData);
 
     // Fetch the pass (.pkpass file) from the API
@@ -72,6 +83,7 @@ const downloadAppleCard = async () => {
     } else {
       // If it's not iOS, provide a download option for the .pkpass file
       const link = document.createElement("a");
+
       link.href = url;
       link.setAttribute("download", "pass.pkpass");
       document.body.appendChild(link);
@@ -79,7 +91,10 @@ const downloadAppleCard = async () => {
       document.body.removeChild(link);
     }
 
+    appleLoading.value = false;
+
   } catch (error) {
+    appleLoading.value = false;
     console.error("Error fetching apple card link", error);
   }
 };
@@ -107,13 +122,16 @@ onMounted(async() => {
             <h1 class="card-title">{{ steps[platform].cardTitle }}</h1>
             <p class="card-description">{{ steps[platform].cardDescription }}</p>
 
-            <VBtn v-if="steps[platform].showButton" block class="walletBtn d-flex justify-center align-center btn-lg"  @click="downloadGoogleCard">
+            <VBtn :loading="googleLoading" v-if="steps[platform].showButton" block class="walletBtn d-flex justify-center align-center btn-lg"  @click="downloadGoogleCard">
               <img :src="steps[platform].logo" alt="wallet logo" class="mr-2" style="width: 46px; height: 18px;"/>
               <span class="divider mx-2">|</span>
               <p class="mb-0 text-14">{{ steps[platform].buttonText }}</p>
             </VBtn>
             
-            <img v-else :src="steps[platform].logo" alt="wallet logo" class="asset-apple mt-40" @click="downloadAppleCard"/>
+            <div v-else>
+              <img v-if="!appleLoading" :src="steps[platform].logo" alt="wallet logo" class="asset-apple mt-40" @click="downloadAppleCard"/>
+              <v-btn :loading="true" v-if="appleLoading" variant="text" color="primary"></v-btn>
+            </div>
 
             <p class="text-primary cursor-pointer mt-4 mb-0 text-16" role="button">
               Don't know how to install the card?
