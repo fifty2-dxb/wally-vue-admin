@@ -89,7 +89,7 @@ const saveCampaign = async () => {
   const appleSettings = {
     webServiceURL: 'https://dev-api.wally.ae/',
     teamIdentifier: '772239U7XT',
-    sharingProhibited: false,
+    sharingProhibited: true,
     passTypeIdentifier: 'pass.com.wally.loyalty',
     authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
     associatedStoreIdentifiers: [],
@@ -262,6 +262,28 @@ onBeforeMount(() => {
                         <v-card-text class="text-center py-2">
                           <div class="text-h6 font-weight-medium">
                             STAMP CARD
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                    <v-col>
+                      <v-card
+                        rounded="lg"
+                        :style="
+                          campaignType == 'points'
+                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                            : ''
+                        "
+                        :class="
+                          campaignType == 'points'
+                            ? 'border'
+                            : 'border border-dashed elevation-0'
+                        "
+                        @click="campaignType = 'points'"
+                      >
+                        <v-card-text class="text-center py-2">
+                          <div class="text-h6 font-weight-medium">
+                            POINTS CARD
                           </div>
                         </v-card-text>
                       </v-card>
