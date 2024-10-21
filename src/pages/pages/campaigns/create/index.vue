@@ -16,6 +16,13 @@ const snackbarMessage = ref('');
 const snackbarColor = ref('');
 
 const campaignType = ref('All');
+const errors = ref({
+  icon: false,
+  logo: false,
+  reward: false,
+  stripImagePreviewApple: false,
+  stripImagePreviewGoogle: false
+});
 
 // Removed phonePreview ref since we'll use the DOM element by ID
 // const phonePreview = ref(null);
@@ -85,6 +92,9 @@ function dataURLtoBlob(dataurl: string) {
 }
 
 const saveCampaign = async () => {
+  if (!validateForm()) {
+    return;
+  }
   const merchantId = configStore.activeMerchant?.merchantGuid;
   const appleSettings = {
     webServiceURL: 'https://dev-api.wally.ae/',
@@ -155,6 +165,38 @@ onBeforeMount(() => {
   };
   currentStep.value = 0;
 });
+
+const validateForm = () => {
+  errors.value.icon = !loyaltyData.value.template.properties.icon;
+  errors.value.logo = !loyaltyData.value.template.properties.logo;
+
+  if (loyaltyData.value.template.type === 'stamp') {
+    errors.value.reward = !loyaltyData.value.template.properties.reward;
+  } else {
+    errors.value.reward = false;
+  }
+
+  if (loyaltyData.value.template.type === 'membership') {
+    errors.value.stripImagePreviewApple = !loyaltyData.value.template.properties.stripImagePreviewApple;
+    errors.value.stripImagePreviewGoogle = !loyaltyData.value.template.properties.stripImagePreviewGoogle;
+  } else {
+    errors.value.stripImagePreviewApple = false;
+    errors.value.stripImagePreviewGoogle = false;
+  }
+
+  if (
+    errors.value.icon ||
+    errors.value.logo ||
+    errors.value.reward ||
+    errors.value.stripImagePreviewApple ||
+    errors.value.stripImagePreviewGoogle
+  ) {
+    showSnackbar('Please fill in all the required fields in the "Card Design" tab', 'error');
+    return false;
+  }
+
+  return true;
+};
 
 
 
@@ -394,7 +436,7 @@ onBeforeMount(() => {
             class="lg:order-last"
             v-if="currentStep != 5"
           >
-            <PhonePreview :data="loyaltyData" v-if="currentStep != 4" />
+            <PhonePreview :data="loyaltyData" v-if="currentStep != 4" :errors="errors" />
             <FormPreview :data="loyaltyData" class="mt-3 pr-2" v-else />
           </v-col>
         </v-row>

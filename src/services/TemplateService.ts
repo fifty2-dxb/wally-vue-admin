@@ -85,6 +85,7 @@ const templates = [
     properties: {
       icon: "/images/loyalty/templates/wally-google-logo.png",
       logo: "/images/loyalty/templates/wally-apple-logo.png",
+      reward:'/images/loyalty/templates/reward.jpg',
       stampIcon: 'baguette',
       unStampIcon: 'baguette',
       stampImage: "baguette",
@@ -165,6 +166,7 @@ const templates = [
     properties: {
       icon: "/images/loyalty/templates/wally-google-logo.png",
       logo: "/images/loyalty/templates/wally-apple-logo.png",
+      reward:'/images/loyalty/templates/reward.jpg',
       stampIcon: '',
       unStampIcon: '',
       stampImage: "",
@@ -243,6 +245,9 @@ const templates = [
     image: "/images/loyalty/templates/clean-prw.png",
     type: "stamp",
     properties: {
+      icon: "/images/loyalty/templates/wally-google-logo.png",
+      logo: "/images/loyalty/templates/wally-apple-logo.png",
+      reward:'/images/loyalty/templates/reward.jpg',
       background: "#ffffff",
       text: "#000000",
       // appleLogo: "/images/loyalty/templates/clean-apple-logo.png",
@@ -309,6 +314,9 @@ const templates = [
     image: "/images/loyalty/templates/barbershop-prw.png",
     type: "stamp",
     properties: {
+      icon: "/images/loyalty/templates/wally-google-logo.png",
+      logo: "/images/loyalty/templates/wally-apple-logo.png",
+      reward:'/images/loyalty/templates/reward.jpg',
       background: "#222222",
       text: "#ffffff",
       // appleLogo: "/images/loyalty/templates/barbershop-apple-logo.png",
@@ -375,6 +383,9 @@ const templates = [
     image: "/images/loyalty/templates/beauty-salon-prw.png",
     type: "stamp",
     properties: {
+      icon: "/images/loyalty/templates/wally-google-logo.png",
+      logo: "/images/loyalty/templates/wally-apple-logo.png",
+      reward:'/images/loyalty/templates/reward.jpg',
       background: "#412A66",
       text: "#ffffff",
       // appleLogo: "/images/loyalty/templates/beauty-salon-apple-logo.png",
@@ -442,6 +453,9 @@ const templates = [
     image: "/images/loyalty/templates/eyebrow-prw.png",
     type: "stamp",
     properties: {
+      icon: "/images/loyalty/templates/wally-google-logo.png",
+      logo: "/images/loyalty/templates/wally-apple-logo.png",
+      reward:'/images/loyalty/templates/reward.jpg',
       background: "#efeff1",
       text: "#000000",
       // appleLogo: "/images/loyalty/templates/eyebrow-apple-logo.png",
@@ -508,6 +522,9 @@ const templates = [
     image: "/images/loyalty/templates/nail-prw.png",
     type: "stamp",
     properties: {
+      icon: "/images/loyalty/templates/wally-google-logo.png",
+      logo: "/images/loyalty/templates/wally-apple-logo.png",
+      reward:'/images/loyalty/templates/reward.jpg',
       background: "#10026A",
       text: "#000000",
       // appleLogo: "/images/loyalty/templates/nail-apple-logo.png",

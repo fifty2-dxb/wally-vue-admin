@@ -15,7 +15,7 @@
       <v-row>
         <v-col cols="6">
           <div class="text-subtitle-2 mb-3">
-            {{ $t("Logo") }}
+            <span style="color: #FF4c51;">*</span> {{ $t("Logo") }}
           </div>
           <upload-and-crop v-model="value.template.properties.logo" :boxStyle="{
             width: '100%',
@@ -38,7 +38,7 @@
         </v-col>
         <v-col cols="6">
           <div class="text-subtitle-2 mb-3">
-            {{ $t("Icon") }}
+            <span style="color: #FF4c51;">*</span>  {{ $t("Icon") }}
           </div>
           <upload-and-crop v-model="value.template.properties.icon" :boxStyle="{
             width: '100%',
@@ -64,7 +64,7 @@
       <v-row v-show="value.template.type == 'stamp'">
         <v-col cols="12">
           <div class="text-subtitle-2 mb-3">
-            {{ $t("Reward") }}
+          <span style="color: #FF4c51;">*</span> {{ $t("Reward") }}
           </div>
           <upload-and-crop v-model="value.template.properties.reward" :boxStyle="{
             width: '100%',
@@ -95,7 +95,7 @@
         <v-row>
           <v-col cols="6">
             <div class="text-subtitle-2 mb-3">
-              {{ $t("Apple") }}
+              <span style="color: #FF4c51;">*</span> {{ $t("Apple") }}
             </div>
             <upload-and-crop v-model="value.template.properties.stripImagePreviewApple" :boxStyle="{
               width: '100%',
@@ -118,7 +118,7 @@
           </v-col>
           <v-col cols="6">
             <div class="text-subtitle-2 mb-3">
-              {{ $t("Google") }}
+              <span style="color: #FF4c51;">*</span> {{ $t("Google") }}
             </div>
             <upload-and-crop v-model="value.template.properties.stripImagePreviewGoogle" :boxStyle="{
               width: '100%',
