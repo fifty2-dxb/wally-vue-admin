@@ -15,12 +15,17 @@ export default [
         icon: { icon: 'tabler-brand-android' },
       },
       {
-        title: 'SMS Campaign',
+        title: 'Branded advertising materials',
+        to: 'pages-advertisement-materials',
+        icon: { icon: 'tabler-ad' },
+      },
+      {
+        title: 'SMS Campaign (Coming soon)',
         to: 'pages-marketing-sms',
         icon: { icon: 'tabler-message' },
       },
       {
-        title: 'Email Campaign',
+        title: 'Email Campaign (Coming soon)',
         to: 'pages-marketing-email',
         icon: { icon: 'tabler-mail' },
       }
