@@ -2,12 +2,13 @@
 import { useTheme } from 'vuetify'
 import Pusher from 'pusher-js'
 import ConfettiExplosion from "vue-confetti-explosion";
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const theme = useTheme()
 
 const customerName = ref('')
 const membershipMessage = ref('')
+const stampMessage = ref('')
 const showConfetti = ref(false)
 const pusherKey = import.meta.env.VITE_APP_PUSHER_KEY
 
@@ -29,6 +30,24 @@ onMounted(() => {
       }, 3000)
     }
   })
+  channel.bind('stamp', (eventData: any) => {
+    try {
+      const parsedData = eventData;
+
+      customerName.value = parsedData?.customer?.name || '';
+      stampMessage.value = parsedData?.message || 'No stamp message received';
+
+      if (customerName.value && stampMessage.value) {
+        showConfetti.value = true;
+        setTimeout(() => {
+          showConfetti.value = false;
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error handling stamp-customer data:', error);
+    }
+});
+
 })
 </script>
 
@@ -49,6 +68,8 @@ onMounted(() => {
             </h6>
             <ConfettiExplosion v-if="showConfetti" :particleCount="250" :particleSize="15" :force="1.6"
               :stageHeight="1000" :stageWidth="3000" :duration="4000" />
+
+              <h6 v-if="stampMessage" class="mb-6 text-h6">{{ stampMessage }}</h6>
           </div>
         </VContainer>
       </div>
@@ -60,6 +81,8 @@ onMounted(() => {
 .landing-hero {
   border-radius: 0 0 50px 50px;
   padding-block: 9.75rem 22rem;
+  height: 100vh;
+  width: 100vw;
 }
 
 .hero-animation-img {
