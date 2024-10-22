@@ -8,6 +8,8 @@ const activationRouteComponent = () => import ('@/pages/pages/activation/index.v
 const activatioSuccessnRouteComponent = () => import ('@/pages/pages/activation/success-activation.vue')
 const platformChooseRouteComponent = () => import ('@/pages/pages/platform/index.vue')
 const welcomeToPlatform = () => import ('@/components/campaign/WelcomeToPlatform.vue')
+const googleTableRouteComponent = () => import ('@/pages/pages/marketing/google/GoogleTable.vue')
+const appleTableRouteComponent = () => import ('@/pages/pages/marketing/apple/AppleTable.vue')
 const notFoundRouteComponent = () => import ('@/pages/[...error].vue')
 
 // 👉 Redirects
@@ -57,6 +59,7 @@ export const redirects: RouteRecordRaw[] = [
       requiresAuth: false,
     },
   },
+  
   {
     path: '/welcome',
     name: 'welcome',
@@ -94,6 +97,22 @@ export const routes: RouteRecordRaw[] = [
     meta: {
       navActiveLink: 'apps-email',
       layoutWrapperClasses: 'layout-content-height-fixed',
+    },
+  },
+  {
+    path: '/pages/google-messages',
+    name: 'pages-google-messages',
+    component: googleTableRouteComponent,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/pages/apple-messages',
+    name: 'pages-apple-messages',
+    component: appleTableRouteComponent,
+    meta: {
+      requiresAuth: true,
     },
   },
 

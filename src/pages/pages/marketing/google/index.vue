@@ -3,15 +3,26 @@ import { ref } from 'vue';
 import { useConfigStore } from '@/@core/stores/config';
 import { useCampaignStore } from '@/stores/campaign';
 import { useMarketingStore } from '@/stores/marketing';
+import GooglePhonePreview from './GooglePhonePreview.vue'
 
 const configStore = useConfigStore();
 const campaignStore = useCampaignStore();
 const marketingStore = useMarketingStore()
+const router = useRouter()
 
 const contactMethod = ref('Phone number');
 const message = ref<string>('');
 const selectedCampaign = ref('');
 const notificationData = ref(null);
+const snackbarVisible = ref(false);
+const snackbarMessage = ref('');
+const snackbarColor = ref('');
+
+const showSnackbar = (message: string, color: string) => {
+  snackbarMessage.value = message;
+  snackbarColor.value = color;
+  snackbarVisible.value = true;
+};
 
 onMounted(async () => {
   try {
@@ -34,12 +45,14 @@ const sendNotification = async () => {
   try {
     const addedData = await marketingStore.addMarketing(payload);
     notificationData.value = addedData.data;
+    showSnackbar(addedData.message, 'success')
 
-    const platform = 'google';
-    const merchantGuid = configStore.activeMerchant?.merchantGuid;
-    await marketingStore.fetchMarketingData(platform, merchantGuid);
+    setTimeout(() => {
+      router.push('/pages/google-messages');
+    }, 2000);
+    
   } catch (error) {
-    console.error(error);
+    showSnackbar(error, 'error')
   }
 };
 </script>
@@ -71,7 +84,7 @@ const sendNotification = async () => {
               </VCol>
               <VCol cols="12" class="d-flex gap-4">
                 <VBtn type="submit">
-                  Submit
+                  {{$t("Submit")}}
                 </VBtn>
               </VCol>
             </VRow>
@@ -81,7 +94,10 @@ const sendNotification = async () => {
     </VCol>
     <v-divider vertical></v-divider>
     <VCol cols="12" lg="4" class="lg:order-last">
-      <GooglePhonePreview :notificationData="notificationData" />
+      <GooglePhonePreview :notificationData="{ message: message }" />
     </VCol>
   </VRow>
+  <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>
