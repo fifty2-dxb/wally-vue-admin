@@ -164,6 +164,26 @@
   "25": "25",
   "50": "50",
   "100": "100",
+
+  //Wally Translations
+  "Campaigns": "الحملات",
+  "My Campaigns": "حملاتي",
+  "Create New Campaign": "إنشاء حملة جديدة",
+  "Campaign Settings": "إعدادات الحملة",
+  "Marketing": "التسويق",
+  "Apple wallet push campaign": "إشعار محفظة Apple",
+  "Google wallet push campaign": "إشعار محفظة Google",
+  "Branded advertising materials": "مواد إعلانية مميزة",
+  "Organisations": "المنظمات",
+  "Certificates": "الشهادات",
+  "NFC Readers": "قارئات NFC",
+  "Show all campaigns": "عرض جميع الحملات",
+  "Show Campaign": "عرض الحملة",
+  "Campaign Details": "تفاصيل الحملة",
+  "Configure your campaign": "قم بتكوين حملتك",
+  "Edit Campaign": "تحرير الحملة",
+
+
   "$vuetify": {
     "badge": "شارة",
     "noDataText": "لا تتوافر بيانات",
