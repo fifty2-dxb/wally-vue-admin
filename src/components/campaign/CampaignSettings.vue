@@ -1,12 +1,30 @@
 <template>
+  <div v-if="data.template.type === 'stamp'">
+    <v-card class="elevation-0" :title="$t('Stamp configuration')">
+    <v-card-text>
+      <v-select v-model="data.template.properties.stampLimitType" label="Stamp Limit" :items="['daily', 'weekly', 'montly', 'unlimited']" class="mb-6"></v-select>
+      <v-select v-model="data.template.properties.redeemLimitType" label="Redeem Limit" :items="['daily', 'weekly', 'montly', 'unlimited']" class="mb-6"></v-select>
+    </v-card-text>
+  </v-card>
+    </div>
+    <!-- <div v-if="data.template.type === 'membership'">
+    <v-card class="elevation-0" :title="$t('Guest configuration')">
+    <v-card-text>
+      <v-checkbox v-model="data.template.guestEnabled" label="Guest Enabled"
+        class="mb-6"></v-checkbox>    </v-card-text>
+  </v-card>
+    </div> -->
+
+  <!-- <v-divider></v-divider>
   <v-card class="elevation-0" :title="$t('Apple configuration')">
     <v-card-text>
       <v-select label="Certificate" :items="['Wally Loyalty (pass.com.wally.loyalty)']" class="mb-6"></v-select>
-      <v-text-field v-model="data.template.appleSettings.teamIdentifier" :label="$t('Team Identifier')"
-        class="mb-6" disabled></v-text-field>
-        
+      <v-text-field v-model="data.template.appleSettings.teamIdentifier" :label="$t('Team Identifier')" class="mb-6"
+        disabled></v-text-field>
+
       <v-select label="webServiceURL" :items="['Wally (dev-api.wally.ae)', 'Custom API']" class="mb-6"></v-select>
-      <v-checkbox v-model="data.template.appleSettings.sharingProhibited" label="sharingProhibited" class="mb-6"></v-checkbox>
+      <v-checkbox v-model="data.template.appleSettings.sharingProhibited" label="sharingProhibited"
+        class="mb-6"></v-checkbox>
     </v-card-text>
   </v-card>
 
@@ -14,7 +32,8 @@
 
   <v-card class="elevation-0" :title="$t('Android configuration')">
     <v-card-text>
-      <v-checkbox v-model="data.template.appleSettings.sharingProhibited" label="SmartTap Enabled" class="mb-6"></v-checkbox>
+      <v-checkbox v-model="data.template.appleSettings.sharingProhibited" label="SmartTap Enabled"
+        class="mb-6"></v-checkbox>
       <v-select label="Redemption Issuer" :items="['3388000000022313780']" class="mb-6"></v-select>
 
     </v-card-text>
@@ -22,15 +41,13 @@
 
   <v-divider></v-divider>
 
-<v-card class="elevation-0" :title="$t('Integrations')">
-  <v-card-text>
-    <v-checkbox v-model="data.template.appleSettings.sharingProhibited" label="AppyBee" class="mb-6"></v-checkbox>
-    <v-text-field  :label="$t('k_account_id')"
-    class="mb-6"></v-text-field>
-    <v-text-field  :label="$t('k_account_secret')"
-    class="mb-6"></v-text-field>
-  </v-card-text>
-</v-card>
+  <v-card class="elevation-0" :title="$t('Integrations')">
+    <v-card-text>
+      <v-checkbox v-model="data.template.appleSettings.sharingProhibited" label="AppyBee" class="mb-6"></v-checkbox>
+      <v-text-field :label="$t('k_account_id')" class="mb-6"></v-text-field>
+      <v-text-field :label="$t('k_account_secret')" class="mb-6"></v-text-field>
+    </v-card-text>
+  </v-card> -->
 
 
 </template>
