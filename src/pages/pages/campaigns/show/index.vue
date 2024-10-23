@@ -73,10 +73,10 @@ const backgroundColorWithOpacity = computed(() => {
   <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
       <h4 class="text-h4 font-weight-medium">
-        Campaign Details
+        {{ $t('Campaign Details') }}
       </h4>
       <div class="text-body-1">
-        Configure your campaign
+        {{ $t('Configure your campaign') }}
       </div>
     </div>
   </div>
@@ -150,7 +150,7 @@ const backgroundColorWithOpacity = computed(() => {
           <VCardActions class="justify-space-between mt-10">
             <VBtn :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }">
               <VIcon icon="tabler-folder" />
-              <span class="ms-2">Edit Campaign</span>
+              <span class="ms-2">{{ $t('Edit Campaign') }}</span>
             </VBtn>
 
             <IconBtn color="secondary" icon="tabler-share" />

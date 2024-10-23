@@ -107,15 +107,15 @@ const headers = [
   <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
       <h4 class="text-h4 font-weight-medium">
-        Campaigns
+        {{ $t('Campaigns') }}
       </h4>
       <div class="text-body-1">
-        Show all campaigns
+        {{ $t('Show all campaigns') }}
       </div>
     </div>
 
     <div class="d-flex gap-4 align-center flex-wrap">
-      <VBtn @click="$router.push('/pages/campaigns/create')">Create new campaign</VBtn>
+      <VBtn @click="$router.push('/pages/campaigns/create')">{{ $t('Create New Campaign') }}</VBtn>
     </div>
   </div>
   <VRow>
@@ -146,7 +146,7 @@ const headers = [
             <VCardActions class="justify-space-between mt-10">
               <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid } }">
                 <VIcon icon="tabler-folder-open" />
-                <span class="ms-2">Show Campaign</span>
+                <span class="ms-2">{{ $t('Show Campaign') }}</span>
               </VBtn>
 
               <IconBtn @click="getPlatformUrl(c)" color="secondary" icon="tabler-share" />
