@@ -2,7 +2,7 @@
 import { useTheme } from 'vuetify'
 import Pusher from 'pusher-js'
 import ConfettiExplosion from "vue-confetti-explosion";
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 
 const theme = useTheme()
 
@@ -11,6 +11,49 @@ const membershipMessage = ref('')
 const stampMessage = ref('')
 const showConfetti = ref(false)
 const pusherKey = import.meta.env.VITE_APP_PUSHER_KEY
+const showInput = ref(false); 
+const inputText = ref(''); 
+const inputRef = ref<HTMLInputElement | null>(null); // Ref for the input element
+
+// Toggle input visibility
+const toggleInput = async () => {
+  showInput.value = !showInput.value;
+  inputText.value = ''; // Reset input value when toggling
+
+  if (showInput.value) {
+    await nextTick(); // Wait for the DOM to update
+    inputRef.value?.focus(); // Focus the input element
+  }
+};
+
+
+// Handle API call on Enter key press
+const submitText = async () => {
+  if (inputText.value.trim() === '') return; // Avoid empty submissions
+  try {
+    const response = await fetch('https://api-v1.wally.ae/v1/readers/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'authorization': 'H4ohc8LlaoaxVzNRmASVn1U0fR9uQOrPfVQMVFTeBUhdcbwU73VwuNi6XL7jQoi3U5gNhfQSkK5xq9KQW16DXaOCt00IvNXa7xDPBRHi9IRX3ZpLeEdoLbAUQB4889Pk'},
+      body: JSON.stringify({ 
+        payload: inputText.value,
+        IP: 'localhost',
+        location: 'Dubai Active Show',
+        serialno: 'CC217005',
+        SSID: 'none',
+        MAC: 'none',
+        passtype: 'A',
+        rdrparam1: 'none',
+        rdrparam2: 'none',
+      }),
+    });
+    const result = await response.json();
+    console.log('API Response:', result);
+  } catch (error) {
+    console.error('API Error:', error);
+    stampMessage.value = 'Failed to submit text.';
+  }
+  showInput.value = false; // Hide input after submission
+};
 
 onMounted(() => {
 
@@ -54,7 +97,7 @@ onMounted(() => {
     } catch (error) {
       console.error('Error handling stamp-customer data:', error);
     }
-});
+  });
 
 })
 </script>
@@ -78,6 +121,15 @@ onMounted(() => {
               :stageHeight="1000" :stageWidth="3000" :duration="4000" />
 
               <h6 v-if="stampMessage" class="mb-6 text-h6">{{ stampMessage }}</h6>
+
+                          <!-- Toggle Button -->
+            <v-btn @click="toggleInput" color="primary" block variant="outlined"> {{ showInput ? 'Close local reader' : 'Scan with local reader' }}</v-btn>
+
+
+            <!-- Input Field (Shown Conditionally) -->
+            <div v-if="showInput" class="input-container mt-4">
+              <v-text-field ref="inputRef" v-model="inputText" @keyup.enter="submitText" :label="$t('Scan your Wally card')" class="mb-6"></v-text-field>
+            </div>
           </div>
         </VContainer>
       </div>
