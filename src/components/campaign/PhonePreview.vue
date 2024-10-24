@@ -100,12 +100,12 @@
                                             <div class="img-container mr-10"
                                                 :style="'background-image: url('+data.template.properties?.icon+');'"
                                                 bis_skin_checked="1"></div>
-                                            <div class="company-name" bis_skin_checked="1">Coffe Shop
+                                            <div class="company-name" bis_skin_checked="1">{{ data.template.name }}
                                             </div>
                                         </div>
                                         <div class="br-header" bis_skin_checked="1"></div>
                                         <div class="GoogleCardContainer--name" bis_skin_checked="1">
-                                            <p class="mb-0 loyaltyProgramName">Bonus card</p>
+                                            <p class="mb-0 loyaltyProgramName">Loyalty card</p>
                                         </div>
                                         <div data-v-e0338a20=""
                                             class="GoogleCardContainer--fields d-flex justify-content-between"
