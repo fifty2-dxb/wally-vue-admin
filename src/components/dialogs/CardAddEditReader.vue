@@ -28,6 +28,7 @@ const resetFields = () => {
   readerDescription.value = '';
   campaignGuid.value = [];
   readerGuid.value = '';
+  selectedCampaign.value = '';
 };
 
 watch(
@@ -54,6 +55,11 @@ watch(
       readerDescription.value = newReader.readerDescription;
       campaignGuid.value = newReader.campaignGuid;
       readerGuid.value = newReader.readerGuid;
+
+      const matchingCampaign = campaignStore.campaigns.find(c => c.campaignGuid === newReader.campaignGuid);
+      if (matchingCampaign) {
+        selectedCampaign.value = matchingCampaign.campaignName;
+      }
     } else {
       resetFields();
     }
@@ -68,6 +74,7 @@ const handleSubmit = async () => {
     serialNumber: serialNumber.value,
     readerName: readerName.value,
     readerDescription: readerDescription.value,
+    eventGuid: 'string'
   };
 
   try {
@@ -90,8 +97,6 @@ const handleSubmit = async () => {
     emit('close');
   }
 };
-
-
 </script>
 
 <template>
@@ -117,7 +122,6 @@ const handleSubmit = async () => {
               <AppTextField v-model="serialNumber" label="Serial No." placeholder="Please input serial number" />
             </VCol>
 
-
             <VCol cols="12" md="6">
               <AppTextField v-model="readerName" label="Reader Name" placeholder="Please input reader name" />
             </VCol>
@@ -132,8 +136,8 @@ const handleSubmit = async () => {
                 label="Campaign" />
             </VCol>
             <VCol cols="12" class="text-center ">
-              <VBtn class="mr-4" type="submit">{{$t("Submit")}}</VBtn>
-              <VBtn type="reset" color="secondary" variant="tonal" @click="emit('close', false)">{{$t("Cancel")}}</VBtn>
+              <VBtn class="mr-4" type="submit">{{ $t("Submit") }}</VBtn>
+              <VBtn type="reset" color="secondary" variant="tonal" @click="emit('close', false)">{{ $t("Cancel") }}</VBtn>
             </VCol>
           </VRow>
         </VForm>
