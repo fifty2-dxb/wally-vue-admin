@@ -33,6 +33,7 @@ declare module 'vue' {
     CardAddEditDialog: typeof import('./src/components/dialogs/CardAddEditDialog.vue')['default']
     CardAddEditMerchant: typeof import('./src/components/dialogs/CardAddEditMerchant.vue')['default']
     CardAddEditOrganisation: typeof import('./src/components/dialogs/CardAddEditOrganisation.vue')['default']
+    CardAddEditReader: typeof import('./src/components/dialogs/CardAddEditReader.vue')['default']
     CardAdditional: typeof import('./src/components/campaign/CardAdditional.vue')['default']
     CardAddNFCKeys: typeof import('./src/components/dialogs/CardAddNFCKeys.vue')['default']
     CardDesign: typeof import('./src/components/campaign/CardDesign.vue')['default']
