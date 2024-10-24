@@ -31,6 +31,21 @@ const resetFields = () => {
 };
 
 watch(
+  () => configStore.activeMerchant?.merchantGuid,
+  async (newMerchantGuid) => {
+    if (newMerchantGuid) {
+      try {
+        await campaignStore.fetchCampaignByMerchantGuid(newMerchantGuid);
+        campaignGuid.value = campaignStore.campaigns;
+      } catch (err) {
+        console.error('Error fetching campaigns:', err);
+      }
+    }
+  },
+  { immediate: true }
+);
+
+watch(
   () => props.reader,
   (newReader) => {
     if (newReader) {

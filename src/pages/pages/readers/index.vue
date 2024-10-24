@@ -34,9 +34,15 @@ const loadReaders = async () => {
   }
 };
 
-onMounted(() => {
-  loadReaders();
-});
+watch(
+  () => configStore.activeMerchant?.merchantGuid,
+  async (newMerchantGuid) => {
+    if (newMerchantGuid) {
+      await loadReaders();
+    }
+  },
+  { immediate: true }
+);
 
 const handleEditReader = (reader) => {
   isEditReaderVisible.value = true;
