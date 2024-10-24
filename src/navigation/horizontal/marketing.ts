@@ -6,12 +6,12 @@ export default [
     children: [
       {
         title: 'Apple wallet push campaign',
-        to: 'pages-marketing-apple',
+        to: 'pages-apple-messages',
         icon: { icon: 'tabler-brand-apple' },
       },
       {
         title: 'Google wallet push campaign',
-        to: 'pages-marketing-google',
+        to: 'pages-google-messages',
         icon: { icon: 'tabler-brand-android' },
       },
       {
