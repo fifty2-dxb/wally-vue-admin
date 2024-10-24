@@ -4,6 +4,8 @@ import { useConfigStore } from '@/@core/stores/config';
 import { useCampaignStore } from '@/stores/campaign';
 import { useMarketingStore } from '@/stores/marketing';
 import GooglePhonePreview from './GooglePhonePreview.vue'
+import  EmojiPicker  from 'vue3-emoji-picker';
+import 'vue3-emoji-picker/css'
 
 const configStore = useConfigStore();
 const campaignStore = useCampaignStore();
@@ -14,6 +16,7 @@ const contactMethod = ref('Phone number');
 const message = ref<string>('');
 const selectedCampaign = ref('');
 const notificationData = ref(null);
+const showEmojiPicker = ref(false)
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
@@ -23,6 +26,45 @@ const showSnackbar = (message: string, color: string) => {
   snackbarColor.value = color;
   snackbarVisible.value = true;
 };
+
+watch(
+  () => configStore.activeMerchant?.merchantGuid,
+  async (newMerchantGuid) => {
+    if (newMerchantGuid) {
+      try {
+        await campaignStore.fetchCampaignByMerchantGuid(newMerchantGuid);
+      } catch (err) {
+        console.error('Error fetching campaigns:', err);
+      }
+    }
+  },
+  { immediate: true }
+);
+
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value;
+};
+
+const addEmoji = (emoji: any) => {
+  if (emoji.i) {
+    message.value += emoji.i;
+  }
+};
+
+const handleClickOutside = (event: MouseEvent) => {
+  const messageInput = document.querySelector('.textarea-container') as HTMLElement;
+  if (messageInput && !messageInput.contains(event.target as Node)) {
+    showEmojiPicker.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 
 onMounted(async () => {
   try {
@@ -79,8 +121,16 @@ const sendNotification = async () => {
           <VForm @submit.prevent="sendNotification">
             <VRow>
               <VCol cols="12">
-                <AppTextarea v-model="message" label="Message" type="text"
-                  placeholder="Write message for notification here" />
+                <div class="textarea-container">
+                  <VTextarea v-model="message" label="Message" placeholder="Write message for notification here"
+                    ref="messageInput" />
+                  <div class="emoji-icon" @click="toggleEmojiPicker">
+                    😀
+                  </div>
+                  <div v-if="showEmojiPicker" class="emoji-picker">
+                    <EmojiPicker @select="addEmoji" />
+                  </div>
+                </div>
               </VCol>
               <VCol cols="12" class="d-flex gap-4">
                 <VBtn type="submit">
@@ -101,3 +151,28 @@ const sendNotification = async () => {
     {{ snackbarMessage }}
   </VSnackbar>
 </template>
+
+<style scoped>
+.textarea-container {
+  position: relative;
+}
+
+.emoji-icon {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.emoji-picker {
+  position: absolute;
+  bottom: -88px;
+  right: 50px;
+  z-index: 1000;
+}
+
+.emoji-icon:hover {
+  opacity: 0.8;
+}
+</style>
