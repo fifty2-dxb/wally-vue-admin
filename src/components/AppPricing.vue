@@ -18,51 +18,52 @@ const annualMonthlyPlanPriceToggler = ref(true)
 
 const pricingPlans = [
   {
-    name: 'Basic',
+    name: 'Basic Tier',
     tagLine: 'A simple start for everyone',
     logo: dollarCoinPiggyBank,
-    monthlyPrice: 0,
-    yearlyPrice: 0,
+    monthlyPrice: 450,
+    yearlyPrice: 3000,
     isPopular: false,
-    current: true,
+    current: false,
     features: [
-      '100 responses a month',
-      'Unlimited forms and surveys',
-      'Unlimited fields',
-      'Basic form creation tools',
-      'Up to 2 subdomains',
+      'Essential access management features',
+      'Up to 3 NFC readers included',
+      'Basic reporting and analytics',
+      'Email support',
     ],
   },
   {
-    name: 'Standard',
+    name: 'Pro Tier',
     tagLine: 'For small to medium businesses',
     logo: safeBoxWithGoldenCoin,
-    monthlyPrice: 49,
-    yearlyPrice: 499,
+    monthlyPrice: 1500,
+    yearlyPrice: 14400,
     isPopular: true,
     current: false,
     features: [
-      'Unlimited responses',
-      'Unlimited forms and surveys',
-      'Instagram profile page',
-      'Google Docs integration',
-      'Custom “Thank you” page',
+      'All Basic Tier features',
+      'Up to 10 NFC readers included',
+      'Advanced reporting and analytics',
+      'Customizable branding',
+      'Priority email and phone support',
     ],
   },
   {
-    name: 'Enterprise',
+    name: 'Enterprise Tier',
     tagLine: 'Solution for big organizations',
     logo: spaceRocket,
-    monthlyPrice: 99,
-    yearlyPrice: 999,
+    monthlyPrice: 2000,
+    yearlyPrice: 21600,
     isPopular: false,
     current: false,
     features: [
-      'PayPal payments',
-      'Logic Jumps',
-      'File upload with 5GB storage',
-      'Custom domain support',
-      'Stripe integration',
+      'All Pro Tier features',
+      'Up to 10 NFC readers included',
+      'Dedicated account manager',
+      'Custom integrations and features',
+      'Comprenhensive training and onboarding',
+      'Advanced reporting and analytics',
+      '24/7 premium support',
     ],
   },
 ]
@@ -172,7 +173,7 @@ const pricingPlans = [
           <div class="position-relative">
             <div class="d-flex justify-center pt-5 pb-10">
               <div class="text-body-1 align-self-start font-weight-medium">
-                $
+                €
               </div>
               <h1 class="text-h1 font-weight-medium text-primary">
                 {{ annualMonthlyPlanPriceToggler ? Math.floor(Number(plan.yearlyPrice) / 12) : plan.monthlyPrice }}
