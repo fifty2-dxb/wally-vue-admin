@@ -23,6 +23,10 @@ onMounted(() => {
     customerName.value = data?.customer.name || ''
     membershipMessage.value = data?.message || ''
 
+    if (membershipMessage.value) {
+      stampMessage.value = ''
+    }
+
     if (customerName.value && membershipMessage.value) {
       showConfetti.value = true
       setTimeout(() => {
@@ -37,6 +41,10 @@ onMounted(() => {
       customerName.value = parsedData?.customer?.name || '';
       stampMessage.value = parsedData?.message || 'No stamp message received';
 
+      if (stampMessage.value) {
+        membershipMessage.value = ''
+      }
+      
       if (customerName.value && stampMessage.value) {
         showConfetti.value = true;
         setTimeout(() => {
