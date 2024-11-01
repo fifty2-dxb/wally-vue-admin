@@ -411,8 +411,8 @@ const addLocation = () => {
   data.value.template.details.locations.push({
     name: locationName.value,
     address: formattedAddress.value || address.value,
-    latitude: latitude.value,
-    longitude: longitude.value,
+    latitude: parseFloat(latitude.value),
+    longitude: parseFloat(longitude.value),
     display: true,
     message: ''
   });
@@ -425,8 +425,8 @@ const editLocation = (index) => {
   locationName.value = location.name;
   address.value = location.address;
   formattedAddress.value = location.formattedAddress;
-  latitude.value = location.latitude;
-  longitude.value = location.longitude;
+  latitude.value = parseFloat(location.latitude);
+  longitude.value = parseFloat(location.longitude);
 
   center.lat = latitude.value;
   center.lng = longitude.value;
