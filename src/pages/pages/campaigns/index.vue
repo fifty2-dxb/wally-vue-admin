@@ -144,12 +144,15 @@ const headers = [
             </VCardText>
 
             <VCardActions class="justify-space-between mt-10">
-              <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid } }">
+              <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid}, query: { type: c.styleSettings.type }  }">
                 <VIcon icon="tabler-folder-open" />
                 <span class="ms-2">{{ $t('Show Campaign') }}</span>
               </VBtn>
 
               <IconBtn @click="getPlatformUrl(c)" color="secondary" icon="tabler-share" />
+              <IconBtn :to="{ name: 'pages-campaigns-show-mobile', params: { id: c.campaignGuid } }">
+                <VIcon icon="tabler-device-mobile" />
+              </IconBtn>
               <IconBtn @click="confirmDeleteCampaign(c.campaignGuid)">
                 <VIcon icon="tabler-trash" />
               </IconBtn>

@@ -7,17 +7,42 @@ import { useCampaignStore } from '@/stores/campaign';  // Import the store
 const router = useRouter();
 
 const route = useRoute();
+const type = route.query.type as string;
 const campaignGuid = route.params.id as string;
 const campaign = ref(null);
 const customers = ref([]);
 const campaignStore = useCampaignStore();
+const statistics = ref<Record<string, number | null>>({
+  customers: null,
+  appleCards: null,
+  googleCards: null,
+  totalStamps: null,
+  totalRedeemed: null,
+});
+const isLoading = ref(true);
 
-const widgetData = ref([
-  { title: 'Customers', value: '250', icon: 'tabler-smart-home', desc: '5 new', change: 5.7 },
-  { title: 'Push Notifications', value: '85', icon: 'tabler-brand-apple', desc: '21k orders', change: 12.4 },
-  { title: 'Android Notifications', value: '5', icon: 'tabler-brand-android', desc: '6k orders' },
-  { title: 'Total Stamps', value: '375', icon: 'tabler-rubber-stamp', desc: '150 orders', change: -3.5 },
-]);
+const widgetData = computed(() => {
+  const baseData = [
+    { title: 'Customers', value: statistics.value.customers, icon: 'tabler-smart-home', desc: '' },
+    { title: 'Apple Cards', value: statistics.value.appleCards, icon: 'tabler-brand-apple', desc: '' },
+    { title: 'Google Cards', value: statistics.value.googleCards, icon: 'tabler-brand-android', desc: '' },
+  ];
+
+  if (type === 'stamp') {
+    return [
+      ...baseData,
+      { title: 'Total Stamps', value: statistics.value.totalStamps, icon: 'tabler-rubber-stamp', desc: '' },
+      { title: 'Total Redeemed', value: statistics.value.totalRedeemed, icon: 'tabler-cash', desc: '' },
+    ];
+  } else if (type === 'membership') {
+    return [
+      ...baseData,
+      { title: 'Total Access', value: statistics.value.totalAccess, icon: 'tabler-key', desc: '' },
+    ];
+  }
+
+  return baseData;
+});
 
 const headers = [
   { title: 'NAME', key: 'name' },
@@ -30,6 +55,9 @@ const headers = [
 
 const fetchCampaignDetails = async (campaignGuid: string) => {
   try {
+    await campaignStore.fetchCampaignStatistics(campaignGuid);
+    statistics.value = campaignStore.statistics
+    
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
     campaign.value = campaignStore.campaign;
 
@@ -37,6 +65,9 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
     customers.value = campaignStore.customers;
   } catch (error) {
     console.error('Error fetching campaign or customers:', error);
+  } finally {
+    isLoading.value = false;
+
   }
 };
 
@@ -96,7 +127,12 @@ const backgroundColorWithOpacity = computed(() => {
                 </div>
 
                 <h4 class="text-h4">
-                  {{ data.value }}
+                  <span v-if="isLoading">
+                    <v-progress-circular indeterminate size="24" />
+                  </span>
+                  <span v-else>
+                    {{ data.value }}
+                  </span>
                 </h4>
 
                 <div class="d-flex align-center gap-x-2">
