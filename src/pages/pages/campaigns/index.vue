@@ -144,7 +144,7 @@ const headers = [
             </VCardText>
 
             <VCardActions class="justify-space-between mt-10">
-              <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid } }">
+              <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid}, query: { type: c.styleSettings.type }  }">
                 <VIcon icon="tabler-folder-open" />
                 <span class="ms-2">{{ $t('Show Campaign') }}</span>
               </VBtn>

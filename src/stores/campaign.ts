@@ -6,6 +6,7 @@ export const useCampaignStore = defineStore("campaign", () => {
   const campaigns = ref([]);
   const campaign = ref(null);
   const customers = ref([]);
+  const statistics = ref({})
 
   const fetchCampaigns = async () => {
     try {
@@ -13,6 +14,16 @@ export const useCampaignStore = defineStore("campaign", () => {
       campaigns.value = response.campaign || [];
     } catch (error) {
       console.error("Error fetching campaigns", error);
+    }
+  };
+
+  const fetchCampaignStatistics = async (campaignGuid: string) => {
+    try {
+      const response = await $wallyApi(`/v1/statistics/${campaignGuid}`, { method: "GET" });
+      statistics.value = response?.data || [];
+    } catch (error) {
+      console.error("Error fetching statistics:", error);
+      throw error;
     }
   };
 
@@ -100,11 +111,14 @@ export const useCampaignStore = defineStore("campaign", () => {
     campaigns,
     campaign,
     customers,
+    statistics,
     fetchCampaignByMerchantGuid,
     fetchCampaignByCampaignGuid,
     fetchCustomerByCampaignGuid,
     addCampaign,
     deleteCampaign,
     updateCampaign,
+    fetchCampaignStatistics
   };
 });
+
