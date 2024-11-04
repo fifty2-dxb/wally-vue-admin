@@ -147,22 +147,22 @@
   <div v-show="value.template.type == 'stamp'">
     <v-card class="elevation-0" :title="$t('Stamps')">
       <v-card-text>
-        <v-select :items="[
+        <v-autocomplete :items="[
           1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
           20, 25, 30,
         ]" :label="$t('Please Select Stamps Number')" class="mt-3 mb-6"
           v-model="value.template.properties.stampsNumber" outlined @update:modelValue="updateStampImage"
           :bg-color="'transparent'">
-        </v-select>
+        </v-autocomplete>
 
         <v-row>
           <v-col cols="12" lg="6">
             <v-row>
               <v-col>
-                <v-select :items="stampImages" item-title="name" item-value="url" :label="$t('Stamp Icon')" class="mt-3"
+                <v-autocomplete :items="stampImages" item-title="name" item-value="url" :label="$t('Stamp Icon')" class="mt-3"
                   v-model="value.template.properties.stampIcon" outlined :bg-color="'transparent'"
                   @update:modelValue="updateStampImage">
-                </v-select>
+                </v-autocomplete>
                 <div class="text-subtitle-2 text-center my-4">
                   {{ $t("Or") }}
                 </div>
@@ -195,9 +195,9 @@
           <v-col cols="12" lg="6">
             <v-row>
               <v-col>
-                <v-select :items="stampImages" :label="$t('Unstamp Icon')" class="mt-3" item-title="name"
+                <v-autocomplete :items="stampImages" :label="$t('Unstamp Icon')" class="mt-3" item-title="name"
                   :bg-color="'transparent'" item-value="url" v-model="value.template.properties.unStampIcon"
-                  @update:modelValue="updateStampImage"></v-select>
+                  @update:modelValue="updateStampImage"></v-autocomplete>
                 <div class="text-subtitle-2 text-center my-4">
                   {{ $t("Or") }}
                 </div>
