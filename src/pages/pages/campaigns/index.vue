@@ -150,6 +150,9 @@ const headers = [
               </VBtn>
 
               <IconBtn @click="getPlatformUrl(c)" color="secondary" icon="tabler-share" />
+              <IconBtn :to="{ name: 'pages-campaigns-show-mobile', params: { id: c.campaignGuid } }">
+                <VIcon icon="tabler-device-mobile" />
+              </IconBtn>
               <IconBtn @click="confirmDeleteCampaign(c.campaignGuid)">
                 <VIcon icon="tabler-trash" />
               </IconBtn>
