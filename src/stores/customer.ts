@@ -10,6 +10,7 @@ export const useCustomerStore = defineStore("customer", () => {
     type: "",
   });
   const serialNumberData = ref([])
+  
 
   const fetchCustomers = async () => {
     try {
@@ -23,7 +24,6 @@ export const useCustomerStore = defineStore("customer", () => {
   const fetchCustomerBySerialNumber = async (serialNumber: string) => {
     try {
       const response = await $wallyApi(`/customers/pass/${serialNumber}`, { method: "GET" });
-      console.log(response);
       serialNumberData.value = response || [];
     } catch (error) {
       console.error("Error fetching customers", error);
@@ -118,6 +118,16 @@ export const useCustomerStore = defineStore("customer", () => {
     }
   };
 
+  const resetCustomerData = () => {
+    customer.value = {
+      id: "",
+      serialNumber: "",
+      stats: [],
+      type: "",
+    };
+    serialNumberData.value = [];
+  };
+
   return {
     customers,
     customer,
@@ -129,6 +139,7 @@ export const useCustomerStore = defineStore("customer", () => {
     redeeming,
     redeem,
     gettingLogs,
-    serialNumberData
+    serialNumberData,
+    resetCustomerData 
   };
 });
