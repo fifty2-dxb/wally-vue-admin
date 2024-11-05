@@ -9,10 +9,12 @@ const customerStore = useCustomerStore();
 const selectedConstraints = ref({ facingMode: 'environment' });
 const result = ref('');
 const cameraError = ref(null);
+const customerLoaded = ref(false);
 
 const fetchCustomerDetails = async (serialNumber: string) => {
   try {
     await customerStore.fetchCustomerBySerialNumber(serialNumber);
+    customerLoaded.value = true;
   } catch (error) {
     console.error('Error fetching customer:', error);
   }
@@ -21,10 +23,10 @@ const fetchCustomerDetails = async (serialNumber: string) => {
 const onDecode = (decodedCodes) => {
   const scannedCode = decodedCodes.map(code => code.rawValue).join(', ');
   result.value = scannedCode;
+  customerStore.customer.serialNumber = scannedCode;
   fetchCustomerDetails(scannedCode);
   cameraActive.value = false;
 };
-
 
 const toggleCamera = () => {
   cameraActive.value = !cameraActive.value;
@@ -48,8 +50,10 @@ const paintBoundingBox = (detectedCodes, ctx) => {
 const currentStamps = ref(0);
 
 const updateStampCount = (increment) => {
-  currentStamps.value += increment;
-  if (currentStamps.value < 0) currentStamps.value = 0;
+  const newCount = currentStamps.value + increment;
+  if (newCount <= 10 && newCount >= 0) {
+    currentStamps.value = newCount;
+  }
 };
 
 const addStamps = () => {
@@ -57,6 +61,16 @@ const addStamps = () => {
   customerStore.serialNumberData.totalStamps += currentStamps.value;
   currentStamps.value = 0;
 };
+
+watch(() => customerStore.customer, (newVal) => {
+  customerLoaded.value = !!newVal;
+});
+
+onBeforeRouteLeave((to, from, next) => {
+  customerStore.resetCustomerData();
+  next();
+});
+
 </script>
 
 <template>
@@ -77,19 +91,6 @@ const addStamps = () => {
         </div>
       </v-img>
 
-      <v-row class="my-2">
-        <v-col cols="6" class="px-1">
-          <v-card rounded="lg" class="add-redeem-card text-center">
-            <v-card-text class="text-h6 font-weight-medium">{{ $t("Add") }}</v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="6" class="px-1">
-          <v-card rounded="lg" class="add-redeem-card text-center">
-            <v-card-text class="text-h6 font-weight-medium">{{ $t("Redeem") }}</v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
       <v-row class="counter-section my-2">
         <v-btn icon class="counter-btn" @click="updateStampCount(-1)">
           <v-icon size="24">tabler-minus</v-icon>
@@ -100,7 +101,22 @@ const addStamps = () => {
         </v-btn>
       </v-row>
 
-      <v-btn class="my-4 add-stamps-btn" color="black" @click="addStamps">{{ $t("Add Stamps") }}</v-btn>
+      <v-row class="my-2" v-if="customerLoaded">
+        <v-col cols="6" class="px-1">
+          <v-btn block rounded="lg" color="success" @click="addStamps" :loading="customerStore.stamping"
+            :disabled="customerStore.serialNumberData.redeemable" class="text-h6 font-weight-medium add-redeem-card">
+            <v-icon size="22" class="mr-2">tabler-rubber-stamp</v-icon>
+            {{ $t("Stamp") }}
+          </v-btn>
+        </v-col>
+        <v-col cols="6" class="px-1">
+          <v-btn block rounded="lg" color="info" @click="customerStore.redeem()" :loading="customerStore.redeeming"
+            :disabled="!customerStore.serialNumberData.redeemable" class="text-h6 font-weight-medium add-redeem-card">
+            <v-icon size="22" class="mr-2">tabler-gift</v-icon>
+            {{ $t("Redeem") }}
+          </v-btn>
+        </v-col>
+      </v-row>
 
       <v-list dense class="info-list">
         <v-list-item>
