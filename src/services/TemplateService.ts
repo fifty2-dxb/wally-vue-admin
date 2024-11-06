@@ -724,13 +724,15 @@ const fields = [
     key: "stampCount",
     sample: "5",
     requiredOnEnrollment: false,
-  },,
+  },
   {
     name: "Balance",
     label: "Top-up Balance",
     key: "balance",
     requiredOnEnrollment: false,
   },
+  { name: "Currency", label: "currency", key: "currency", requiredOnEnrollment: false },
+  
 ];
 
 const textColors = [

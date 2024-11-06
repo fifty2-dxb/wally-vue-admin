@@ -10,8 +10,9 @@
             :label="$t(`Field ${index + 1}`)" :items="filteredFieldListApple" item-title="name" item-value="key"
             variant="outlined" v-model="value.template.fields.apple[`f${index + 1}`]" outlined class="mb-6"></v-select>
 
-          <v-autocomplete v-if="showCurrencySelectApple" :label="$t('Select Currency')" :items="currencies" item-title="name"
-            item-value="symbol" v-model="selectedCurrencyApple" variant="outlined" class="mb-6"></v-autocomplete>
+          <v-autocomplete v-if="showCurrencySelectApple" :label="$t('Select Currency')" :items="currencies"
+            item-title="name" item-value="symbol" v-model="selectedCurrencyApple" variant="outlined"
+            class="mb-6"></v-autocomplete>
         </v-col>
 
         <v-col cols="6">
@@ -22,8 +23,9 @@
             :label="$t(`Field ${index + 1}`)" :items="filteredFieldListGoogle" item-title="name" item-value="key"
             variant="outlined" v-model="value.template.fields.google[`f${index + 1}`]" outlined class="mb-6"></v-select>
 
-          <v-autocomplete v-if="showCurrencySelectGoogle" :label="$t('Select Currency')" :items="currencies" item-title="name"
-            item-value="symbol" v-model="selectedCurrencyGoogle" variant="outlined" class="mb-6"></v-autocomplete>
+          <v-autocomplete v-if="showCurrencySelectGoogle" :label="$t('Select Currency')" :items="currencies"
+            item-title="name" item-value="symbol" v-model="selectedCurrencyGoogle" variant="outlined"
+            class="mb-6"></v-autocomplete>
         </v-col>
       </v-row>
     </v-card-text>
@@ -70,6 +72,14 @@ watch(
   },
   { deep: true }
 );
+
+watch(selectedCurrencyApple, (currency) => {
+  if (currency) value.value.template.fields.apple.currency = currency;
+});
+
+watch(selectedCurrencyGoogle, (currency) => {
+  if (currency) value.value.template.fields.google.currency = currency;
+});
 
 const filteredFieldListApple = computed(() => {
   if (templateType.value === 'balance') {
