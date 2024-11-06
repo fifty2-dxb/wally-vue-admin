@@ -312,20 +312,20 @@ const validateForm = () => {
                       <v-card
                         rounded="lg"
                         :style="
-                          campaignType == 'points'
+                          campaignType == 'balance'
                             ? 'border-color:rgb(var(--v-theme-primary)) !important'
                             : ''
                         "
                         :class="
-                          campaignType == 'points'
+                          campaignType == 'balance'
                             ? 'border'
                             : 'border border-dashed elevation-0'
                         "
-                        @click="campaignType = 'points'"
+                        @click="campaignType = 'balance'"
                       >
                         <v-card-text class="text-center py-2">
                           <div class="text-h6 font-weight-medium">
-                            POINTS CARD
+                            BALANCE CARD
                           </div>
                         </v-card-text>
                       </v-card>
