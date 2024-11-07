@@ -105,15 +105,13 @@ const templates = [
         f1: "name",
         f2: "phone",
         f3: "email",
-        f4: "stampCount",
-        f5: "empty",
+        f4: "empty",
       },
       google: {
         f1: "name",
         f2: "phone",
         f3: "email",
-        f4: "stampCount",
-        f5: "empty",
+        f4: "empty",
       },
     },
     additionalFields: [
@@ -697,10 +695,25 @@ const currencies = [
 
 
 const fields = [
+  { name: "Empty", label: "", key: "empty", sample: "", requiredOnEnrollment: false, type: "empty" },
   { name: "Name", label: "Name", key: "name", sample: "John Doe", requiredOnEnrollment: true, type: "text" },
   { name: "Phone", label: "Phone", key: "phone", sample: "1234567890", requiredOnEnrollment: true, type: "text" },
   { name: "Email", label: "Email", key: "email", sample: "user@domain.com", requiredOnEnrollment: true, type: "email" },
   { name: "Empty", label: "", key: "empty", sample: "", requiredOnEnrollment: false, type: "empty" },
+  {
+    name: "Stamp Count",
+    label: "Stamp Count",
+    key: "stampCount",
+    sample: "5",
+    requiredOnEnrollment: false,
+  },
+  {
+    name: "Balance",
+    label: "TopUp Balance",
+    key: "balance",
+    requiredOnEnrollment: false,
+  },
+  { name: "Currency", label: "currency", key: "currency", requiredOnEnrollment: false },
   {
     name: "Birthday",
     label: "Birthday",
@@ -718,20 +731,7 @@ const fields = [
     sample: "#1234567",
     requiredOnEnrollment: false,
   },
-  {
-    name: "Stamp Count",
-    label: "Stamp Count",
-    key: "stampCount",
-    sample: "5",
-    requiredOnEnrollment: false,
-  },
-  {
-    name: "Balance",
-    label: "Top-up Balance",
-    key: "balance",
-    requiredOnEnrollment: false,
-  },
-  { name: "Currency", label: "currency", key: "currency", requiredOnEnrollment: false },
+  
   
 ];
 
