@@ -47,11 +47,11 @@ const paintBoundingBox = (detectedCodes, ctx) => {
     ctx.strokeRect(x, y, width, height);
   });
 };
-const currentStamps = ref(0);
+const currentStamps = ref(1);
 
 const updateStampCount = (increment) => {
   const newCount = currentStamps.value + increment;
-  if (newCount <= 10 && newCount >= 0) {
+  if (newCount <= 10 && newCount >= 1) {
     currentStamps.value = newCount;
   }
 };
@@ -59,7 +59,7 @@ const updateStampCount = (increment) => {
 const addStamps = () => {
   customerStore.stamp(currentStamps.value);
   customerStore.serialNumberData.totalStamps += currentStamps.value;
-  currentStamps.value = 0;
+  currentStamps.value = 1;
 };
 
 watch(() => customerStore.customer, (newVal) => {
