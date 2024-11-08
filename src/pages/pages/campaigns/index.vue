@@ -14,6 +14,8 @@ const campaignToDelete = ref(null);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
 const showSnackbar = ref(false);
+const loading = ref(false);
+const isInitialized = ref(false);
 
 const hexToRgba = (hex: string, opacity: number) => {
   let c: any;
@@ -41,11 +43,15 @@ watch(
   () => configStore.activeMerchant,
   async (newMerchant, oldMerchant) => {
     if (newMerchant && newMerchant.merchantGuid !== (oldMerchant?.merchantGuid || '')) {
+      loading.value = true;
       try {
         await campaignStore.fetchCampaignByMerchantGuid(newMerchant.merchantGuid);
         campaigns.value = campaignStore.campaigns;
       } catch (err) {
         console.error('Error fetching campaigns:', err);
+      } finally {
+        loading.value = false;
+        isInitialized.value = true;
       }
     }
   },
@@ -101,6 +107,9 @@ const headers = [
   { title: 'EXPERIENCE', key: 'experience' },
   { title: 'AGE', key: 'age' },
 ];
+
+const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
+
 </script>
 
 <template>
@@ -115,9 +124,16 @@ const headers = [
     </div>
 
     <div class="d-flex gap-4 align-center flex-wrap">
-      <VBtn @click="$router.push('/pages/campaigns/create')">{{ $t('Create New Campaign') }}</VBtn>
+      <VBtn :disabled="!isMerchantAvailable" @click="$router.push('/pages/campaigns/create')">{{ $t('Create New Campaign') }}</VBtn>
     </div>
   </div>
+  <template v-if="loading">
+    <div class="d-flex justify-center align-center" style="height: 200px;">
+      <VProgressCircular indeterminate color="primary" size="50" />
+    </div>
+  </template>
+
+  <template v-if="isMerchantAvailable && !loading && isInitialized">
   <VRow>
     <VCol sm="6" cols="12" v-for="c in campaigns" :key="c.campaignGuid">
       <VCard>
@@ -163,6 +179,12 @@ const headers = [
       </VCard>
     </VCol>
   </VRow>
+  </template>
+  <template v-else-if="!isMerchantAvailable && !loading && isInitialized">
+    <div class="d-flex justify-center align-center" >
+      <h4>No Merchant Found &gt; Please add merchant in Settings first</h4>
+    </div>
+  </template>
   <VDialog v-model="isDeleteConfirmationVisible" width="400">
     <VCard>
       <VCardTitle class="headline">{{ $t('Are you sure?') }}</VCardTitle>
