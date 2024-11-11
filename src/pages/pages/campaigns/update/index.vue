@@ -148,37 +148,59 @@ const saveCampaign = async () => {
 };
 
 const validateForm = () => {
-  errors.value.icon = !loyaltyData.value.template.properties.icon;
-  errors.value.logo = !loyaltyData.value.template.properties.logo;
+    errors.value.icon = !loyaltyData.value.template.properties.icon;
+    errors.value.logo = !loyaltyData.value.template.properties.logo;
 
-  if (loyaltyData.value.template.type === 'stamp') {
-    errors.value.reward = !loyaltyData.value.template.properties.reward;
-  } else {
-    errors.value.reward = false; 
-  }
+    if (loyaltyData.value.template.type === 'membership') {
+      errors.value.stripImagePreviewApple = !loyaltyData.value.template.properties.stripImagePreviewApple;
+      errors.value.stripImagePreviewGoogle = !loyaltyData.value.template.properties.stripImagePreviewGoogle;
+      errors.value.reward = false;
+    } else {
+      errors.value.reward = !loyaltyData.value.template.properties.reward;
+      errors.value.stripImagePreviewApple = false;
+      errors.value.stripImagePreviewGoogle = false;
+    }
 
-  if (loyaltyData.value.template.type === 'membership') {
-    errors.value.stripImagePreviewApple = !loyaltyData.value.template.properties.stripImagePreviewApple;
-    errors.value.stripImagePreviewGoogle = !loyaltyData.value.template.properties.stripImagePreviewGoogle;
-  } else {
-    errors.value.stripImagePreviewApple = false;
-    errors.value.stripImagePreviewGoogle = false;
-  }
+    if (
+      errors.value.icon ||
+      errors.value.logo ||
+      errors.value.reward ||
+      errors.value.stripImagePreviewApple ||
+      errors.value.stripImagePreviewGoogle
+    ) {
+      showSnackbar('Please fill in all the required fields in the "Card Design" tab', 'error');
+      return false;
+    }
 
-  if (
-    errors.value.icon ||
-    errors.value.logo ||
-    errors.value.reward ||
-    errors.value.stripImagePreviewApple ||
-    errors.value.stripImagePreviewGoogle
-  ) {
-    showSnackbar('Please fill in all the required fields in the "Card Design" tab', 'error');
-    return false;
-  }
+    return true;
+  };
 
-  return true;
-};
+  const requiredFieldsFilled = computed(() => {
+    const { properties, type } = loyaltyData.value.template;
+    return (
+      properties.logo && 
+      properties.icon && 
+      (type === 'membership'
+        ? properties.stripImagePreviewApple && properties.stripImagePreviewGoogle
+        : properties.reward
+      )
+    );
+  });
 
+  watch(() => loyaltyData.value.template.properties, (newProperties) => {
+    if (requiredFieldsFilled.value) {
+    } else {
+      console.log("Some required fields are still missing.");
+    }
+  }, { deep: true });
+
+  const goToNextStep = () => {
+    if (requiredFieldsFilled.value) {
+      currentStep.value++;
+    } else {
+      showSnackbar("Please fill in all required fields before proceeding.", 'error');
+    }
+  };
 
 </script>
 
@@ -204,7 +226,7 @@ const validateForm = () => {
     <v-col cols="12">
       <v-card>
         <v-card-text>
-          <WallyStepHeader v-model:activeTab="currentStep" :steps="steps" />
+          <WallyStepHeader v-model:activeTab="currentStep" :steps="steps" :disabledField="!requiredFieldsFilled" />
         </v-card-text>
       </v-card>
     </v-col>
@@ -253,9 +275,7 @@ const validateForm = () => {
                 {{ $t('Back') }}
               </v-btn>
               <v-spacer></v-spacer>
-              <v-btn color="primary" @click="currentStep = currentStep + 1" :disabled="currentStep == 5">
-                {{ $t('Next') }}
-              </v-btn>
+              <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 5" @click="goToNextStep">{{ $t('Next') }}</v-btn>
             </v-card-actions>
           </v-col>
           <v-divider vertical></v-divider>

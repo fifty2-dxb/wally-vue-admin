@@ -10,6 +10,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  disabledField: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const emit = defineEmits(['update:activeTab']);
@@ -23,6 +27,7 @@ const currentStep = computed({
     emit('update:activeTab', value);
   },
 });
+
 </script>
 
 <template>
@@ -36,10 +41,15 @@ const currentStep = computed({
       :key="step.title"
       v-slot="{ isSelected, toggle }"
       :value="index"
+      :disabled="index !== 0 && index !== 1 && props.disabledField"
     >
       <div
         style="block-size: 100px; inline-size: 110px; min-width:160px"
-        :style="isSelected ? 'border-color:rgb(var(--v-theme-primary)) !important' : ''"
+        :style="{
+          borderColor: isSelected ? 'rgb(var(--v-theme-primary))' : '',
+          cursor: props.disabledField && index !== 0 && index !== 1 ? 'not-allowed' : 'pointer',
+          opacity: props.disabledField && index !== 0 && index !== 1 ? 0.5 : 1
+        }"
         :class="isSelected ? 'border' : 'border border-dashed'"
         class="d-flex flex-column justify-center align-center cursor-pointer rounded py-4 px-5 me-4"
         @click="toggle"

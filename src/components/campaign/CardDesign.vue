@@ -17,7 +17,7 @@
           <div class="text-subtitle-2 mb-3">
             <span style="color: #FF4c51;">*</span> {{ $t("Logo") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.logo" :boxStyle="{
+          <upload-and-crop v-model="value.template.properties.logo" :required="true" :boxStyle="{
             width: '100%',
             height: '100%',
             backgroundColor: '#f8f8f8',
@@ -40,7 +40,7 @@
           <div class="text-subtitle-2 mb-3">
             <span style="color: #FF4c51;">*</span>  {{ $t("Icon") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.icon" :boxStyle="{
+          <upload-and-crop v-model="value.template.properties.icon" :required="true" :boxStyle="{
             width: '100%',
             height: '100%',
             backgroundColor: '#f8f8f8',
@@ -66,7 +66,7 @@
           <div class="text-subtitle-2 mb-3">
           <span style="color: #FF4c51;">*</span> {{ $t("Reward") }}
           </div>
-          <upload-and-crop v-model="value.template.properties.reward" :boxStyle="{
+          <upload-and-crop v-model="value.template.properties.reward" :required="true" :boxStyle="{
             width: '100%',
             height: '100%',
             backgroundColor: '#f8f8f8',
@@ -97,7 +97,7 @@
             <div class="text-subtitle-2 mb-3">
               <span style="color: #FF4c51;">*</span> {{ $t("Apple") }}
             </div>
-            <upload-and-crop v-model="value.template.properties.stripImagePreviewApple" :boxStyle="{
+            <upload-and-crop v-model="value.template.properties.stripImagePreviewApple" :required="true" :boxStyle="{
               width: '100%',
               height: '100%',
               backgroundColor: '#f8f8f8',
@@ -120,7 +120,7 @@
             <div class="text-subtitle-2 mb-3">
               <span style="color: #FF4c51;">*</span> {{ $t("Google") }}
             </div>
-            <upload-and-crop v-model="value.template.properties.stripImagePreviewGoogle" :boxStyle="{
+            <upload-and-crop v-model="value.template.properties.stripImagePreviewGoogle" :required="true" :boxStyle="{
               width: '100%',
               height: '100%',
               backgroundColor: '#f8f8f8',
