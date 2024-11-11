@@ -15,14 +15,6 @@
   const snackbarMessage = ref('');
   const snackbarColor = ref('');
 
-const campaignType = ref('All');
-const errors = ref({
-  icon: false,
-  logo: false,
-  reward: false,
-  stripImagePreviewApple: false,
-  stripImagePreviewGoogle: false
-});
 
   const campaignType = ref('All');
   const errors = ref({
@@ -61,6 +53,10 @@ const errors = ref({
       icon: 'tabler-info-square',
     },
     {
+      title: 'Settings',
+      icon: 'tabler-settings',
+    },
+    {
       title: 'Enrollment Form',
       icon: 'tabler-user-plus',
     },
@@ -85,6 +81,14 @@ const errors = ref({
   const loyaltyData = ref({
     template: templates.value[0],
   });
+  const appleSettings = ref({
+  webServiceURL: 'https://dev-api.wally.ae/',
+  teamIdentifier: '772239U7XT',
+  sharingProhibited: true,
+  passTypeIdentifier: 'pass.com.wally.loyalty',
+  authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
+  associatedStoreIdentifiers: []
+});
 
   const configStore = useConfigStore();
   const saving = ref(false);
@@ -100,26 +104,22 @@ const errors = ref({
     }
     return new Blob([u8arr], { type: mime });
   }
+  const updateAppleSettings = (updatedSettings) => {
+  appleSettings.value = updatedSettings;
+};
 
   const saveCampaign = async () => {
     if (!validateForm()) {
       return;
     }
     const merchantId = configStore.activeMerchant?.merchantGuid;
-    const appleSettings = {
-      webServiceURL: 'https://dev-api.wally.ae/',
-      teamIdentifier: '772239U7XT',
-      sharingProhibited: true,
-      passTypeIdentifier: 'pass.com.wally.loyalty',
-      authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
-      associatedStoreIdentifiers: [],
-    };
+    
     const postBody = {
       merchantGuid: merchantId,
       styleSettings: {
         type: 'stamp',
         ...loyaltyData.value.template,
-        appleSettings,
+        appleSettings: appleSettings.value,
       },
       validFromDt: {},
       validTillDt: {},
@@ -203,8 +203,6 @@ const errors = ref({
 
     return true;
   };
-  currentStep.value = 0;
-});
 
   const requiredFieldsFilled = computed(() => {
     const { properties, type } = loyaltyData.value.template;
@@ -248,7 +246,6 @@ const errors = ref({
         </div>
       </div>
     </div>
-  </div>
 
     <VRow>
       <VCol cols="12">
@@ -258,91 +255,92 @@ const errors = ref({
           </v-card-text>
         </v-card>
       </VCol>
-    <VCol cols="12">
-      <v-card>
-        <v-row>
-          <v-col
-            cols="12"
-            :lg="currentStep == 5 ? '12' : '8'"
-            class="elevation-0"
-          >
-            <div v-if="currentStep == 0">
-              <!-- Your content for step 0 -->
-              <v-card
-                class="elevation-0"
-                title="Select Template"
-                subtitle="Please select template of your campaign"
-              >
-                <v-container>
-                  <v-row>
-                    <v-col>
-                      <v-card
-                        rounded="lg"
-                        :style="
-                          campaignType == 'All'
-                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
-                            : ''
-                        "
-                        :class="
-                          campaignType == 'All'
-                            ? 'border'
-                            : 'border border-dashed elevation-0'
-                        "
-                        @click="campaignType = 'All'"
-                      >
-                        <v-card-text class="text-center py-2">
-                          <div class="text-h6 font-weight-medium">
-                            ALL
-                          </div>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                    <v-col>
-                      <v-card
-                        rounded="lg"
-                        :style="
-                          campaignType == 'membership'
-                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
-                            : ''
-                        "
-                        :class="
-                          campaignType == 'membership'
-                            ? 'border'
-                            : 'border border-dashed elevation-0'
-                        "
-                        @click="campaignType = 'membership'"
-                      >
-                        <v-card-text class="text-center py-2">
-                          <div class="text-h6 font-weight-medium">
-                            MEMBERSHIP CARD
-                          </div>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                    <v-col>
-                      <v-card
-                        rounded="lg"
-                        :style="
-                          campaignType == 'stamp'
-                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
-                            : ''
-                        "
-                        :class="
-                          campaignType == 'stamp'
-                            ? 'border'
-                            : 'border border-dashed elevation-0'
-                        "
-                        @click="campaignType = 'stamp'"
-                      >
-                        <v-card-text class="text-center py-2">
-                          <div class="text-h6 font-weight-medium">
-                            STAMP CARD
-                          </div>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                    <v-col>
-                      <v-card
+
+      <VCol cols="12">
+        <v-card>
+          <v-row>
+            <v-col
+              cols="12"
+              :lg="currentStep == 6 ? '12' : '8'"
+              class="elevation-0"
+            >
+              <div v-if="currentStep == 0">
+                <!-- Your content for step 0 -->
+                <v-card
+                  class="elevation-0"
+                  title="Select Template"
+                  subtitle="Please select template of your campaign"
+                >
+                  <v-container>
+                    <v-row>
+                      <v-col>
+                        <v-card
+                          rounded="lg"
+                          :style="
+                            campaignType == 'All'
+                              ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                              : ''
+                          "
+                          :class="
+                            campaignType == 'All'
+                              ? 'border'
+                              : 'border border-dashed elevation-0'
+                          "
+                          @click="campaignType = 'All'"
+                        >
+                          <v-card-text class="text-center py-2">
+                            <div class="text-h6 font-weight-medium">
+                              ALL
+                            </div>
+                          </v-card-text>
+                        </v-card>
+                      </v-col>
+                      <v-col>
+                        <v-card
+                          rounded="lg"
+                          :style="
+                            campaignType == 'membership'
+                              ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                              : ''
+                          "
+                          :class="
+                            campaignType == 'membership'
+                              ? 'border'
+                              : 'border border-dashed elevation-0'
+                          "
+                          @click="campaignType = 'membership'"
+                        >
+                          <v-card-text class="text-center py-2">
+                            <div class="text-h6 font-weight-medium">
+                              MEMBERSHIP CARD
+                            </div>
+                          </v-card-text>
+                        </v-card>
+                      </v-col>
+                      <v-col>
+                        <v-card
+                          rounded="lg"
+                          :style="
+                            campaignType == 'stamp'
+                              ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                              : ''
+                          "
+                          :class="
+                            campaignType == 'stamp'
+                              ? 'border'
+                              : 'border border-dashed elevation-0'
+                          "
+                          @click="campaignType = 'stamp'"
+                        >
+                          <v-card-text class="text-center py-2">
+                            <div class="text-h6 font-weight-medium">
+                              STAMP CARD
+                            </div>
+                          </v-card-text>
+                        </v-card>
+                      </v-col>
+                      <v-col>
+                        <v-card
                         rounded="lg"
                         :style="
                           campaignType == 'balance'
@@ -362,80 +360,83 @@ const errors = ref({
                           </div>
                         </v-card-text>
                       </v-card>
-                    </v-col>
-                  </v-row>
-                  <v-divider class="my-3"></v-divider>
-                  <v-row>
-                    <v-col cols="6" lg="3" v-for="template in filteredTemplates">
-                      <v-card
-                        @click="loyaltyData.template = template"
-                        rounded="lg"
-                        :style="
-                          loyaltyData.template == template
-                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
-                            : ''
-                        "
-                        :class="
-                          loyaltyData.template == template
-                            ? 'border'
-                            : 'border border-dashed elevation-0'
-                        "
-                      >
-                        <v-img :src="template.image" alt="" width="100%"></v-img>
-                        <v-card-text class="text-center">
-                          <div class="text-h6 font-weight-medium">
-                            {{ template.name }}
-                          </div>
-                          <div class="text-subtitle-2 font-weight-thin">
-                            {{ template.description }}
-                          </div>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card>
-            </div>
-            <div v-if="currentStep == 1">
-              <CardDesign v-model="loyaltyData" />
-            </div>
-            <div v-if="currentStep == 2">
-              <CardFields v-model="loyaltyData" />
-            </div>
-            <div v-if="currentStep == 3">
-              <CardAdditional v-model="loyaltyData" />
-            </div>
-            <div v-if="currentStep == 4">
-              <EnrollmentForm v-model="loyaltyData" />
-            </div>
-            <div v-if="currentStep == 5">
-              <v-row>
-                <v-col class="text-center" cols="12">
-                  <h3 class="text-h4 pt-4 pb-2">
-                    {{ $t('Preview') }}
-                  </h3>
-                  <p class="pb-4">
-                    {{
-                      $t(
-                        'Please check and confirm the preview of your loyalty card '
-                      )
-                    }}
-                  </p>
-                  <v-btn
-                    class="mb-4 mt-2"
-                    color="primary"
-                    @click="saveCampaign()"
-                    :loading="saving"
+                      </v-col>
+                    </v-row>
+                    <v-divider class="my-3"></v-divider>
+                    <v-row>
+                      <v-col cols="6" lg="3" v-for="template in filteredTemplates">
+                        <v-card
+                          @click="loyaltyData.template = template"
+                          rounded="lg"
+                          :style="
+                            loyaltyData.template == template
+                              ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                              : ''
+                          "
+                          :class="
+                            loyaltyData.template == template
+                              ? 'border'
+                              : 'border border-dashed elevation-0'
+                          "
+                        >
+                          <v-img :src="template.image" alt="" width="100%"></v-img>
+                          <v-card-text class="text-center">
+                            <div class="text-h6 font-weight-medium">
+                              {{ template.name }}
+                            </div>
+                            <div class="text-subtitle-2 font-weight-thin">
+                              {{ template.description }}
+                            </div>
+                          </v-card-text>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-card>
+              </div>
+              <div v-if="currentStep == 1">
+                <CardDesign v-model="loyaltyData" />
+              </div>
+              <div v-if="currentStep == 2">
+                <CardFields v-model="loyaltyData" />
+              </div>
+              <div v-if="currentStep == 3">
+                <CardAdditional v-model="loyaltyData" />
+              </div>
+              <div v-if="currentStep == 4">
+                <CampaignSettings v-model="loyaltyData" v-model:appleSettings="appleSettings"  @updateAppleSettings="updateAppleSettings" />
+              </div>
+              <div v-if="currentStep == 5">
+                <EnrollmentForm v-model="loyaltyData" />
+              </div>
+              <div v-if="currentStep == 6">
+                <v-row> 
+                  <v-col class="text-center" cols="12">
+                    <h3 class="text-h4 pt-4 pb-2">
+                      {{ $t('Preview') }}
+                    </h3>
+                    <p class="pb-4">
+                      {{
+                        $t(
+                          'Please check and confirm the preview of your loyalty card '
+                        )
+                      }}
+                    </p>
+                    <v-btn
+                      class="mb-4 mt-2"
+                      color="primary"
+                      @click="saveCampaign()"
+                      :loading="saving"
+                    >
+                      {{ $t('Submit') }}
+                    </v-btn>
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    lg="12"
+                    class="d-flex justify-center align-center"
                   >
-                    {{ $t('Submit') }}
-                  </v-btn>
-                </v-col>
-                <v-col
-                  cols="12"
-                  lg="12"
-                  class="d-flex justify-center align-center"
-                  >
-                  
+                    
                       <PhonePreview
                         :data="loyaltyData"
                         :seeAll="true"
@@ -453,7 +454,7 @@ const errors = ref({
                   {{ $t('Back') }}
                 </v-btn>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 5" @click="goToNextStep">{{ $t('Next') }}</v-btn>
+                <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 6" @click="goToNextStep">{{ $t('Next') }}</v-btn>
               </v-card-actions>
             </v-col>
             <v-divider vertical></v-divider>
@@ -461,9 +462,9 @@ const errors = ref({
               cols="12"
               lg="4"
               class="lg:order-last"
-              v-if="currentStep != 5"
+              v-if="currentStep != 6"
             >
-              <PhonePreview :data="loyaltyData" v-if="currentStep != 4" :errors="errors" />
+              <PhonePreview :data="loyaltyData" v-if="currentStep != 5" :errors="errors" />
               <FormPreview :data="loyaltyData" class="mt-3 pr-2" v-else />
             </v-col>
           </v-row>
