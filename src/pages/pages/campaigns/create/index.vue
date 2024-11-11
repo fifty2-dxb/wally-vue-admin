@@ -341,25 +341,25 @@
                       </v-col>
                       <v-col>
                         <v-card
-                          rounded="lg"
-                          :style="
-                            campaignType == 'points'
-                              ? 'border-color:rgb(var(--v-theme-primary)) !important'
-                              : ''
-                          "
-                          :class="
-                            campaignType == 'points'
-                              ? 'border'
-                              : 'border border-dashed elevation-0'
-                          "
-                          @click="campaignType = 'points'"
-                        >
-                          <v-card-text class="text-center py-2">
-                            <div class="text-h6 font-weight-medium">
-                              POINTS CARD
-                            </div>
-                          </v-card-text>
-                        </v-card>
+                        rounded="lg"
+                        :style="
+                          campaignType == 'balance'
+                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                            : ''
+                        "
+                        :class="
+                          campaignType == 'balance'
+                            ? 'border'
+                            : 'border border-dashed elevation-0'
+                        "
+                        @click="campaignType = 'balance'"
+                      >
+                        <v-card-text class="text-center py-2">
+                          <div class="text-h6 font-weight-medium">
+                            BALANCE CARD
+                          </div>
+                        </v-card-text>
+                      </v-card>
                       </v-col>
                     </v-row>
                     <v-divider class="my-3"></v-divider>

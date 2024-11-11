@@ -38,6 +38,7 @@ const steps = [
   { title: 'Card Design', icon: 'tabler-artboard' },
   { title: 'Fields', icon: 'tabler-list-details' },
   { title: 'Additional Info', icon: 'tabler-info-square' },
+  { title: 'Settings', icon: 'tabler-settings'},
   { title: 'Enrollment Form', icon: 'tabler-user-plus' },
   { title: 'Settings', icon: 'tabler-settings' },
   { title: 'Done', icon: 'tabler-square-rounded-check' },
@@ -48,6 +49,15 @@ const loyaltyData = ref({
   styleSettings: {},
   validFromDt: {},
   validTillDt: {}
+});
+
+const appleSettings = ref({
+  webServiceURL: 'https://dev-api.wally.ae/',
+  teamIdentifier: '772239U7XT',
+  sharingProhibited: true,
+  passTypeIdentifier: 'pass.com.wally.loyalty',
+  authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
+  associatedStoreIdentifiers: []
 });
 
 const configStore = useConfigStore();
@@ -87,24 +97,19 @@ function dataURLtoBlob(dataurl: string) {
   }
   return new Blob([u8arr], {type:mime});
 }
+const updateAppleSettings = (updatedSettings) => {
+  appleSettings.value = updatedSettings;
+};
 
 const saveCampaign = async () => {
   if (!validateForm()) {
     return;
   }
   const merchantId = configStore.activeMerchant?.merchantGuid;
-  const appleSettings = {
-    webServiceURL: "https://dev-api.wally.ae/",
-    teamIdentifier: "772239U7XT",
-    sharingProhibited: false,
-    passTypeIdentifier: "pass.com.wally.loyalty",
-    authenticationToken: "Lu@ByGo9G6QMepMKQxA4",
-    associatedStoreIdentifiers: [],
-  };
-
+  
   const postBody = {
     merchantGuid: merchantId,
-    styleSettings: { type: "stamp", ...loyaltyData.value.template, appleSettings },
+    styleSettings: { type: "stamp", ...loyaltyData.value.template, appleSettings: appleSettings.value },
     validFromDt: loyaltyData.value.validFromDt,
     validTillDt: loyaltyData.value.validTillDt,
   };
@@ -234,7 +239,7 @@ const validateForm = () => {
     <v-col cols="12">
       <v-card>
         <v-row>
-          <v-col cols="12" :lg="currentStep == 5 ? '12' : '8'" class="elevation-0">
+          <v-col cols="12" :lg="currentStep == 6 ? '12' : '8'" class="elevation-0">
             <div v-if="currentStep == 0">
               <CardDesign v-model="loyaltyData" />
             </div>
@@ -245,12 +250,15 @@ const validateForm = () => {
               <CardAdditional v-model="loyaltyData" />
             </div>
             <div v-if="currentStep == 3">
+                <CampaignSettings v-model="loyaltyData" v-model:appleSettings="appleSettings"  @updateAppleSettings="updateAppleSettings" />
+              </div>
+            <div v-if="currentStep == 4">
               <EnrollmentForm v-model="loyaltyData" />
             </div>
-            <div v-if="currentStep == 4">
+            <div v-if="currentStep == 5">
               <CampaignSettings v-model="loyaltyData" />
             </div>            
-            <div v-if="currentStep == 5">
+            <div v-if="currentStep == 6">
               <v-row>
                 <v-col class="text-center" cols="12">
                   <h3 class="text-h4 pt-4 pb-2">
@@ -275,12 +283,12 @@ const validateForm = () => {
                 {{ $t('Back') }}
               </v-btn>
               <v-spacer></v-spacer>
-              <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 5" @click="goToNextStep">{{ $t('Next') }}</v-btn>
+              <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 6" @click="goToNextStep">{{ $t('Next') }}</v-btn>
             </v-card-actions>
           </v-col>
           <v-divider vertical></v-divider>
           <v-col cols="12" lg="4" class="lg:order-last" v-if="currentStep != 5">
-            <PhonePreview :data="loyaltyData" v-if="currentStep != 3" />
+            <PhonePreview :data="loyaltyData" v-if="currentStep != 4" />
             <FormPreview :data="loyaltyData" class="mt-3 pr-2" v-else />
           </v-col>
         </v-row>
