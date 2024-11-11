@@ -53,6 +53,10 @@
       icon: 'tabler-info-square',
     },
     {
+      title: 'Settings',
+      icon: 'tabler-settings',
+    },
+    {
       title: 'Enrollment Form',
       icon: 'tabler-user-plus',
     },
@@ -77,6 +81,14 @@
   const loyaltyData = ref({
     template: templates.value[0],
   });
+  const appleSettings = ref({
+  webServiceURL: 'https://dev-api.wally.ae/',
+  teamIdentifier: '772239U7XT',
+  sharingProhibited: true,
+  passTypeIdentifier: 'pass.com.wally.loyalty',
+  authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
+  associatedStoreIdentifiers: []
+});
 
   const configStore = useConfigStore();
   const saving = ref(false);
@@ -92,26 +104,22 @@
     }
     return new Blob([u8arr], { type: mime });
   }
+  const updateAppleSettings = (updatedSettings) => {
+  appleSettings.value = updatedSettings;
+};
 
   const saveCampaign = async () => {
     if (!validateForm()) {
       return;
     }
     const merchantId = configStore.activeMerchant?.merchantGuid;
-    const appleSettings = {
-      webServiceURL: 'https://dev-api.wally.ae/',
-      teamIdentifier: '772239U7XT',
-      sharingProhibited: true,
-      passTypeIdentifier: 'pass.com.wally.loyalty',
-      authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
-      associatedStoreIdentifiers: [],
-    };
+    
     const postBody = {
       merchantGuid: merchantId,
       styleSettings: {
         type: 'stamp',
         ...loyaltyData.value.template,
-        appleSettings,
+        appleSettings: appleSettings.value,
       },
       validFromDt: {},
       validTillDt: {},
@@ -253,7 +261,7 @@
           <v-row>
             <v-col
               cols="12"
-              :lg="currentStep == 5 ? '12' : '8'"
+              :lg="currentStep == 6 ? '12' : '8'"
               class="elevation-0"
             >
               <div v-if="currentStep == 0">
@@ -396,10 +404,13 @@
                 <CardAdditional v-model="loyaltyData" />
               </div>
               <div v-if="currentStep == 4">
-                <EnrollmentForm v-model="loyaltyData" />
+                <CampaignSettings v-model="loyaltyData" v-model:appleSettings="appleSettings"  @updateAppleSettings="updateAppleSettings" />
               </div>
               <div v-if="currentStep == 5">
-                <v-row>
+                <EnrollmentForm v-model="loyaltyData" />
+              </div>
+              <div v-if="currentStep == 6">
+                <v-row> 
                   <v-col class="text-center" cols="12">
                     <h3 class="text-h4 pt-4 pb-2">
                       {{ $t('Preview') }}
@@ -443,7 +454,7 @@
                   {{ $t('Back') }}
                 </v-btn>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 5" @click="goToNextStep">{{ $t('Next') }}</v-btn>
+                <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 6" @click="goToNextStep">{{ $t('Next') }}</v-btn>
               </v-card-actions>
             </v-col>
             <v-divider vertical></v-divider>
@@ -451,9 +462,9 @@
               cols="12"
               lg="4"
               class="lg:order-last"
-              v-if="currentStep != 5"
+              v-if="currentStep != 6"
             >
-              <PhonePreview :data="loyaltyData" v-if="currentStep != 4" :errors="errors" />
+              <PhonePreview :data="loyaltyData" v-if="currentStep != 5" :errors="errors" />
               <FormPreview :data="loyaltyData" class="mt-3 pr-2" v-else />
             </v-col>
           </v-row>
