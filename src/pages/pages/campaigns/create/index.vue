@@ -404,7 +404,7 @@
                 <CardAdditional v-model="loyaltyData" />
               </div>
               <div v-if="currentStep == 4">
-                <CampaignSettings v-model="loyaltyData" v-model:appleSettings="appleSettings"  @updateAppleSettings="updateAppleSettings" />
+                <CampaignSettings :apple-settings="appleSettings" :data="loyaltyData" @updateAppleSettings="updateAppleSettings" />
               </div>
               <div v-if="currentStep == 5">
                 <EnrollmentForm v-model="loyaltyData" />
