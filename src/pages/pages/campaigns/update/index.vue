@@ -63,18 +63,19 @@ const appleSettings = ref({
 const configStore = useConfigStore();
 const saving = ref(false);
 
+watch(() => campaignStore.campaign, (campaign) => {
+  if (campaign) {
+    loyaltyData.value = {
+      ...campaign,
+      template: campaign.styleSettings || {},
+    };
+  }
+})
+
 const fetchCampaignById = async (campaignGuid: string) => {
   try {
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
-    const campaign = campaignStore.campaigns.find(c => c.campaignGuid === campaignGuid);
-
-    if (campaign) {
-      loyaltyData.value = {
-        ...campaign,
-        template: campaign.styleSettings || {},
-      };
-      loading.value = false;
-    }
+    loading.value = false;
   } catch (error: any) {
     showSnackbar(error.response?._data?.message || 'Error fetching campaign', 'error');
     loading.value = false;
