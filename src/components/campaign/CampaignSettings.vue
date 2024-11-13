@@ -9,9 +9,10 @@ const props = defineProps({
 
 const emits = defineEmits(['updateAppleSettings']);
 
-const settings = reactive({ ...props.appleSettings });
+const settings = reactive(
+  props.data.template.appleSettings ? { ...props.data.template.appleSettings } : { ...props.appleSettings }
+);
 
-console.log(props.data);
 watch(settings, (newSettings) => {
   emits('updateAppleSettings', newSettings);
 }, { deep: true });

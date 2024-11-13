@@ -38,9 +38,8 @@ const steps = [
   { title: 'Card Design', icon: 'tabler-artboard' },
   { title: 'Fields', icon: 'tabler-list-details' },
   { title: 'Additional Info', icon: 'tabler-info-square' },
-  { title: 'Settings', icon: 'tabler-settings'},
-  { title: 'Enrollment Form', icon: 'tabler-user-plus' },
   { title: 'Settings', icon: 'tabler-settings' },
+  { title: 'Enrollment Form', icon: 'tabler-user-plus' },
   { title: 'Done', icon: 'tabler-square-rounded-check' },
 ];
 
@@ -240,7 +239,7 @@ const validateForm = () => {
     <v-col cols="12">
       <v-card>
         <v-row>
-          <v-col cols="12" :lg="currentStep == 6 ? '12' : '8'" class="elevation-0">
+          <v-col cols="12" :lg="currentStep == 5 ? '12' : '8'" class="elevation-0">
             <div v-if="currentStep == 0">
               <CardDesign v-model="loyaltyData" />
             </div>
@@ -251,15 +250,12 @@ const validateForm = () => {
               <CardAdditional v-model="loyaltyData" />
             </div>
             <div v-if="currentStep == 3">
-                <CampaignSettings v-model="loyaltyData" v-model:appleSettings="appleSettings"  @updateAppleSettings="updateAppleSettings" />
+              <CampaignSettings :apple-settings="appleSettings" :data="loyaltyData" @updateAppleSettings="updateAppleSettings" />
               </div>
             <div v-if="currentStep == 4">
               <EnrollmentForm v-model="loyaltyData" />
             </div>
             <div v-if="currentStep == 5">
-              <CampaignSettings v-model="loyaltyData" />
-            </div>            
-            <div v-if="currentStep == 6">
               <v-row>
                 <v-col class="text-center" cols="12">
                   <h3 class="text-h4 pt-4 pb-2">
@@ -284,7 +280,7 @@ const validateForm = () => {
                 {{ $t('Back') }}
               </v-btn>
               <v-spacer></v-spacer>
-              <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 6" @click="goToNextStep">{{ $t('Next') }}</v-btn>
+              <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 5" @click="goToNextStep">{{ $t('Next') }}</v-btn>
             </v-card-actions>
           </v-col>
           <v-divider vertical></v-divider>
