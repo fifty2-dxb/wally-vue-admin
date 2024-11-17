@@ -177,15 +177,17 @@
   });
 
   const validateForm = () => {
-    errors.value.icon = !loyaltyData.value.template.properties.icon;
-    errors.value.logo = !loyaltyData.value.template.properties.logo;
+    const { properties, type } = loyaltyData.value.template;
 
-    if (loyaltyData.value.template.type === 'membership') {
-      errors.value.stripImagePreviewApple = !loyaltyData.value.template.properties.stripImagePreviewApple;
-      errors.value.stripImagePreviewGoogle = !loyaltyData.value.template.properties.stripImagePreviewGoogle;
+    errors.value.icon = type === 'balance' && !properties.icon;
+    errors.value.logo = type === 'balance' && !properties.logo;
+
+    if (type === 'membership') {
+      errors.value.stripImagePreviewApple = !properties.stripImagePreviewApple;
+      errors.value.stripImagePreviewGoogle = !properties.stripImagePreviewGoogle;
       errors.value.reward = false;
     } else {
-      errors.value.reward = !loyaltyData.value.template.properties.reward;
+      errors.value.reward = type !== 'balance' && !properties.reward;
       errors.value.stripImagePreviewApple = false;
       errors.value.stripImagePreviewGoogle = false;
     }
@@ -207,11 +209,11 @@
   const requiredFieldsFilled = computed(() => {
     const { properties, type } = loyaltyData.value.template;
     return (
-      properties.logo && 
-      properties.icon && 
+      properties.logo &&
+      properties.icon &&
       (type === 'membership'
         ? properties.stripImagePreviewApple && properties.stripImagePreviewGoogle
-        : properties.reward
+        : type === 'balance' || properties.reward
       )
     );
   });
