@@ -38,8 +38,8 @@ const merchants = ['SupperCoffee Eindhoven', 'SupperCoffe Kadiköy']
         :languages="themeConfig.app.i18n.langConfig" />
 
       <NavbarThemeSwitcher />
-      <NavbarShortcuts />
-      <NavBarNotifications class="me-2" />
+      <!-- <NavbarShortcuts /> -->
+      <!-- <NavBarNotifications class="me-2" /> -->
       <UserProfile />
     </template>
 
