@@ -17,6 +17,9 @@ const message = ref<string>('');
 const selectedCampaign = ref('');
 const notificationData = ref(null);
 const showEmojiPicker = ref(false)
+const customers = ref([]);
+const selectedCustomer = ref([]);
+const filterpasses = ref([]);
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
@@ -58,6 +61,44 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 };
 
+const filteredCustomers = computed(() => {
+  return Array.isArray(customers.value)
+    ? customers.value.filter(customer =>
+        Array.isArray(customer.passTypeId) &&
+        customer.passTypeId.some(
+          pass => pass.passTypeId.trim() === ""
+        )
+      )
+    : [];
+});
+
+const fetchCustomersDetails = async (campaignGuid) => {
+  try {
+    await campaignStore.fetchCustomerByCampaignGuid(campaignGuid);
+    customers.value = campaignStore.customers.map(customer => ({
+      value: customer.id,
+      label: customer.name,
+      passTypeId: customer.passes,
+    }));
+    filterpasses.value = filteredCustomers.value;
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+  }
+};
+
+watch(selectedCampaign, (newCampaign) => {
+  if (newCampaign) {
+    const campaign = campaignStore.campaigns?.find(c => c.campaignName === newCampaign);
+    if (campaign) {
+      fetchCustomersDetails(campaign.campaignGuid);
+    } else {
+      customers.value = [];
+      filterpasses.value = [];
+    }
+  }
+});
+
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
 });
@@ -82,6 +123,7 @@ const sendNotification = async () => {
     merchantGuid: configStore.activeMerchant?.merchantGuid,
     platform: 'google',
     message: message.value,
+    customers: selectedCustomer.value,
   };
 
   try {
@@ -111,8 +153,14 @@ const sendNotification = async () => {
         <VCardText>
           <VRadioGroup v-model="contactMethod" class="mb-4">
             <VRadio label="Send to all the users of the campaign" value="all campaign user" />
-            <VRadio label="Send to particular user(s)" value="specific user" />
+            <VRadio label="Send to particular user(s)" value="specific user" :disabled="!selectedCampaign" />
           </VRadioGroup>
+        </VCardText>
+        <VCardText>
+          <div v-if="contactMethod === 'specific user'" class="mt-4">
+            <v-select v-model="selectedCustomer" :items="filteredCustomers" item-title="label" item-value="value"
+              label="Select" multiple persistent-hint></v-select>
+          </div>
         </VCardText>
       </VCard>
 
