@@ -57,5 +57,11 @@ watch(settings, (newSettings) => {
     <v-card-text>
       <v-text-field v-model="settings.authenticationToken" label="Authentication Token" />
     </v-card-text>
+    <v-card-text>
+      <v-checkbox v-model="settings.nfcEnabled" label="NFC Enabled" />
+    </v-card-text>
+    <v-card-text>
+      <v-text-field v-model="settings.encryptionPublicKey" label="NFC Encrytion Public Key" />
+    </v-card-text>    
   </v-card>
 </template>
