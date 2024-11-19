@@ -88,6 +88,8 @@ const fetchCustomersDetails = async (campaignGuid) => {
 
 watch(selectedCampaign, (newCampaign) => {
   if (newCampaign) {
+    selectedCustomer.value = [];
+    
     const campaign = campaignStore.campaigns?.find(c => c.campaignName === newCampaign);
     if (campaign) {
       fetchCustomersDetails(campaign.campaignGuid);
