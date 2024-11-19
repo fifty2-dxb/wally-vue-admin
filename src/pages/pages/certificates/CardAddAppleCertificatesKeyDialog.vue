@@ -84,10 +84,16 @@ const submitForm = async () => {
 
   await certificateStore.fetchCertificates();
 };
+
+const closeDialog = () => {
+  resetForm();
+  emit('close');
+};
 </script>
 
 <template>
   <VDialog v-model="open" :width="$vuetify.display.smAndDown ? 'auto' : 600">
+    <DialogCloseBtn @click="closeDialog" />
     <VCard class="pa-2 pa-sm-10">
       <VCardItem class="text-center">
         <VCardTitle>
@@ -106,7 +112,7 @@ const submitForm = async () => {
             </VCol>
             <VCol cols="12" class="text-center">
               <VBtn class="me-4" type="submit">{{ props.editCertificate ? 'Update' : 'Submit' }}</VBtn>
-              <VBtn color="secondary" variant="tonal" @click="emit('close')">Cancel</VBtn>
+              <VBtn color="secondary" variant="tonal" @click="closeDialog">Cancel</VBtn>
             </VCol>
           </VRow>
         </VForm>

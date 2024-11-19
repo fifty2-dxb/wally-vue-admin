@@ -12,9 +12,6 @@ watch(() => props.open, (newVal) => {
   dialogVisible.value = newVal;
 });
 
-const closeDialog = () => {
-  emit('close');
-};
 
 const formData = ref({
   name: '',
@@ -25,6 +22,23 @@ const formData = ref({
   agreeToTerms: false,
   serviceAccountKey: null,
 });
+
+const resetForm = () => {
+  formData.value = {
+    name: '',
+    website: '',
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
+    agreeToTerms: false,
+    serviceAccountKey: null,
+  };
+};
+
+const closeDialog = () => {
+  resetForm();
+  emit('close');
+};
 
 const handleSubmit = () => {
   if (!formData.value.agreeToTerms) {
@@ -38,6 +52,7 @@ const handleSubmit = () => {
 
 <template>
   <VDialog v-model="dialogVisible" :width="$vuetify.display.smAndDown ? 'auto' : 900">
+    <DialogCloseBtn @click="closeDialog" />
     <VCard class="pa-6">
       <VCardItem class="mb-2">
 
