@@ -64,6 +64,7 @@ const handleOptionSelected = (option, organisationGuid, organisation) => {
   if (option === 'add') {
     selectedMerchant.value = null;
     isAddMerchantVisible.value = true;
+    resetOrgDetails();
   } else if (option === 'edit') {
     isEditOrganisationVisible.value = true;
   } else if (option === 'delete') {

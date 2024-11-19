@@ -48,11 +48,20 @@ const resetOrgDetails = () => {
 watch(
   () => props.modelValue,
   (val) => {
-    if (!props.organisationGuid && val) {
-      emit('reset-org-details');
+    if (val) {
+      if (props.organisation) {
+        orgDetails.value = {
+          organisationName: props.organisation.organisationName || '',
+          organisationGuid: props.organisationGuid || '',
+        };
+      } else {
+        resetOrgDetails();
+      }
+    } else {
       resetOrgDetails();
     }
-  }
+  },
+  { immediate: true }
 );
 
 // Save or update organisation
