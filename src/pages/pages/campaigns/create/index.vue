@@ -85,6 +85,7 @@
   webServiceURL: 'https://dev-api.wally.ae/',
   teamIdentifier: '772239U7XT',
   sharingProhibited: true,
+  nfcEnabled:true,
   passTypeIdentifier: 'pass.com.wally.loyalty',
   authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
   associatedStoreIdentifiers: []
