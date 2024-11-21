@@ -6,6 +6,13 @@ import { ref, watch } from 'vue';
 const configStore = useConfigStore();
 const organisationStore = useOrganizationStore();
 
+const route = useRoute();
+
+const isUpdateRoute = computed(() => {
+  const isUpdate = route.path.startsWith('/pages/campaigns/update/');
+  return isUpdate;
+});
+
 const organisations = ref<string[]>([]);
 const organisation = ref<string>('');
 const merchants = ref<any[]>([]);
@@ -54,9 +61,9 @@ watch(merchant, merchantChanged);
 <template>
   <AppAutocomplete
 v-model="merchant" class="pl-2" density="compact" :items="merchants.map(m => m.merchantName)"
-    placeholder="Select Merchant" />
+    placeholder="Select Merchant" :disabled="isUpdateRoute" />
 
   <AppAutocomplete
 v-model="organisation" class="pl-2" density="compact" :items="organisations"
-    placeholder="Select Organisation" />
+    placeholder="Select Organisation" :disabled="isUpdateRoute" />
 </template>
