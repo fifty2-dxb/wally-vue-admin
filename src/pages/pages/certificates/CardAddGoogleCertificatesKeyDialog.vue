@@ -84,12 +84,12 @@ const handleSubmit = () => {
         <div class="d-flex align-center">
           <VCheckbox v-model="formData.agreeToTerms" class="mr-2" />
           <span>
-            I agree to the
-            <a href="https://developers.google.com/wallet/terms-of-service" target="_blank">Google Wallet Terms of
-              Service</a>
-            and acknowledge the
-            <a href="https://payments.developers.google.com/terms/aup" target="_blank">Google Wallet Acceptable Use
-              Policy</a>.
+            {{$t("I agree to the")}}
+            <a href="https://developers.google.com/wallet/terms-of-service" target="_blank">
+              {{$t("Google Wallet Terms of Service")}}
+            </a> {{$t("and acknowledge the")}}
+            <a href="https://payments.developers.google.com/terms/aup" target="_blank">{{$t("Google Wallet Acceptable Use Policy")}}
+            </a>.
           </span>
         </div>
       </VCardText>

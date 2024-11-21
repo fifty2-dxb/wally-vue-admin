@@ -26,15 +26,15 @@ onMounted(() => {
   <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
       <h4 class="text-h4 font-weight-medium">
-        Customer Details
+        {{$t("Customer Details")}}
       </h4>
       <div class="text-body-1">
-        View customer details
+        {{$t("View customer details")}}
       </div>
     </div>
     <div class="d-flex flex-column justify-center">
       <v-btn color="primary" variant="outlined">
-        Actions
+        {{$t("Actions")}}
       </v-btn>
     </div>
   </div>
@@ -43,9 +43,9 @@ onMounted(() => {
       <VCard class="mb-6" v-if="customerStore.customer.type == 'stamp'">
         <v-img :src="customerStore.customer.stampImageUrl"></v-img>
         <v-card-actions class="pt-3 justify-space-between">
-          <v-btn :color="customerStore.customer.redeemable ? '' : 'success'" @click="customerStore.stamp(1)" :loading="customerStore.stamping" :disabled="customerStore.customer.redeemable"><v-icon size="22" class="mr-2">tabler-rubber-stamp</v-icon> Stamp</v-btn>
-          <v-btn :color="customerStore.customer.redeemable ? '' : 'error'"  @click="customerStore.stamp(-1)" :loading="customerStore.stamping" :disabled="customerStore.customer.redeemable"><v-icon size="22" class="mr-2">tabler-rubber-stamp</v-icon> Unstamp</v-btn>
-          <v-btn :color="!customerStore.customer.redeemable ? '' : 'info'" @click="customerStore.redeem()" :loading="customerStore.redeeming" :disabled="!customerStore.customer.redeemable"><v-icon size="22" class="mr-2">tabler-gift</v-icon> Redeem</v-btn>
+          <v-btn :color="customerStore.customer.redeemable ? '' : 'success'" @click="customerStore.stamp(1)" :loading="customerStore.stamping" :disabled="customerStore.customer.redeemable"><v-icon size="22" class="mr-2">tabler-rubber-stamp</v-icon> {{$t("Stamp")}}</v-btn>
+          <v-btn :color="customerStore.customer.redeemable ? '' : 'error'"  @click="customerStore.stamp(-1)" :loading="customerStore.stamping" :disabled="customerStore.customer.redeemable"><v-icon size="22" class="mr-2">tabler-rubber-stamp</v-icon> {{$t("Unstamp")}}</v-btn>
+          <v-btn :color="!customerStore.customer.redeemable ? '' : 'info'" @click="customerStore.redeem()" :loading="customerStore.redeeming" :disabled="!customerStore.customer.redeemable"><v-icon size="22" class="mr-2">tabler-gift</v-icon> {{$t("Redeem")}}</v-btn>
         </v-card-actions>
       </VCard>   
       <VCard class="mb-6" >
@@ -94,7 +94,7 @@ onMounted(() => {
         </VCardText>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" >Save</v-btn>
+          <v-btn color="primary" >{{$t("Save")}}</v-btn>
         </v-card-actions>
       </VCard>
     </v-col>
@@ -122,12 +122,12 @@ onMounted(() => {
           :loading="customerStore.gettingLogs"
         >
           <template v-slot:item.date="{ item }">
-            {{ item.updatedAt }}
+            {{ new Date(item.updatedAt).toLocaleString() }}
           </template>
           <template v-slot:item.description="{ item }">
-            <span class="text-success" v-if="item.type=='stamp' && item.value > 0 ">Customer gained {{ item.value }} stamp. </span>
-            <span class="text-error" v-if="item.type=='stamp' && item.value < 0 ">{{  0 - item.value }} stamp reverted from the card. </span>
-            <span class="text-info" v-if="item.type=='redeem'">Customer redeemed the reward.</span>
+            <span class="text-success" v-if="item.type=='stamp' && item.value > 0 ">{{$t("Customer gained")}} {{ item.value }} {{$t("stamp")}}. </span>
+            <span class="text-error" v-if="item.type=='stamp' && item.value < 0 ">{{  0 - item.value }} {{$t("stamp reverted from the card")}}. </span>
+            <span class="text-info" v-if="item.type=='redeem'">{{$t("Customer redeemed the reward.")}}</span>
           </template>
         </v-data-table>
       </VCard>  

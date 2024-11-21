@@ -10,7 +10,7 @@
                   <div class="company-icon"></div>
                   <header class="notification-header">
                     <div class="header-content">
-                      <span class="company-name"> Wally </span>
+                      <span class="company-name"> {{$t("Wally")}} </span>
                     </div>
                   </header>
                   <div class="content">{{ notificationData?.message || 'Default message' }}</div>

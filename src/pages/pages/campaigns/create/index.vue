@@ -293,7 +293,7 @@
                         >
                           <v-card-text class="text-center py-2">
                             <div class="text-h6 font-weight-medium">
-                              ALL
+                              {{$t("ALL")}}
                             </div>
                           </v-card-text>
                         </v-card>
@@ -315,7 +315,7 @@
                         >
                           <v-card-text class="text-center py-2">
                             <div class="text-h6 font-weight-medium">
-                              MEMBERSHIP CARD
+                              {{$t("MEMBERSHIP CARD")}}
                             </div>
                           </v-card-text>
                         </v-card>
@@ -337,7 +337,7 @@
                         >
                           <v-card-text class="text-center py-2">
                             <div class="text-h6 font-weight-medium">
-                              STAMP CARD
+                              {{$t("STAMP CARD")}}
                             </div>
                           </v-card-text>
                         </v-card>
@@ -359,7 +359,7 @@
                       >
                         <v-card-text class="text-center py-2">
                           <div class="text-h6 font-weight-medium">
-                            BALANCE CARD
+                            {{$t("BALANCE CARD")}}
                           </div>
                         </v-card-text>
                       </v-card>

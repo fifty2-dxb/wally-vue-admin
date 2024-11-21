@@ -112,7 +112,7 @@ const closeDialog = () => {
             </VCol>
             <VCol cols="12" class="text-center">
               <VBtn class="me-4" type="submit">{{ props.editCertificate ? 'Update' : 'Submit' }}</VBtn>
-              <VBtn color="secondary" variant="tonal" @click="closeDialog">Cancel</VBtn>
+              <VBtn color="secondary" variant="tonal" @click="closeDialog">{{$t("Cancel")}}</VBtn>
             </VCol>
           </VRow>
         </VForm>

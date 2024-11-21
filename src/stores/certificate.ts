@@ -8,7 +8,7 @@ export const useCertificateStore = defineStore("certificates", () => {
   const configStore = useConfigStore()
   const fetchCertificates = async () => {
     try {
-      const response = await $wallyApi(`/certificates/${configStore.activeOrganisation.organisationGuid}`, { method: "GET" });
+      const response = await $wallyApi(`/certificates/${configStore.activeOrganisation?.organisationGuid}`, { method: "GET" });
       certificates.value = response.certificates || [];
     } catch (error) {
       console.error("Error fetching certificates", error);
