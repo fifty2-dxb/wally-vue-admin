@@ -395,6 +395,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScrollToTop: typeof import('./src/@core/components/ScrollToTop.vue')['default']
+    SecretPartiesWelcome: typeof import('./src/components/campaign/SecretPartiesWelcome.vue')['default']
     SelectMerchant: typeof import('./src/components/SelectMerchant.vue')['default']
     SelectOrganisation: typeof import('./src/components/SelectOrganisation.vue')['default']
     ShareProjectDialog: typeof import('./src/components/dialogs/ShareProjectDialog.vue')['default']

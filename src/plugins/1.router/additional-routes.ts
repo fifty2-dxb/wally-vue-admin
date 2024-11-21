@@ -9,6 +9,7 @@ const activationRouteComponent = () => import ('@/pages/pages/activation/index.v
 const activatioSuccessnRouteComponent = () => import ('@/pages/pages/activation/success-activation.vue')
 const platformChooseRouteComponent = () => import ('@/pages/pages/platform/index.vue')
 const welcomeToPlatform = () => import ('@/components/campaign/WelcomeToPlatform.vue')
+const secretPartiesWelcome = () => import ('@/components/campaign/SecretPartiesWelcome.vue')
 const googleTableRouteComponent = () => import ('@/pages/pages/marketing/google/GoogleTable.vue')
 const appleTableRouteComponent = () => import ('@/pages/pages/marketing/apple/AppleTable.vue')
 const notFoundRouteComponent = () => import ('@/pages/[...error].vue')
@@ -65,6 +66,15 @@ export const redirects: RouteRecordRaw[] = [
     path: '/welcome',
     name: 'welcome',
     component: welcomeToPlatform,
+    props: true, 
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/secret-parties',
+    name: 'secret',
+    component: secretPartiesWelcome,
     props: true, 
     meta: {
       requiresAuth: false,
