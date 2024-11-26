@@ -226,8 +226,15 @@
     }
   }, { deep: true });
 
+  const canProceedToNext = computed(() => {
+    if (currentStep.value === 0) {
+      return true;
+    }
+    return requiredFieldsFilled.value;
+  });
+
   const goToNextStep = () => {
-    if (requiredFieldsFilled.value) {
+    if (canProceedToNext.value) {
       currentStep.value++;
     } else {
       showSnackbar("Please fill in all required fields before proceeding.", 'error');
@@ -457,7 +464,7 @@
                   {{ $t('Back') }}
                 </v-btn>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" :disabled="!requiredFieldsFilled || currentStep === 6" @click="goToNextStep">{{ $t('Next') }}</v-btn>
+                <v-btn color="primary" :disabled="!canProceedToNext || currentStep === 6" @click="goToNextStep">{{ $t('Next') }}</v-btn>
               </v-card-actions>
             </v-col>
             <v-divider vertical></v-divider>

@@ -1,9 +1,13 @@
 <template>
   <v-card class="elevation-0" :title="$t('Additional Fields')"
     :subtitle="$t('Create your additional fields for your Digital Loyalty Card')">
-    <v-card-text>
+    <v-card-text> 
       <v-list lines="three" select-strategy="classic">
-        <v-list-item @click="showEditModal(index)" v-for="(item, index) in data.template.additionalFields" :key="item">
+        <v-list-item 
+          @click="showEditModal(index)" 
+          v-for="(item, index) in data.template.additionalFields" 
+          :key="item"
+        >
           <template v-slot:prepend="{ isActive }">
             <v-list-item-action class="pt-2" start>
               <v-icon class="mr-3" size="24" icon="tabler-menu-2"></v-icon>
@@ -12,7 +16,13 @@
 
           <template v-slot:append="{ isActive }">
             <v-list-item-action class="pt-2" start>
-              <v-icon class="mr-3" color="red" size="24" icon="mdi mdi-delete" @click="deleteField(index)"></v-icon>
+              <v-icon 
+                class="mr-3" 
+                color="red" 
+                size="24" 
+                icon="tabler-trash" 
+                @click.stop="deleteField(index)"
+              ></v-icon>
             </v-list-item-action>
           </template>
 
@@ -463,7 +473,11 @@ const showEditModal = (index) => {
 };
 
 const deleteField = (index) => {
-  data.value.template.additionalFields.value.splice(index, 1);
+  if (data.value?.template?.additionalFields) {
+    data.value.template.additionalFields.splice(index, 1);
+  } else {
+    console.error("additionalFields is not defined or not reactive.");
+  }
 };
 
 const closeDialog = () => {
