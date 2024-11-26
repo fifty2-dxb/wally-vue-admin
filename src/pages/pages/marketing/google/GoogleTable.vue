@@ -5,6 +5,7 @@ import { useMarketingStore } from '@/stores/marketing';
 
 const configStore = useConfigStore();
 const marketingStore = useMarketingStore();
+
 const loading = ref(true);
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
@@ -16,19 +17,30 @@ const showSnackbar = (message: string, color: string) => {
   snackbarVisible.value = true;
 };
 
+const debounce = (func: Function, delay: number) => {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  return (...args: any[]) => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+};
+
+const fetchMarketingData = debounce(async (platform: string, merchantGuid: string) => {
+  loading.value = true;
+  try {
+    await marketingStore.fetchMarketingData(platform, merchantGuid);
+  } catch (error) {
+    console.error('Error fetching marketing data:', error);
+  } finally {
+    loading.value = false;
+  }
+}, 300);
+
 watch(
   () => configStore.activeMerchant?.merchantGuid,
-  async (merchantGuid) => {
+  (merchantGuid) => {
     if (merchantGuid) {
-      loading.value = true;
-      try {
-        const platform = 'google';
-        await marketingStore.fetchMarketingData(platform, merchantGuid);
-      } catch (error) {
-        console.error("Error fetching marketing data:", error);
-      } finally {
-        loading.value = false;
-      }
+      fetchMarketingData('google', merchantGuid);
     }
   },
   { immediate: true }
@@ -37,14 +49,15 @@ watch(
 const sendMessage = async (marketingGuid: string) => {
   try {
     const response = await marketingStore.sendMarketingMessage({}, marketingGuid);
-    showSnackbar(response.message, 'success')
-    const platform = 'google';
+    showSnackbar(response.message, 'success');
+
     const merchantGuid = configStore.activeMerchant?.merchantGuid;
     if (merchantGuid) {
-      await marketingStore.fetchMarketingData(platform, merchantGuid);
+      fetchMarketingData('google', merchantGuid);
     }
   } catch (error) {
-    showSnackbar('Error Sending Message', 'error')
+    console.error('Error Sending Message:', error);
+    showSnackbar('Error Sending Message', 'error');
   }
 };
 
@@ -59,15 +72,15 @@ const headers = [
   <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
       <h4 class="text-h4 font-weight-medium">
-        {{$t("Push Notifications for Google Platform")}}
+        {{ $t("Push Notifications for Google Platform") }}
       </h4>
       <div class="text-body-1">
-        {{$t("Below are all messages of your campaign")}}
+        {{ $t("Below are all messages of your campaign") }}
       </div>
     </div>
 
     <div class="d-flex gap-4 align-center flex-wrap">
-      <VBtn @click="$router.push('/pages/marketing/google')">{{$t("Create New Message")}}</VBtn>
+      <VBtn @click="$router.push('/pages/marketing/google')">{{ $t("Create New Message") }}</VBtn>
     </div>
   </div>
 
@@ -78,7 +91,7 @@ const headers = [
           <template v-if="loading">
             <div class="text-center py-4">
               <VProgressCircular indeterminate color="primary" />
-              <div>{{$t("Loading...")}}</div>
+              <div>{{ $t("Loading...") }}</div>
             </div>
           </template>
           <template v-else>
@@ -105,18 +118,19 @@ const headers = [
       </VRow>
     </VCardText>
   </VCard>
+
   <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
     {{ snackbarMessage }}
   </VSnackbar>
 </template>
 
 <style lang="scss" scoped>
-
-.icon-styling{
-  width: 24px; 
-  height: 24px; 
+.icon-styling {
+  width: 24px;
+  height: 24px;
   margin-left: 20px;
 }
+
 .cursor-not-allowed {
   cursor: not-allowed !important;
 }
