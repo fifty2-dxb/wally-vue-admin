@@ -18,7 +18,7 @@
                   <div class="apple-side-btn-container">
                     <p class="mb-0">Done</p>
                     <div class="d-flex justify-content-center align-items-center cursor-link"
-                      style="width: 20px; height: 20px">
+                      style="width: 20px; height: 20px" @click="toggleDynamicView">
                       <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="dynamic-icon"
                         style="width: 14px; height: 14px;">
                         <path
@@ -27,21 +27,21 @@
                       </svg>
                     </div>
                   </div>
-                  <div class="apple-card-container" id="applePreview"
+                  <div v-if="!dynamicView" class="apple-card-container" id="applePreview"
                     :style="{ background: data.template.properties?.background, color: data.template.properties?.text }">
                     <div class="apple-card-header mt-4">
                       <img :src="data.template.properties?.logo" style="height: 24px" />
                       <div class="head-position" v-if="data.template.fields?.apple.f1 != 'empty'">
                         <p class="head-position--header">{{
-        getField(data.template.fields?.apple.f1)?.label }}</p>
+                          getField(data.template.fields?.apple.f1)?.label }}</p>
                         <p class="head-position--value">{{
-        getField(data.template.fields?.apple.f1)?.sample }}</p>
+                          getField(data.template.fields?.apple.f1)?.sample }}</p>
                       </div>
                       <div class="head-position" v-if="data.template.fields?.apple.f2 != 'empty'">
                         <p class="head-position--header">{{
-        getField(data.template.fields?.apple.f2)?.label }}</p>
+                          getField(data.template.fields?.apple.f2)?.label }}</p>
                         <p class="head-position--value">{{
-        getField(data.template.fields?.apple.f2)?.sample }}</p>
+                          getField(data.template.fields?.apple.f2)?.sample }}</p>
                       </div>
                     </div>
                     <div class="apple-strip-image">
@@ -54,19 +54,19 @@
                         <p class="field-text">{{ getField(data.template.fields?.apple.f3)?.label
                           }}</p>
                         <p class="field-value">{{
-        getField(data.template.fields?.apple.f3)?.sample }}</p>
+                          getField(data.template.fields?.apple.f3)?.sample }}</p>
                       </div>
                       <div class="container-value" v-if="data.template.fields?.apple?.f4 != 'empty'">
                         <p class="field-text">{{ getField(data.template.fields?.apple.f4)?.label
                           }}</p>
                         <p class="field-value">{{
-        getField(data.template.fields?.apple.f4)?.sample }}</p>
+                          getField(data.template.fields?.apple.f4)?.sample }}</p>
                       </div>
                       <div class="container-value" v-if="data.template.fields?.apple.f5 != 'empty'">
                         <p class="field-text">{{ getField(data.template.fields?.apple.f5)?.label
                           }}</p>
                         <p class="field-value">{{
-        getField(data.template.fields?.apple.f5)?.sample }}</p>
+                          getField(data.template.fields?.apple.f5)?.sample }}</p>
                       </div>
                     </div>
                     <div class="apple-qrcode">
@@ -78,6 +78,57 @@
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div v-else>
+                    <v-container class="py-5" style="max-width: 600px; margin: auto;">
+
+                      <v-row justify="space-between" align="center" class="mb-4">
+                        <v-img src="https://cdn.pub1.passkit.io/images/5rzPsGAxOP489Y2xOhv7Lh/strip/strip@3x.png"
+                          height="30" contain width="100%"></v-img>
+                      </v-row>
+
+                      <v-row class="text-center mb-4">
+                        <v-col>
+                          <h3 class="text-h6 font-weight-bold">{{data.template.name}}</h3>
+                        </v-col>
+                      </v-row>
+
+                      <v-row class="mb-4">
+                        <v-btn block color="primary" class="text-none">
+                          Add Application
+                        </v-btn>
+                      </v-row>
+
+                      <v-row class="mb-4">
+                        <v-col>
+                          <v-row align="center" justify="space-between" class="mb-4">
+                            <span class="text-body-1 font-weight-medium">Automatic Updates</span>
+                            <v-switch v-model="autoUpdates" color="primary"></v-switch>
+                          </v-row>
+                          <v-divider></v-divider>
+                          <v-row align="center" justify="space-between " class="mt-4">
+                            <span class="text-body-1 font-weight-medium">Allow Notifications</span>
+                            <v-switch v-model="allowNotifications" color="primary"></v-switch>
+                          </v-row>
+                        </v-col>
+                      </v-row>
+
+                      <v-row justify="center" class="mb-4">
+                        <v-col class="text-center">
+                          <p class="text-body-1 font-weight-medium text-danger background-clr">Remove Pass</p>
+                        </v-col>
+                      </v-row>
+
+                      <v-row>
+                        <v-col>
+                          <v-card class="pa-2 mb-3" outlined>
+                            <p class="text-body-1 font-weight-bold text-uppercase mb-2">Information</p>
+                            <v-skeleton-loader :loading="true" :height="'25px'" :width="'100%'"
+                              tile></v-skeleton-loader>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </v-container>
                   </div>
                 </div>
               </div>
@@ -94,7 +145,8 @@
                   <div data-v-e0338a20="" class="GoogleCardContainer--header d-flex align-items-center"
                     bis_skin_checked="1">
                     <div class="img-container mr-10"
-                      :style="'background-image: url(' + data.template.properties?.icon + ');'" bis_skin_checked="1"></div>
+                      :style="'background-image: url(' + data.template.properties?.icon + ');'" bis_skin_checked="1">
+                    </div>
                     <div class="company-name" bis_skin_checked="1">{{ data.template.name }}
                     </div>
                   </div>
@@ -106,15 +158,15 @@
                     bis_skin_checked="1">
                     <div class="left-block" bis_skin_checked="1">
                       <p class="head">{{
-        getField(data.template.fields?.google.f1)?.label }}</p>
+                        getField(data.template.fields?.google.f1)?.label }}</p>
                       <p class="val">{{
-        getField(data.template.fields?.google.f1)?.sample }}</p>
+                        getField(data.template.fields?.google.f1)?.sample }}</p>
                     </div>
                     <div class="right-block text-right" bis_skin_checked="1">
                       <p class="head">{{
-        getField(data.template.fields?.google.f2)?.label }}</p>
+                        getField(data.template.fields?.google.f2)?.label }}</p>
                       <p class="val">{{
-        getField(data.template.fields?.google.f2)?.sample }}</p>
+                        getField(data.template.fields?.google.f2)?.sample }}</p>
                     </div>
                   </div>
                   <div class="GoogleCardContainer--qrcode" bis_skin_checked="1">
@@ -167,13 +219,51 @@ defineProps({
 
 const selectedPlatform = ref("ios");
 const selectedPage = ref("preview");
+const dynamicView = ref(false); 
+const autoUpdates = ref(true); 
+const allowNotifications = ref(true); 
 
 const getField = function (key) {
   return TemplateService.getFieldByKey(key);
 };
+
+const toggleDynamicView = () => {
+  dynamicView.value = !dynamicView.value;
+};
+
 </script>
 
 <style>
+
+.text-danger {
+  margin: 0px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: rgb(211, 47, 47);
+}
+
+.background-clr {
+  /* width: 100%; */
+    cursor: pointer;
+    padding: 16px;
+    margin-top: 3px;
+    border-radius: 8px;
+    margin-bottom: 3px;
+    background-color: #f9f9f9;
+}
+
+.dynamic-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+
 .google-container .google-screen-container {
   position: absolute;
   left: 0;
