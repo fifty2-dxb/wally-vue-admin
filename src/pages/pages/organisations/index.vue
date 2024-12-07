@@ -64,7 +64,6 @@ const handleOptionSelected = (option, organisationGuid, organisation) => {
   if (option === 'add') {
     selectedMerchant.value = null;
     isAddMerchantVisible.value = true;
-    resetOrgDetails();
   } else if (option === 'edit') {
     isEditOrganisationVisible.value = true;
   } else if (option === 'delete') {
@@ -151,12 +150,12 @@ const handleSnackbar = (message: string, color: string) => {
   <!-- Organisations List -->
   <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
-      <h4 v-once class="text-h4 font-weight-medium">{{ $t("Organisation") }}</h4>
+      <h4 class="text-h4 font-weight-medium">{{ $t("Organisation") }}</h4>
       <div class="text-body-1">{{ $t("Create or edit your organisations") }}</div>
     </div>
 
     <div class="d-flex gap-4 align-center flex-wrap">
-      <VBtn @click="isNewOrganisationVisible = !isNewOrganisationVisible" aria-label="New Organisation">
+      <VBtn @click="isNewOrganisationVisible = !isNewOrganisationVisible">
         {{ $t("New Organisation") }}
       </VBtn>
     </div>
@@ -177,13 +176,13 @@ const handleSnackbar = (message: string, color: string) => {
         </VCardItem>
 
         <VCardText>
-          <VList aria-label="Merchant List" role="listbox" class="card-list">
+          <VList class="card-list">
             <VListItem v-if="organisation?.merchant.length === 0">
               <VListItemTitle class="font-weight-medium me-4">
                 {{ $t("No Merchant Available") }}
               </VListItemTitle>
             </VListItem>
-            <VListItem v-else v-for="merchant in organisation?.merchant" :key="merchant.id" v-memo="[merchant.id]">
+            <VListItem v-else v-for="merchant in organisation?.merchant" :key="merchant.id">
               <VListItemTitle class="font-weight-medium me-4">
                 {{ merchant.merchantName }}
               </VListItemTitle>
@@ -193,11 +192,11 @@ const handleSnackbar = (message: string, color: string) => {
                   <div :class="`text-${merchant.statsColor}`">
                     {{ merchant.stats }}
                   </div>
-                  <IconBtn @click="handleEditMerchant(merchant, organisation.organisationGuid)" aria-label="Edit Merchant">
-                    <VIcon icon="tabler-pencil" aria-label="Edit Merchant" :role="'button'" />
+                  <IconBtn @click="handleEditMerchant(merchant, organisation.organisationGuid)">
+                    <VIcon icon="tabler-pencil" />
                   </IconBtn>
                   <IconBtn @click="handleDeleteMerchant(merchant.merchantGuid, organisation.organisationGuid)">
-                    <VIcon icon="tabler-trash" aria-label="Delete Merchant" :role="'button'" />
+                    <VIcon icon="tabler-trash" />
                   </IconBtn>
                 </div>
               </template>
