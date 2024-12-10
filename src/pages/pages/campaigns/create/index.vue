@@ -349,7 +349,7 @@
                           </v-card-text>
                         </v-card>
                       </v-col>
-                      <v-col>
+                      <!-- <v-col>
                         <v-card
                         rounded="lg"
                         :style="
@@ -370,7 +370,7 @@
                           </div>
                         </v-card-text>
                       </v-card>
-                      </v-col>
+                      </v-col> -->
                     </v-row>
                     <v-divider class="my-3"></v-divider>
                     <v-row>

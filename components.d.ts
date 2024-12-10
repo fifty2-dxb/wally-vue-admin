@@ -412,6 +412,7 @@ declare module 'vue' {
     UploadAndCrop: typeof import('./src/components/campaign/UploadAndCrop.vue')['default']
     UserInfoEditDialog: typeof import('./src/components/dialogs/UserInfoEditDialog.vue')['default']
     UserUpgradePlanDialog: typeof import('./src/components/dialogs/UserUpgradePlanDialog.vue')['default']
+    VueApexCharts: typeof import('vue3-apexcharts')['default']
     WallyStepHeader: typeof import('./src/components/global/WallyStepHeader.vue')['default']
     WelcomeToPlatform: typeof import('./src/components/campaign/WelcomeToPlatform.vue')['default']
   }
