@@ -61,6 +61,7 @@ const login = async () => {
     useCookie('userAbilityRules').value = userAbilityRules
     ability.update(userAbilityRules)
 
+    localStorage.setItem('userData', JSON.stringify(userdetails));
     useCookie('userData').value = userdetails
     useCookie('accessToken').value = token
 

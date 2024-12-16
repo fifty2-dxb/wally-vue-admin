@@ -4,9 +4,23 @@ import { getActivePinia } from "pinia";
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const userStore = useUserStore();
+const userProfileData = ref<any>(null);
 
 // TODO: Get type from backend
-const userData = useCookie<any>('userData')
+const userDataCookie = useCookie<any>('userData');
+
+onMounted(() => {
+  if (userDataCookie.value) {
+    userProfileData.value = userDataCookie.value;
+  } else {
+    const localStorageData = localStorage.getItem('userData');
+    if (localStorageData) {
+      userProfileData.value = JSON.parse(localStorageData);
+    } else {
+      console.error('No user data found in cookie or localStorage');
+    }
+  }
+});
 
 const resetAllPiniaStores = () => {
   getActivePinia()._s.forEach(store => store.$reset());
@@ -15,7 +29,7 @@ const resetAllPiniaStores = () => {
 const logout = async () => {
   try {
     await userStore.logoutUser();
-    resetAllPiniaStoress();
+    resetAllPiniaStores();
   } catch (error) {
     console.error("Logout failed:", error);
   }
@@ -34,9 +48,8 @@ const userProfileList = [
 </script>
 
 <template>
-  
   <VBadge
-    v-if="userData"
+    v-if="userProfileData"
     dot
     bordered
     location="bottom right"
@@ -47,12 +60,12 @@ const userProfileList = [
     <VAvatar
       size="38"
       class="cursor-pointer"
-      :color="!(userData && userData.avatar) ? 'primary' : undefined"
-      :variant="!(userData && userData.avatar) ? 'tonal' : undefined"
+      :color="!userProfileData.avatar ? 'primary' : undefined"
+      :variant="!userProfileData.avatar ? 'tonal' : undefined"
     >
       <VImg
-        v-if="userData && userData.avatar"
-        :src="userData.avatar"
+        v-if="userProfileData.avatar"
+        :src="userProfileData.avatar"
       />
       <VIcon
         v-else
@@ -79,12 +92,12 @@ const userProfileList = [
                   bordered
                 >
                   <VAvatar
-                    :color="!(userData && userData.avatar) ? 'primary' : undefined"
-                    :variant="!(userData && userData.avatar) ? 'tonal' : undefined"
+                    :color="!userProfileData.avatar ? 'primary' : undefined"
+                    :variant="!userProfileData.avatar ? 'tonal' : undefined"
                   >
                     <VImg
-                      v-if="userData && userData.avatar"
-                      :src="userData.avatar"
+                      v-if="userProfileData.avatar"
+                      :src="userProfileData.avatar"
                     />
                     <VIcon
                       v-else
@@ -96,10 +109,10 @@ const userProfileList = [
 
               <div>
                 <h6 class="text-h6 font-weight-medium">
-                  {{ userData.name || userData.username }}
+                  {{ userProfileData.name || userProfileData.username }}
                 </h6>
                 <VListItemSubtitle class="text-capitalize text-disabled">
-                  {{ userData.email }}
+                  {{ userProfileData.email }}
                 </VListItemSubtitle>
               </div>
             </div>

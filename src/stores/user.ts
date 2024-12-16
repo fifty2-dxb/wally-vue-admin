@@ -36,6 +36,7 @@ export const useUserStore = defineStore("user", () => {
       useCookie('accessToken').value = null;
       useCookie('userData').value = null;
       useCookie('userAbilityRules').value = null;
+      localStorage.clear()
       
       ability.update([]);
       window.location.replace('/login');
