@@ -17,10 +17,19 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
-  const fetchCampaignStatistics = async (campaignGuid: string) => {
+  const fetchCampaignStatistics = async (
+    campaignGuid: string,
+    startDate?: string,
+    endDate?: string
+  ) => {
     try {
-      const response = await $wallyApi(`/v1/statistics/${campaignGuid}`, { method: "GET" });
-      statistics.value = response?.data || [];
+      const queryParams = new URLSearchParams();
+      if (startDate) queryParams.append("startDate", startDate);
+      if (endDate) queryParams.append("endDate", endDate);
+  
+      const url = `/v1/statistics/${campaignGuid}?${queryParams.toString()}`;
+      const response = await $wallyApi(url, { method: "GET" });
+      statistics.value = response?.data || {};
     } catch (error) {
       console.error("Error fetching statistics:", error);
       throw error;
@@ -118,7 +127,7 @@ export const useCampaignStore = defineStore("campaign", () => {
     addCampaign,
     deleteCampaign,
     updateCampaign,
-    fetchCampaignStatistics
+    fetchCampaignStatistics,
   };
 });
 

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import iphoneLayout from '@images/iphoneLayout.png';
-import { useCampaignStore } from '@/stores/campaign';  // Import the store
+import { useCampaignStore } from '@/stores/campaign';
 
 const router = useRouter();
 
@@ -20,6 +20,33 @@ const statistics = ref<Record<string, number | null>>({
   totalRedeemed: null,
 });
 const isLoading = ref(true);
+
+const startDate = ref('');
+const endDate = ref('');
+const snackbarVisible = ref(false);
+const snackbarMessage = ref('');
+const snackbarColor = ref('');
+
+const applyFilters = async () => {
+  if (!startDate.value || !endDate.value) {
+    showSnackbar('Please select both start and end dates.', 'error')
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+    await campaignStore.fetchCampaignStatistics(
+      campaignGuid,
+      startDate.value,
+      endDate.value
+    );
+    statistics.value = campaignStore.statistics;
+  } catch (error) {
+    console.error("Error applying filters:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 const widgetData = computed(() => {
   const baseData = [
@@ -57,7 +84,7 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
   try {
     await campaignStore.fetchCampaignStatistics(campaignGuid);
     statistics.value = campaignStore.statistics
-    
+
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
     campaign.value = campaignStore.campaign;
 
@@ -98,6 +125,13 @@ const backgroundColorWithOpacity = computed(() => {
   const hexColor = campaign.value?.styleSettings?.properties?.background || '#000000';
   return hexToRgba(hexColor, 0.3);
 });
+
+const showSnackbar = (message: string, color: string) => {
+  snackbarMessage.value = message;
+  snackbarColor.value = color;
+  snackbarVisible.value = true;
+};
+
 </script>
 
 <template>
@@ -111,16 +145,32 @@ const backgroundColorWithOpacity = computed(() => {
       </div>
     </div>
   </div>
-  <VCard class="mb-6">
+  <VCard title="Filters" class="mb-6">
     <VCardText class="px-3">
-      <VRow>
+      <VRow class="mb-4 align-center">
+        <VCol cols="12" sm="6" md="5">
+          <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar"
+            type="date" />
+        </VCol>
+        <VCol cols="12" sm="6" md="5">
+          <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date" />
+        </VCol>
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center justify-end">
+          <VBtn color="primary" @click="applyFilters">
+            <VIcon icon="tabler-filter" class="me-2" />
+            Apply Filters
+          </VBtn>
+        </VCol>
+      </VRow>
+      <VDivider />
+      <VRow class="mt-6">
         <template v-for="(data, id) in widgetData" :key="id">
           <VCol cols="12" sm="6" md="3" class="px-6">
             <div class="d-flex justify-space-between" :class="$vuetify.display.xs
-              ? id !== widgetData.length - 1 ? 'border-b pb-4' : ''
-              : $vuetify.display.sm
-                ? id < (widgetData.length / 2) ? 'border-b pb-4' : ''
-                : ''">
+          ? id !== widgetData.length - 1 ? 'border-b pb-4' : ''
+          : $vuetify.display.sm
+            ? id < (widgetData.length / 2) ? 'border-b pb-4' : ''
+            : ''">
               <div class="d-flex flex-column gap-y-1">
                 <div class="text-body-1 text-capitalize">
                   {{ data.title }}
@@ -152,8 +202,8 @@ const backgroundColorWithOpacity = computed(() => {
             </div>
           </VCol>
           <VDivider v-if="$vuetify.display.mdAndUp ? id !== widgetData.length - 1
-            : $vuetify.display.smAndUp ? id % 2 === 0
-              : false" vertical inset length="92" />
+          : $vuetify.display.smAndUp ? id % 2 === 0
+            : false" vertical inset length="92" />
         </template>
       </VRow>
     </VCardText>
@@ -162,15 +212,9 @@ const backgroundColorWithOpacity = computed(() => {
     <VCardText class="pa-0">
       <VRow>
         <v-col sm="12" md="3" :style="{ backgroundColor: backgroundColorWithOpacity }">
-          <div
-            class="ma-auto pa-5 text-center"
-            
-          >
-            <img
-              width="100px"
-              :src="campaign?.styleSettings.campaignPreview"
-              style="border-radius: 5px; border: 1px solid #ccc;"
-            />
+          <div class="ma-auto pa-5 text-center">
+            <img width="100px" :src="campaign?.styleSettings.campaignPreview"
+              style="border-radius: 5px; border: 1px solid #ccc;" />
           </div>
         </v-col>
         <VDivider :vertical="$vuetify.display.mdAndUp" />
@@ -210,4 +254,7 @@ const backgroundColorWithOpacity = computed(() => {
       </VRow>
     </VCardText>
   </VCard>
+  <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>
