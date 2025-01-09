@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import iphoneLayout from '@images/iphoneLayout.png';
 import { useCampaignStore } from '@/stores/campaign';
+import DashboardCard from './DashboardCard.vue'
+
 
 const router = useRouter();
 
@@ -50,21 +52,21 @@ const applyFilters = async () => {
 
 const widgetData = computed(() => {
   const baseData = [
-    { title: 'Customers', value: statistics.value.customers, icon: 'tabler-smart-home', desc: '' },
-    { title: 'Apple Cards', value: statistics.value.appleCards, icon: 'tabler-brand-apple', desc: '' },
-    { title: 'Google Cards', value: statistics.value.googleCards, icon: 'tabler-brand-android', desc: '' },
+    { title: 'Customers', value: statistics.value.customers, icon: 'tabler-smart-home', color: 'primary', desc: '', isHover: false },
+    { title: 'Apple Cards', value: statistics.value.appleCards, icon: 'tabler-brand-apple', color: 'secondary', desc: '', isHover: false },
+    { title: 'Google Cards', value: statistics.value.googleCards, icon: 'tabler-brand-android', color: 'success', desc: '', isHover: false },
   ];
 
   if (type === 'stamp') {
     return [
       ...baseData,
-      { title: 'Total Stamps', value: statistics.value.totalStamps, icon: 'tabler-rubber-stamp', desc: '' },
-      { title: 'Total Redeemed', value: statistics.value.totalRedeemed, icon: 'tabler-cash', desc: '' },
+      { title: 'Total Stamps', value: statistics.value.totalStamps, icon: 'tabler-rubber-stamp', color: 'warning', desc: '', isHover: false },
+      { title: 'Total Redeemed', value: statistics.value.totalRedeemed, icon: 'tabler-cash', color: 'error', desc: '', isHover: false },
     ];
   } else if (type === 'membership') {
     return [
       ...baseData,
-      { title: 'Total Access', value: statistics.value.totalAccess, icon: 'tabler-key', desc: '' },
+      { title: 'Total Access', value: statistics.value.totalAccess, icon: 'tabler-key', color: 'info', desc: '', isHover: false },
     ];
   }
 
@@ -145,69 +147,7 @@ const showSnackbar = (message: string, color: string) => {
       </div>
     </div>
   </div>
-  <VCard title="Filters" class="mb-6">
-    <VCardText class="px-3">
-      <VRow class="mb-4 align-center">
-        <VCol cols="12" sm="6" md="5">
-          <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar"
-            type="date" />
-        </VCol>
-        <VCol cols="12" sm="6" md="5">
-          <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date" />
-        </VCol>
-        <VCol cols="12" sm="6" md="2" class="d-flex align-center justify-end">
-          <VBtn color="primary" @click="applyFilters">
-            <VIcon icon="tabler-filter" class="me-2" />
-            Apply Filters
-          </VBtn>
-        </VCol>
-      </VRow>
-      <VDivider />
-      <VRow class="mt-6">
-        <template v-for="(data, id) in widgetData" :key="id">
-          <VCol cols="12" sm="6" md="3" class="px-6">
-            <div class="d-flex justify-space-between" :class="$vuetify.display.xs
-          ? id !== widgetData.length - 1 ? 'border-b pb-4' : ''
-          : $vuetify.display.sm
-            ? id < (widgetData.length / 2) ? 'border-b pb-4' : ''
-            : ''">
-              <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-capitalize">
-                  {{ data.title }}
-                </div>
 
-                <h4 class="text-h4">
-                  <span v-if="isLoading">
-                    <v-progress-circular indeterminate size="24" />
-                  </span>
-                  <span v-else>
-                    {{ data.value }}
-                  </span>
-                </h4>
-
-                <div class="d-flex align-center gap-x-2">
-                  <div class="text-no-wrap">
-                    {{ data.desc }}
-                  </div>
-
-                  <VChip v-if="data.change" label :color="data.change > 0 ? 'success' : 'error'" size="small">
-                    {{ data.change > 0 ? '+' : '' }}{{ data.change }}%
-                  </VChip>
-                </div>
-              </div>
-
-              <VAvatar variant="tonal" rounded size="44">
-                <VIcon :icon="data.icon" size="28" class="text-high-emphasis" />
-              </VAvatar>
-            </div>
-          </VCol>
-          <VDivider v-if="$vuetify.display.mdAndUp ? id !== widgetData.length - 1
-          : $vuetify.display.smAndUp ? id % 2 === 0
-            : false" vertical inset length="92" />
-        </template>
-      </VRow>
-    </VCardText>
-  </VCard>
   <VCard class="mb-6">
     <VCardText class="pa-0">
       <VRow>
@@ -239,6 +179,32 @@ const showSnackbar = (message: string, color: string) => {
       </VRow>
     </VCardText>
   </VCard>
+  
+  <VCard title="Filters" class="mb-6">
+    <VCardText class="px-3">
+      <VRow class="mb-4 align-center">
+        <VCol cols="12" sm="6" md="5">
+          <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar"
+            type="date" />
+        </VCol>
+        <VCol cols="12" sm="6" md="5">
+          <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date" />
+        </VCol>
+        <VCol cols="12" sm="6" md="2" class="d-flex align-center justify-end">
+          <VBtn color="primary" @click="applyFilters">
+            <VIcon icon="tabler-filter" class="me-2" />
+            Apply Filters
+          </VBtn>
+        </VCol>
+      </VRow>
+      <VDivider />
+      <VCol cols="12">
+        <DashboardCard :data="widgetData" :isLoading="isLoading" />
+    </VCol>
+
+    </VCardText>
+  </VCard>
+  
   <VCard class="mb-6">
     <VCardText class="px-3">
       <VRow>
