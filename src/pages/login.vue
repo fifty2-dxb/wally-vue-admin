@@ -57,9 +57,9 @@ const login = async () => {
     const res = await userStore.loginUser(credentials.value);
 
     const { token, userdetails } = res;
-    let userAbilityRules = JSON.parse('[{"action":"manage","subject":"all"}]')
-    useCookie('userAbilityRules').value = userAbilityRules
-    ability.update(userAbilityRules)
+    let userAbilityRules = JSON.parse('[{"action":"manage","subject":"all"}]');
+    useCookie('userAbilityRules').value = userAbilityRules;
+    ability.update(userAbilityRules);
 
     localStorage.setItem('userData', JSON.stringify(userdetails));
     useCookie('userData').value = userdetails
@@ -68,17 +68,18 @@ const login = async () => {
     // Redirect to `to` query if exist or redirect to index route
     // ❗ nextTick is required to wait for DOM updates and later redirect
     await nextTick(() => {
-      router.replace(route.query.to ? String(route.query.to) : '/')
-    })
+      router.replace(route.query.to ? String(route.query.to) : '/');
+    });
   } catch (error) {
     showSnackbar.value = true;
     snackbarType.value = 'error';
     const errorMessages = Array.isArray(error.response?._data?.message)
       ? error.response._data.message.join(', ')
       : error.response?._data?.message || "An error occurred";
-    snackbarMessage.value = errorMessages
+    snackbarMessage.value = errorMessages;
   }
 };
+
 
 const onSubmit = () => {
   refVForm.value?.validate()
