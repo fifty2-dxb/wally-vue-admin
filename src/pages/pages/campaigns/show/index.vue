@@ -4,6 +4,9 @@ import { useRouter, useRoute } from 'vue-router';
 import iphoneLayout from '@images/iphoneLayout.png';
 import { useCampaignStore } from '@/stores/campaign';
 import DashboardCard from './DashboardCard.vue'
+import DonutChart from './DonutChart.vue'
+import LogisticsShipmentStatistics from '@/views/apps/logistics/LogisticsShipmentStatistics.vue'
+import LogisticsDeliveryExpectations from '@/views/apps/logistics/LogisticsDeliveryExpectations.vue'
 
 
 const router = useRouter();
@@ -137,7 +140,7 @@ const showSnackbar = (message: string, color: string) => {
 </script>
 
 <template>
-  <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
+  <div class="d-flex justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
       <h4 class="text-h4 font-weight-medium">
         {{ $t('Campaign Details') }}
@@ -179,32 +182,33 @@ const showSnackbar = (message: string, color: string) => {
       </VRow>
     </VCardText>
   </VCard>
-  
-  <VCard title="Filters" class="mb-6">
-    <VCardText class="px-3">
-      <VRow class="mb-4 align-center">
-        <VCol cols="12" sm="6" md="5">
-          <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar"
-            type="date" />
-        </VCol>
-        <VCol cols="12" sm="6" md="5">
-          <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date" />
-        </VCol>
-        <VCol cols="12" sm="6" md="2" class="d-flex align-center justify-end">
-          <VBtn color="primary" @click="applyFilters">
-            <VIcon icon="tabler-filter" class="me-2" />
-            Apply Filters
-          </VBtn>
-        </VCol>
-      </VRow>
-      <VDivider />
+
+  <VCard title="Filters" class="mb-6" style="padding: 1rem; border-radius: 12px;">
+    <VCardText>
+      <div class="filter-container">
+        <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
+          class="filter-input" />
+        <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
+          class="filter-input" />
+        <VBtn color="primary" @click="applyFilters" class="apply-button">
+          <VIcon icon="tabler-filter" class="me-2" />
+          Apply Filters
+        </VBtn>
+      </div>
+      <VDivider class="my-4" />
+
       <VCol cols="12">
         <DashboardCard :data="widgetData" :isLoading="isLoading" />
-    </VCol>
+      </VCol>
 
+      <VRow class="mt-10">
+        <VCol cols="12" md="12">
+          <DonutChart :data="widgetData" :isLoading="isLoading" />
+        </VCol>
+      </VRow>
     </VCardText>
   </VCard>
-  
+
   <VCard class="mb-6">
     <VCardText class="px-3">
       <VRow>
@@ -219,8 +223,40 @@ const showSnackbar = (message: string, color: string) => {
         </VCol>
       </VRow>
     </VCardText>
+
   </VCard>
   <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
     {{ snackbarMessage }}
   </VSnackbar>
 </template>
+
+<style scoped>
+.filter-input {
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-right: 1rem
+}
+
+.apply-button {
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  transition: 0.2s ease-in-out;
+}
+
+.apply-button:hover {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #5a4fcf;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px rgb(0 0 0 / 5%)
+}
+</style>
