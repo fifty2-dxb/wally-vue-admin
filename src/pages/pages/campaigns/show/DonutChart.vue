@@ -122,10 +122,10 @@ const deliveryExceptionsChartConfig = computed(() => ({
 
 <template>
   <VCard>
-    <VCardItem title="Customer & Card Overview">
+    <VCardItem title="Customer & Card Overview" subtitle="Breaking down customer data by card preference">
     </VCardItem>
     <VCardText>
-      <VueApexCharts type="donut" height="400" :options="deliveryExceptionsChartConfig"
+      <VueApexCharts type="donut" height="370" :options="deliveryExceptionsChartConfig"
         :series="deliveryExceptionsChartSeries" />
     </VCardText>
   </VCard>

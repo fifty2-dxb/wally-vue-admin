@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import iphoneLayout from '@images/iphoneLayout.png';
 import { useCampaignStore } from '@/stores/campaign';
 import DashboardCard from './DashboardCard.vue'
 import DonutChart from './DonutChart.vue'
-import LogisticsShipmentStatistics from '@/views/apps/logistics/LogisticsShipmentStatistics.vue'
-import LogisticsDeliveryExpectations from '@/views/apps/logistics/LogisticsDeliveryExpectations.vue'
-
+import BarChart from './BarChart.vue'
 
 const router = useRouter();
 
@@ -24,10 +21,19 @@ const statistics = ref<Record<string, number | null>>({
   totalStamps: null,
   totalRedeemed: null,
 });
+
+const barchartStats = ref({})
 const isLoading = ref(true);
 
 const startDate = ref('');
 const endDate = ref('');
+const currentDate = new Date();
+const startDateMonthly = ref(
+  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+);
+const endDateMonthly = ref(
+  new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+);
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
@@ -103,9 +109,33 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
   }
 };
 
+const fetchStatistics = async () => {
+  try {
+    isLoading.value = true;
+    await campaignStore.fetchCampaignStatisticsMonthly(
+      campaignGuid,
+      startDateMonthly.value,
+      endDateMonthly.value
+    );
+    barchartStats.value = campaignStore.barchartStats;
+  } catch (error) {
+    console.error("Error fetching statistics:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 onMounted(() => {
   fetchCampaignDetails(campaignGuid);
+  fetchStatistics()
 });
+
+const handleMonthSelected = ({ startDate, endDate }) => {
+  startDateMonthly.value = startDate;
+  endDateMonthly.value = endDate;
+
+  fetchStatistics();
+};
 
 // Function to convert hex color to RGBA with opacity
 function hexToRgba(hex: string, opacity: number) {
@@ -202,8 +232,12 @@ const showSnackbar = (message: string, color: string) => {
       </VCol>
 
       <VRow class="mt-10">
-        <VCol cols="12" md="12">
+        <VCol cols="6" md="6">
           <DonutChart :data="widgetData" :isLoading="isLoading" />
+        </VCol>
+        <VCol cols="6" md="6">
+          <BarChart v-if="Object.keys(barchartStats).length > 0" @monthSelected="handleMonthSelected"
+            :data="barchartStats" />
         </VCol>
       </VRow>
     </VCardText>
