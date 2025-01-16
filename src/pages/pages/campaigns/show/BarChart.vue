@@ -177,7 +177,7 @@ const ChartData = computed(() => ({
       </template>
     </VCardItem>
     <VCardText>
-      <VueApexCharts id="shipment-statistics" type="line" height="320" :options="ChartData" :series="series" />
+      <VueApexCharts id="shipment-statistics" type="line" height="340" :options="ChartData" :series="series" />
     </VCardText>
   </VCard>
 </template>
@@ -200,6 +200,9 @@ const ChartData = computed(() => ({
     block-size: 83%;
     padding-block: 4px;
     padding-inline: 16px 12px;
+  }
+  .apexcharts-legend-text{
+    color: rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity)) !important;
   }
 }
 </style>

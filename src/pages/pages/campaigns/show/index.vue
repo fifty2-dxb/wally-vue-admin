@@ -267,7 +267,7 @@ const showSnackbar = (message: string, color: string) => {
 <style scoped>
 .filter-input {
   border-radius: 8px;
-  background-color: #ffffff;
+  background-color: rgba(var(--v-global-theme-primary), var(#fff));
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   margin-right: 1rem
 }
