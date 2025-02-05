@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router/auto'
 const emailRouteComponent = () => import('@/pages/apps/email/index.vue')
 const showRouteComponent = () => import('@/pages/pages/campaigns/show/index.vue')
 const showMobileCampaignComponent = () => import('@/pages/pages/customers/showMobile/index.vue')
+const showTopUpBalanceComponent = () => import('@/pages/pages/campaigns/topup/index.vue')
 const showUpdateComponent = () => import('@/pages/pages/campaigns/update/index.vue')
 const showCustomerComponent = () => import('@/pages/pages/customers/show/index.vue')
 const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
@@ -148,6 +149,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/pages/campaigns/show/mobile',
     name: 'pages-campaigns-show-mobile',
     component: showMobileCampaignComponent,
+  },
+  {
+    path: '/pages/campaigns/topup',
+    name: 'pages-campaigns-topup-balance',
+    component: showTopUpBalanceComponent,
   },
   {
     path: '/pages/campaigns/update/:id',
