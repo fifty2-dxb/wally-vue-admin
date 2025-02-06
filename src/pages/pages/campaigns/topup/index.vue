@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import AmountCard from './AmountCard.vue'
 import PaymentCard from './PaymentCard.vue'
 import type { CheckoutData } from '@/views/wizard-examples/checkout/types'
@@ -19,10 +18,10 @@ const checkoutSteps = [
     icon: customCart,
   },
 
-  {
-    title: 'Payment',
-    icon: customPayment,
-  },
+  // {
+  //   title: 'Payment',
+  //   icon: customPayment,
+  // },
 ]
 
 const checkoutData = ref<CheckoutData>({
@@ -46,7 +45,6 @@ const currentStep = ref(0)
 <template>
   <div class="checkout-page">
 
-    <Navbar />
     <VContainer>
       <div class="checkout-card">
         <VCard>

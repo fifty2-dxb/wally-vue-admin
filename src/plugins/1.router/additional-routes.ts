@@ -4,6 +4,8 @@ const emailRouteComponent = () => import('@/pages/apps/email/index.vue')
 const showRouteComponent = () => import('@/pages/pages/campaigns/show/index.vue')
 const showMobileCampaignComponent = () => import('@/pages/pages/customers/showMobile/index.vue')
 const showTopUpBalanceComponent = () => import('@/pages/pages/campaigns/topup/index.vue')
+const showThankYouBalanceComponent = () => import('@/pages/pages/campaigns/topup/ThankYouPaymentCard.vue')
+const showFailedBalanceComponent = () => import('@/pages/pages/campaigns/topup/FailedPaymentCard.vue')
 const showUpdateComponent = () => import('@/pages/pages/campaigns/update/index.vue')
 const showCustomerComponent = () => import('@/pages/pages/customers/show/index.vue')
 const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
@@ -154,6 +156,16 @@ export const routes: RouteRecordRaw[] = [
     path: '/pages/campaigns/topup',
     name: 'pages-campaigns-topup-balance',
     component: showTopUpBalanceComponent,
+  },
+  {
+    path: '/pages/campaigns/topup/thankyou',
+    name: 'pages-campaigns-topup-thankyou',
+    component: showThankYouBalanceComponent,
+  },
+  {
+    path: '/pages/campaigns/topup/failed',
+    name: 'pages-campaigns-topup-failed',
+    component: showFailedBalanceComponent,
   },
   {
     path: '/pages/campaigns/update/:id',
