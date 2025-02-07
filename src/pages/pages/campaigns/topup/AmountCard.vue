@@ -16,7 +16,6 @@ interface Emit {
 const props = defineProps<Props>()
 const emit = defineEmits<Emit>()
 
-// Local copy of checkout data
 const checkoutCartDataLocal = ref(props.checkoutData)
 
 const amount = ref('')
@@ -38,7 +37,6 @@ const totalCost = computed(() => {
   return amount.value ? parseFloat(amount.value) : 0
 })
 
-// Update checkout data as the user types
 watch([amount, selectedCurrency], () => {
   emit('update:checkout-data', {
     ...checkoutCartDataLocal.value,
@@ -47,11 +45,9 @@ watch([amount, selectedCurrency], () => {
   })
 })
 
-// --- STRIPE CHECKOUT REDIRECT --- //
-const stripePromise = loadStripe('pk_test_ZH4tFfUJeBx4CEnYoIhZynn400lqXwvQYL') // Replace with your publishable key
+const stripePromise = loadStripe(import.meta.env.VITE_APP_PUBLISHABLE_KEY)
 
 const nextStep = async () => {
-  // Update checkout data before proceeding
   emit('update:checkout-data', {
     ...checkoutCartDataLocal.value,
     orderAmount: totalCost.value,
@@ -65,7 +61,6 @@ const nextStep = async () => {
   }
 
   try {
-    // Call your backend to create a Checkout Session.
     const response = await $wallyApi('/campaigns/create-checkout-session', {
       method: 'POST',
       body: {
