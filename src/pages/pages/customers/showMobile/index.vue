@@ -10,7 +10,6 @@ const selectedConstraints = ref({ facingMode: 'environment' });
 const result = ref('');
 const cameraError = ref(null);
 const customerLoaded = ref(false);
-const inputText = ref('');
 
 const fetchCustomerDetails = async (serialNumber: string) => {
   try {
@@ -23,8 +22,12 @@ const fetchCustomerDetails = async (serialNumber: string) => {
 
 const receiveNfcData = async (data: string) => {
   if (data) {
-    inputText.value = data;
-    await customerStore.fetchCustomerBySerialNumber(data);
+    try {
+      await customerStore.fetchCustomerBySerialNumber(data);
+      customerLoaded.value = true; 
+    } catch (error) {
+      customerLoaded.value = false;
+    }
   }
 };
 
