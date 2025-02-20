@@ -26,7 +26,6 @@ const toggleInput = async () => {
   }
 };
 
-
 // Handle API call on Enter key press
 const submitText = async () => {
   if (inputText.value.trim() === '') return; // Avoid empty submissions
@@ -56,6 +55,15 @@ const submitText = async () => {
 };
 
 onMounted(() => {
+
+  (window as any).receiveNfcData = async (data: string) => {
+    console.log("NFC Data Received:", data);
+
+    if (data) {
+      inputText.value = data;
+      await submitText(); // Automatically submit NFC data
+    }
+  };
 
   const pusher = new Pusher(pusherKey, {
     cluster: 'ap1',
