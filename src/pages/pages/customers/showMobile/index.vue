@@ -10,6 +10,7 @@ const selectedConstraints = ref({ facingMode: 'environment' });
 const result = ref('');
 const cameraError = ref(null);
 const customerLoaded = ref(false);
+const inputText = ref('');
 
 const fetchCustomerDetails = async (serialNumber: string) => {
   try {
@@ -19,6 +20,17 @@ const fetchCustomerDetails = async (serialNumber: string) => {
     console.error('Error fetching customer:', error);
   }
 };
+
+const receiveNfcData = async (data: string) => {
+  if (data) {
+    inputText.value = data;
+    await customerStore.fetchCustomerBySerialNumber(data);
+  }
+};
+
+onMounted(() => {
+  (window as any).receiveNfcData = receiveNfcData;
+});
 
 const onDecode = (decodedCodes) => {
   const scannedCode = decodedCodes.map(code => code.rawValue).join(', ');
@@ -77,6 +89,7 @@ onBeforeRouteLeave((to, from, next) => {
   <v-container class="d-flex justify-center align-center fill-height p-2">
     <v-card class="card-container">
       <v-icon size="24" class="p-2" @click="toggleCamera">tabler-camera</v-icon>
+      <v-icon size="24" class="p-2" @click="receiveNfcData">tabler-nfc</v-icon>
       <qrcode-stream v-if="cameraActive" :constraints="selectedConstraints" :track="paintBoundingBox" @detect="onDecode"
         @camera-on="onCameraReady" @error="error => { cameraError = error; cameraActive = false; }">
         <template #loading>
