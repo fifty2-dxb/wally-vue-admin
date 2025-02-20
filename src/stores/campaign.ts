@@ -7,6 +7,7 @@ export const useCampaignStore = defineStore("campaign", () => {
   const campaign = ref(null);
   const customers = ref([]);
   const statistics = ref({})
+  const barchartStats = ref({})
 
   const fetchCampaigns = async () => {
     try {
@@ -17,13 +18,33 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
-  const fetchCampaignStatistics = async (campaignGuid: string) => {
+  const fetchCampaignStatistics = async (
+    campaignGuid: string,
+    startDate?: string,
+    endDate?: string
+  ) => {
     try {
-      const response = await $wallyApi(`/v1/statistics/${campaignGuid}`, { method: "GET" });
-      statistics.value = response?.data || [];
+      const queryParams = new URLSearchParams();
+      if (startDate) queryParams.append("startDate", startDate);
+      if (endDate) queryParams.append("endDate", endDate);
+  
+      const url = `/v1/statistics/${campaignGuid}?${queryParams.toString()}`;
+      const response = await $wallyApi(url, { method: "GET" });
+      statistics.value = response?.data || {};
     } catch (error) {
       console.error("Error fetching statistics:", error);
       throw error;
+    }
+  };
+
+  const fetchCampaignStatisticsMonthly = async (campaignGuid: string, startDate: string, endDate: string) => {
+    try {
+      const url = `/v1/statistics/${campaignGuid}/monthly?startDate=${startDate}&endDate=${endDate}`;
+      const response = await $wallyApi(url, { method: "GET" });
+      console.log("Fetched statistics:", response);
+      barchartStats.value = response?.data || {};
+    } catch (error) {
+      console.error("Error fetching statistics:", error);
     }
   };
 
@@ -112,13 +133,15 @@ export const useCampaignStore = defineStore("campaign", () => {
     campaign,
     customers,
     statistics,
+    barchartStats,
     fetchCampaignByMerchantGuid,
     fetchCampaignByCampaignGuid,
     fetchCustomerByCampaignGuid,
     addCampaign,
     deleteCampaign,
     updateCampaign,
-    fetchCampaignStatistics
+    fetchCampaignStatistics,
+    fetchCampaignStatisticsMonthly
   };
 });
 

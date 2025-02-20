@@ -170,6 +170,9 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
               <IconBtn v-if="c.styleSettings.type === 'stamp'" :to="{ name: 'pages-campaigns-show-mobile', params: { id: c.campaignGuid } }">
                 <VIcon icon="tabler-device-mobile" />
               </IconBtn>
+              <IconBtn v-if="c.styleSettings.type === 'balance'" :to="{ name: 'pages-campaigns-topup-balance', params: { id: c.campaignGuid } }">
+                <VIcon icon="tabler-credit-card" />
+              </IconBtn>
               <IconBtn @click="confirmDeleteCampaign(c.campaignGuid)">
                 <VIcon icon="tabler-trash" />
               </IconBtn>

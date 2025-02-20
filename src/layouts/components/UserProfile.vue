@@ -7,18 +7,17 @@ const userStore = useUserStore();
 const userProfileData = ref<any>(null);
 
 // TODO: Get type from backend
-const userDataCookie = useCookie<any>('userData');
 
 onMounted(() => {
-  if (userDataCookie.value) {
-    userProfileData.value = userDataCookie.value;
+  const cookieData = useCookie('userData').value;
+  const localStorageData = localStorage.getItem('userData');
+
+  if (cookieData) {
+    userProfileData.value = cookieData;
+  } else if (localStorageData) {
+    userProfileData.value = JSON.parse(localStorageData);
   } else {
-    const localStorageData = localStorage.getItem('userData');
-    if (localStorageData) {
-      userProfileData.value = JSON.parse(localStorageData);
-    } else {
-      console.error('No user data found in cookie or localStorage');
-    }
+    console.error('No user data found in cookies or localStorage');
   }
 });
 
@@ -49,7 +48,7 @@ const userProfileList = [
 
 <template>
   <VBadge
-    v-if="userProfileData"
+  v-if="userProfileData && userProfileData.name"
     dot
     bordered
     location="bottom right"

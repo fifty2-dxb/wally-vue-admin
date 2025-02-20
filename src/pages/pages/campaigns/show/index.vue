@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import iphoneLayout from '@images/iphoneLayout.png';
-import { useCampaignStore } from '@/stores/campaign';  // Import the store
+import { useCampaignStore } from '@/stores/campaign';
+import DashboardCard from './DashboardCard.vue'
+import DonutChart from './DonutChart.vue'
+import BarChart from './BarChart.vue'
 
 const router = useRouter();
 
@@ -19,25 +21,61 @@ const statistics = ref<Record<string, number | null>>({
   totalStamps: null,
   totalRedeemed: null,
 });
+
+const barchartStats = ref({})
 const isLoading = ref(true);
+
+const startDate = ref('');
+const endDate = ref('');
+const currentDate = new Date();
+const startDateMonthly = ref(
+  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+);
+const endDateMonthly = ref(
+  new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+);
+const snackbarVisible = ref(false);
+const snackbarMessage = ref('');
+const snackbarColor = ref('');
+
+const applyFilters = async () => {
+  if (!startDate.value || !endDate.value) {
+    showSnackbar('Please select both start and end dates.', 'error')
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+    await campaignStore.fetchCampaignStatistics(
+      campaignGuid,
+      startDate.value,
+      endDate.value
+    );
+    statistics.value = campaignStore.statistics;
+  } catch (error) {
+    console.error("Error applying filters:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 const widgetData = computed(() => {
   const baseData = [
-    { title: 'Customers', value: statistics.value.customers, icon: 'tabler-smart-home', desc: '' },
-    { title: 'Apple Cards', value: statistics.value.appleCards, icon: 'tabler-brand-apple', desc: '' },
-    { title: 'Google Cards', value: statistics.value.googleCards, icon: 'tabler-brand-android', desc: '' },
+    { title: 'Customers', value: statistics.value.customers, icon: 'tabler-smart-home', color: 'primary', desc: '', isHover: false },
+    { title: 'Apple Cards', value: statistics.value.appleCards, icon: 'tabler-brand-apple', color: 'secondary', desc: '', isHover: false },
+    { title: 'Google Cards', value: statistics.value.googleCards, icon: 'tabler-brand-android', color: 'success', desc: '', isHover: false },
   ];
 
   if (type === 'stamp') {
     return [
       ...baseData,
-      { title: 'Total Stamps', value: statistics.value.totalStamps, icon: 'tabler-rubber-stamp', desc: '' },
-      { title: 'Total Redeemed', value: statistics.value.totalRedeemed, icon: 'tabler-cash', desc: '' },
+      { title: 'Total Stamps', value: statistics.value.totalStamps, icon: 'tabler-rubber-stamp', color: 'warning', desc: '', isHover: false },
+      { title: 'Total Redeemed', value: statistics.value.totalRedeemed, icon: 'tabler-cash', color: 'error', desc: '', isHover: false },
     ];
   } else if (type === 'membership') {
     return [
       ...baseData,
-      { title: 'Total Access', value: statistics.value.totalAccess, icon: 'tabler-key', desc: '' },
+      { title: 'Total Access', value: statistics.value.totalAccess, icon: 'tabler-key', color: 'info', desc: '', isHover: false },
     ];
   }
 
@@ -57,7 +95,7 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
   try {
     await campaignStore.fetchCampaignStatistics(campaignGuid);
     statistics.value = campaignStore.statistics
-    
+
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
     campaign.value = campaignStore.campaign;
 
@@ -71,9 +109,33 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
   }
 };
 
+const fetchStatistics = async () => {
+  try {
+    isLoading.value = true;
+    await campaignStore.fetchCampaignStatisticsMonthly(
+      campaignGuid,
+      startDateMonthly.value,
+      endDateMonthly.value
+    );
+    barchartStats.value = campaignStore.barchartStats;
+  } catch (error) {
+    console.error("Error fetching statistics:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 onMounted(() => {
   fetchCampaignDetails(campaignGuid);
+  fetchStatistics()
 });
+
+const handleMonthSelected = ({ startDate, endDate }) => {
+  startDateMonthly.value = startDate;
+  endDateMonthly.value = endDate;
+
+  fetchStatistics();
+};
 
 // Function to convert hex color to RGBA with opacity
 function hexToRgba(hex: string, opacity: number) {
@@ -98,10 +160,17 @@ const backgroundColorWithOpacity = computed(() => {
   const hexColor = campaign.value?.styleSettings?.properties?.background || '#000000';
   return hexToRgba(hexColor, 0.3);
 });
+
+const showSnackbar = (message: string, color: string) => {
+  snackbarMessage.value = message;
+  snackbarColor.value = color;
+  snackbarVisible.value = true;
+};
+
 </script>
 
 <template>
-  <div class="d-flex flex-wrap justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
+  <div class="d-flex justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
     <div class="d-flex flex-column justify-center">
       <h4 class="text-h4 font-weight-medium">
         {{ $t('Campaign Details') }}
@@ -111,66 +180,14 @@ const backgroundColorWithOpacity = computed(() => {
       </div>
     </div>
   </div>
-  <VCard class="mb-6">
-    <VCardText class="px-3">
-      <VRow>
-        <template v-for="(data, id) in widgetData" :key="id">
-          <VCol cols="12" sm="6" md="3" class="px-6">
-            <div class="d-flex justify-space-between" :class="$vuetify.display.xs
-              ? id !== widgetData.length - 1 ? 'border-b pb-4' : ''
-              : $vuetify.display.sm
-                ? id < (widgetData.length / 2) ? 'border-b pb-4' : ''
-                : ''">
-              <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-capitalize">
-                  {{ data.title }}
-                </div>
 
-                <h4 class="text-h4">
-                  <span v-if="isLoading">
-                    <v-progress-circular indeterminate size="24" />
-                  </span>
-                  <span v-else>
-                    {{ data.value }}
-                  </span>
-                </h4>
-
-                <div class="d-flex align-center gap-x-2">
-                  <div class="text-no-wrap">
-                    {{ data.desc }}
-                  </div>
-
-                  <VChip v-if="data.change" label :color="data.change > 0 ? 'success' : 'error'" size="small">
-                    {{ data.change > 0 ? '+' : '' }}{{ data.change }}%
-                  </VChip>
-                </div>
-              </div>
-
-              <VAvatar variant="tonal" rounded size="44">
-                <VIcon :icon="data.icon" size="28" class="text-high-emphasis" />
-              </VAvatar>
-            </div>
-          </VCol>
-          <VDivider v-if="$vuetify.display.mdAndUp ? id !== widgetData.length - 1
-            : $vuetify.display.smAndUp ? id % 2 === 0
-              : false" vertical inset length="92" />
-        </template>
-      </VRow>
-    </VCardText>
-  </VCard>
   <VCard class="mb-6">
     <VCardText class="pa-0">
       <VRow>
         <v-col sm="12" md="3" :style="{ backgroundColor: backgroundColorWithOpacity }">
-          <div
-            class="ma-auto pa-5 text-center"
-            
-          >
-            <img
-              width="100px"
-              :src="campaign?.styleSettings.campaignPreview"
-              style="border-radius: 5px; border: 1px solid #ccc;"
-            />
+          <div class="ma-auto pa-5 text-center">
+            <img width="100px" :src="campaign?.styleSettings.campaignPreview"
+              style="border-radius: 5px; border: 1px solid #ccc;" />
           </div>
         </v-col>
         <VDivider :vertical="$vuetify.display.mdAndUp" />
@@ -195,6 +212,37 @@ const backgroundColorWithOpacity = computed(() => {
       </VRow>
     </VCardText>
   </VCard>
+
+  <VCard title="Filters" class="mb-6" style="padding: 1rem; border-radius: 12px;">
+    <VCardText>
+      <div class="filter-container">
+        <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
+          class="filter-input" />
+        <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
+          class="filter-input" />
+        <VBtn color="primary" @click="applyFilters" class="apply-button">
+          <VIcon icon="tabler-filter" class="me-2" />
+          Apply Filters
+        </VBtn>
+      </div>
+      <VDivider class="my-4" />
+
+      <VCol cols="12">
+        <DashboardCard :data="widgetData" :isLoading="isLoading" />
+      </VCol>
+
+      <VRow class="mt-10">
+        <VCol cols="6" md="6">
+          <DonutChart :data="widgetData" :isLoading="isLoading" />
+        </VCol>
+        <VCol cols="6" md="6">
+          <BarChart v-if="Object.keys(barchartStats).length > 0" @monthSelected="handleMonthSelected"
+            :data="barchartStats" />
+        </VCol>
+      </VRow>
+    </VCardText>
+  </VCard>
+
   <VCard class="mb-6">
     <VCardText class="px-3">
       <VRow>
@@ -209,5 +257,40 @@ const backgroundColorWithOpacity = computed(() => {
         </VCol>
       </VRow>
     </VCardText>
+
   </VCard>
+  <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>
+
+<style scoped>
+.filter-input {
+  border-radius: 8px;
+  background-color: rgba(var(--v-global-theme-primary), var(#fff));
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-right: 1rem
+}
+
+.apply-button {
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  transition: 0.2s ease-in-out;
+}
+
+.apply-button:hover {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #5a4fcf;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px rgb(0 0 0 / 5%)
+}
+</style>
