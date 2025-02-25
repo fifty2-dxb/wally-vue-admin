@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, defineProps, defineEmits, ref, watch } from 'vue';
+import { computed, defineProps, defineEmits, ref, watch, onMounted } from "vue";
 
 const chartColors = {
   line: {
-    series1: '#FFB400',
-    series2: '#9055FD',
-    series3: '#7367f029',
+    series1: "#FFB400",
+    series2: "#9055FD",
+    series3: "#7367f029",
   },
 };
 
@@ -13,6 +13,10 @@ const props = defineProps({
   data: {
     type: Object,
     default: () => ({}),
+  },
+  campaignType: {
+    type: String,
+    default: "stamp",
   },
 });
 
@@ -23,6 +27,8 @@ const redeemData = ref([]);
 const categoriesData = ref([]);
 const selectedMonth = ref("January");
 const selectedYear = ref(new Date().getFullYear());
+const isLoading = ref(true);
+const dataInitialized = ref(false);
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -32,51 +38,98 @@ const months = [
 const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
 
 watch(
-  () => props.data,
-  (newData) => {
-    const keys = Object.keys(newData);
-    keys.forEach((key) => {
-      const monthData = newData[key] || {};
+  () => props.campaignType,
+  () => {
+    isLoading.value = true;
+    processData(props.data);
+  }
+);
+
+const processData = (newData) => {
+  if (!newData || Object.keys(newData).length === 0) {
+    isLoading.value = false;
+    return;
+  }
+
+  const keys = Object.keys(newData);
+  
+  keys.forEach((key) => {
+    const monthData = newData[key] || {};
+
+    if (props.campaignType === "stamp") {
       stampData.value = monthData.stamps || [];
       redeemData.value = monthData.redeemed || [];
+    } else {
+      stampData.value = monthData.access || [];
+      redeemData.value = [];
+    }
 
-      const [year, month] = key.split('-');
-      const monthIndex = parseInt(month, 10) - 1;
+    const [year, month] = key.split("-");
+    const monthIndex = parseInt(month, 10) - 1;
 
-      if (!isNaN(monthIndex) && monthIndex >= 0 && monthIndex < 12) {
-        const daysInMonth = new Date(parseInt(year, 10), monthIndex + 1, 0).getDate();
+    if (!isNaN(monthIndex) && monthIndex >= 0 && monthIndex < 12) {
+      const daysInMonth = new Date(parseInt(year, 10), monthIndex + 1, 0).getDate();
 
-        categoriesData.value = Array.from({ length: daysInMonth }, (_, day) => {
-          const monthAbbr = months[monthIndex]?.slice(0, 3);
-          return `${day + 1} ${monthAbbr}`;
-        });
-      } else {
-        console.error(`Invalid key: ${key}`);
-      }
-    });
+      categoriesData.value = Array.from({ length: daysInMonth }, (_, day) => {
+        const monthAbbr = months[monthIndex]?.slice(0, 3);
+        return `${day + 1} ${monthAbbr}`;
+      });
+    } else {
+      console.error(`Invalid key: ${key}`);
+    }
+  });
+
+  dataInitialized.value = true;
+  isLoading.value = false;
+};
+
+watch(
+  () => props.data,
+  (newData) => {
+    isLoading.value = true;
+    processData(newData);
   },
   { immediate: true }
 );
 
-const series = computed(() => [
-  {
-    name: 'Stamp Data',
-    type: 'column',
-    data: stampData.value.map(item => item.count || 0),
-  },
-  {
-    name: 'Redeem Data',
-    type: 'line',
-    data: redeemData.value.map(item => item.count || 0),
-  },
-]);
+onMounted(() => {
+  isLoading.value = true;
+  if (props.data && Object.keys(props.data).length > 0) {
+    processData(props.data);
+  }
+});
 
-const maxYValue = computed(() =>
-  Math.max(
-    ...stampData.value.map(item => item.count || 0),
-    ...redeemData.value.map(item => item.count || 0),
-  ) || 50
-);
+const series = computed(() => {
+  if (props.campaignType === "stamp") {
+    return [
+      {
+        name: "Stamp Data",
+        type: "column",
+        data: stampData.value.map((item) => item.count || 0),
+      },
+      {
+        name: "Redeem Data",
+        type: "line",
+        data: redeemData.value.map((item) => item.count || 0),
+      },
+    ];
+  } else {
+    return [
+      {
+        name: "Membership Access",
+        type: "column",
+        data: stampData.value.map((item) => item.count || 0),
+      },
+    ];
+  }
+});
+
+const maxYValue = computed(() => {
+  // Ensure we handle empty arrays gracefully
+  const stampMax = Math.max(...(stampData.value.map((item) => item.count || 0) || [0]));
+  const redeemMax = Math.max(...(redeemData.value.map((item) => item.count || 0) || [0]));
+  return Math.max(stampMax, redeemMax) || 50;
+});
 
 const handleMonthChange = () => {
   const monthIndex = months.indexOf(selectedMonth.value);
@@ -84,6 +137,8 @@ const handleMonthChange = () => {
 
   const startDate = new Date(year, monthIndex, 1);
   const endDate = new Date(year, monthIndex + 1, 0);
+
+  isLoading.value = true;
 
   emit("monthSelected", {
     startDate: startDate.toString(),
@@ -94,9 +149,8 @@ const handleMonthChange = () => {
 watch([selectedMonth, selectedYear], handleMonthChange);
 
 const ChartData = computed(() => ({
-
   chart: {
-    type: 'line',
+    type: "line",
     stacked: false,
     parentHeightOffset: 0,
     toolbar: { show: false },
@@ -105,54 +159,54 @@ const ChartData = computed(() => ({
 
   markers: {
     size: 5,
-    colors: '#fff',
+    colors: "#fff",
     strokeColors: chartColors.line.series2,
     hover: { size: 6 },
     borderRadius: 4,
   },
 
   stroke: {
-    curve: 'smooth',
-    width: [0, 3],
-    lineCap: 'round',
+    curve: "smooth",
+    width: props.campaignType === "stamp" ? [0, 3] : [0],
+    lineCap: "round",
   },
 
   legend: {
     show: true,
-    position: 'bottom',
+    position: "bottom",
     markers: { width: 8, height: 8, offsetX: -3 },
     height: 40,
     itemMargin: { horizontal: 10, vertical: 0 },
-    fontSize: '15px',
-    fontFamily: 'Open Sans',
+    fontSize: "15px",
+    fontFamily: "Open Sans",
     fontWeight: 400,
     labels: { useSeriesColors: false },
     offsetY: 10,
   },
-  
+
   grid: {
     strokeDashArray: 8,
-    borderColor: 'rgba(var(--v-border-color), var(--v-border-opacity))',
+    borderColor: "rgba(var(--v-border-color), var(--v-border-opacity))",
   },
-  
+
   colors: [chartColors.line.series1, chartColors.line.series2],
-  
+
   fill: { opacity: [1, 1] },
-  
+
   plotOptions: {
-    bar: { columnWidth: '30%', borderRadius: 4, borderRadiusApplication: 'end' },
+    bar: { columnWidth: "30%", borderRadius: 4, borderRadiusApplication: "end" },
   },
-  
+
   dataLabels: { enabled: false },
-  
+
   tooltip: {
-    y: { formatter: value => value || 0 },
+    y: { formatter: (value) => value || 0 },
   },
 
   xaxis: {
     tickAmount: 10,
     categories: categoriesData.value,
-    labels: { style: { fontSize: '13px', fontWeight: 400 } },
+    labels: { style: { fontSize: "13px", fontWeight: 400 } },
     axisBorder: { show: false },
     axisTicks: { show: false },
   },
@@ -162,7 +216,7 @@ const ChartData = computed(() => ({
     min: 0,
     max: maxYValue.value,
     labels: {
-      formatter: val => val,
+      formatter: (val) => val,
     },
   },
 }));
@@ -170,14 +224,30 @@ const ChartData = computed(() => ({
 
 <template>
   <VCard>
-    <VCardItem title="Monthly Stamp and Redeem Overview" subtitle="Daily breakdown of stamps and redeems during the month">
+    <VCardItem
+      :title="campaignType === 'stamp' ? 'Monthly Stamp and Redeem Overview' : 'Membership Access Overview'"
+      :subtitle="campaignType === 'stamp'
+        ? 'Daily breakdown of stamps and redeems during the month'
+        : 'Daily membership access trends'"
+    >
       <template #append>
         <VSelect :items="months" v-model="selectedMonth" @change="handleMonthChange" label="Select Month" outlined />
         <VSelect :items="years" v-model="selectedYear" label="Select Year" outlined />
       </template>
     </VCardItem>
     <VCardText>
-      <VueApexCharts id="shipment-statistics" type="line" height="340" :options="ChartData" :series="series" />
+      <div v-if="isLoading || !dataInitialized" class="loader-container">
+        <VProgressCircular indeterminate color="primary" size="64" width="5" />
+        <div class="loading-text mt-4">Loading data...</div>
+      </div>
+      <VueApexCharts
+        v-else
+        id="campaign-statistics"
+        type="line"
+        height="340"
+        :options="ChartData"
+        :series="series"
+      />
     </VCardText>
   </VCard>
 </template>
@@ -189,7 +259,7 @@ const ChartData = computed(() => ({
   border-inline-end-color: rgba(var(--v-theme-primary), 0.5);
 }
 
-#shipment-statistics {
+#campaign-statistics {
   .apexcharts-legend-text {
     font-size: 16px !important;
   }
@@ -197,12 +267,25 @@ const ChartData = computed(() => ({
   .apexcharts-legend-series {
     border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
     border-radius: 0.375rem;
-    block-size: 83%;
     padding-block: 4px;
     padding-inline: 16px 12px;
   }
-  .apexcharts-legend-text{
+
+  .apexcharts-legend-text {
     color: rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity)) !important;
   }
+}
+
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 340px;
+}
+
+.loading-text {
+  font-size: 16px;
+  color: rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity));
 }
 </style>

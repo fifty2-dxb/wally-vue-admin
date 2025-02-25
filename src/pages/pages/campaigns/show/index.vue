@@ -13,6 +13,7 @@ const type = route.query.type as string;
 const campaignGuid = route.params.id as string;
 const campaign = ref(null);
 const customers = ref([]);
+const campaignType = ref('')
 const campaignStore = useCampaignStore();
 const statistics = ref<Record<string, number | null>>({
   customers: null,
@@ -98,7 +99,8 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
 
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
     campaign.value = campaignStore.campaign;
-
+    campaignType.value = campaign.value?.styleSettings.type;
+    
     await campaignStore.fetchCustomerByCampaignGuid(campaignGuid);
     customers.value = campaignStore.customers;
   } catch (error) {
@@ -237,7 +239,7 @@ const showSnackbar = (message: string, color: string) => {
         </VCol>
         <VCol cols="6" md="6">
           <BarChart v-if="Object.keys(barchartStats).length > 0" @monthSelected="handleMonthSelected"
-            :data="barchartStats" />
+            :data="barchartStats" :campaignType="campaignType"/>
         </VCol>
       </VRow>
     </VCardText>
