@@ -5,6 +5,8 @@ import { useCampaignStore } from '@/stores/campaign';
 import DashboardCard from './DashboardCard.vue'
 import DonutChart from './DonutChart.vue'
 import BarChart from './BarChart.vue'
+import AccessLogsTable from './AccessLogsTable.vue'
+import * as demoCode from '@/views/demos/forms/tables/data-table/demoCodeDataTable'
 
 const router = useRouter();
 
@@ -37,6 +39,7 @@ const endDateMonthly = ref(
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
+const campaignType = ref('')
 
 const applyFilters = async () => {
   if (!startDate.value || !endDate.value) {
@@ -98,6 +101,7 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
 
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
     campaign.value = campaignStore.campaign;
+    campaignType.value = campaign.value?.styleSettings.type;
 
     await campaignStore.fetchCustomerByCampaignGuid(campaignGuid);
     customers.value = campaignStore.customers;
@@ -236,10 +240,19 @@ const showSnackbar = (message: string, color: string) => {
           <DonutChart :data="widgetData" :isLoading="isLoading" />
         </VCol>
         <VCol cols="6" md="6">
-          <BarChart v-if="Object.keys(barchartStats).length > 0" @monthSelected="handleMonthSelected"
-            :data="barchartStats" />
+          <BarChart @monthSelected="handleMonthSelected"
+            :data="barchartStats" :campaignType="campaignType"/>
         </VCol>
+        <VCol cols="12">
+      <VCard v-if="campaignType === 'membership'">
+        <VCardTitle>{{ $t('Access Logs') }}</VCardTitle>
+        <AccessLogsTable />
+
+      </VCard>
+      
+    </VCol>
       </VRow>
+      
     </VCardText>
   </VCard>
 

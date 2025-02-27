@@ -25,10 +25,10 @@ const chartColors = {
     series3: '#28C76F99',
     series4: '#28C76F66',
   },
-}
+};
 
-const headingColor = 'rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity))'
-const labelColor = 'rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity))'
+const headingColor = 'rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity))';
+const labelColor = 'rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity))';
 
 const chartData = computed(() => {
   const relevantTitles = ['Customers', 'Apple Cards', 'Google Cards'];
@@ -41,7 +41,7 @@ const deliveryExceptionsChartSeries = computed(() =>
 
 const deliveryExceptionsChartLabels = computed(() =>
   chartData.value.map((item) => item.title)
-)
+);
 
 const deliveryExceptionsChartConfig = computed(() => ({
   labels: deliveryExceptionsChartLabels.value,
@@ -56,7 +56,7 @@ const deliveryExceptionsChartConfig = computed(() => ({
   dataLabels: {
     enabled: false,
     formatter(val: string) {
-      return `${Number.parseInt(val)}`
+      return `${Number.parseInt(val)}`;
     },
   },
   legend: {
@@ -99,7 +99,7 @@ const deliveryExceptionsChartConfig = computed(() => ({
             fontWeight: 500,
             offsetY: -20,
             formatter(val: string) {
-              return `${Number.parseInt(val)}`
+              return `${Number.parseInt(val)}`;
             },
           },
           name: { offsetY: 20 },
@@ -125,8 +125,26 @@ const deliveryExceptionsChartConfig = computed(() => ({
     <VCardItem title="Customer & Card Overview" subtitle="Breaking down customer data by card preference">
     </VCardItem>
     <VCardText>
-      <VueApexCharts type="donut" height="370" :options="deliveryExceptionsChartConfig"
-        :series="deliveryExceptionsChartSeries" />
+      <div v-if="isLoading" class="loader-container">
+        <VProgressCircular indeterminate color="primary" size="64" width="5" />
+        <div class="loading-text mt-4">Loading data...</div>
+      </div>
+      <VueApexCharts v-else type="donut" height="370" :options="deliveryExceptionsChartConfig" :series="deliveryExceptionsChartSeries" />
     </VCardText>
   </VCard>
 </template>
+
+<style lang="scss">
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 370px;
+}
+
+.loading-text {
+  font-size: 16px;
+  color: rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity));
+}
+</style>

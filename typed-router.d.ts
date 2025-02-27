@@ -122,6 +122,7 @@ declare module 'vue-router/auto-routes' {
     'pages-campaigns-create': RouteRecordInfo<'pages-campaigns-create', '/pages/campaigns/create', Record<never, never>, Record<never, never>>,
     'pages-campaigns-settings': RouteRecordInfo<'pages-campaigns-settings', '/pages/campaigns/settings', Record<never, never>, Record<never, never>>,
     'pages-campaigns-show': RouteRecordInfo<'pages-campaigns-show', '/pages/campaigns/show', Record<never, never>, Record<never, never>>,
+    'pages-campaigns-show-access-logs-table': RouteRecordInfo<'pages-campaigns-show-access-logs-table', '/pages/campaigns/show/AccessLogsTable', Record<never, never>, Record<never, never>>,
     'pages-campaigns-show-bar-chart': RouteRecordInfo<'pages-campaigns-show-bar-chart', '/pages/campaigns/show/BarChart', Record<never, never>, Record<never, never>>,
     'pages-campaigns-show-dashboard-card': RouteRecordInfo<'pages-campaigns-show-dashboard-card', '/pages/campaigns/show/DashboardCard', Record<never, never>, Record<never, never>>,
     'pages-campaigns-show-donut-chart': RouteRecordInfo<'pages-campaigns-show-donut-chart', '/pages/campaigns/show/DonutChart', Record<never, never>, Record<never, never>>,

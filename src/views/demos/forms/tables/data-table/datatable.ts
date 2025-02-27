@@ -22,6 +22,7 @@ const data: Data[] = [
     age: '27',
     experience: '2 Years',
     status: 1,
+    
   },
   {
     responsiveId: '',
@@ -49,7 +50,7 @@ const data: Data[] = [
     salary: 18991.67,
     age: '59',
     experience: '9 Years',
-    status: 3,
+    status: 2,
   },
   {
     responsiveId: '',
@@ -63,7 +64,7 @@ const data: Data[] = [
     salary: 19252.12,
     age: '30',
     experience: '0 Year',
-    status: 4,
+    status: 3,
   },
   {
     responsiveId: '',
@@ -77,7 +78,7 @@ const data: Data[] = [
     salary: 13076.28,
     age: '66',
     experience: '6 Years',
-    status: 5,
+    status: 2,
   },
   {
     responsiveId: '',
