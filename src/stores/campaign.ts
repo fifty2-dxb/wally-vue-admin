@@ -86,6 +86,27 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
+  const fetchPassValue = async (
+    campaignGuid: string,
+    startDate: string,
+    endDate: string,
+    campaignType: string,
+  ) => {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("type", campaignType);
+      queryParams.append("startDate", startDate);
+      queryParams.append("endDate", endDate);
+  
+      const url = `/pass-value/campaigId/${campaignGuid}?${queryParams.toString()}`;
+      const response = await $wallyApi(url, { method: "GET" });
+      return response;
+    } catch (error) {
+      console.error("Error fetching pass value:", error);
+      throw error;
+    }
+  };
+
   const addCampaign = async (campaignData) => {
     try {
       const response = await $wallyApi("/campaigns", {
@@ -141,7 +162,8 @@ export const useCampaignStore = defineStore("campaign", () => {
     deleteCampaign,
     updateCampaign,
     fetchCampaignStatistics,
-    fetchCampaignStatisticsMonthly
+    fetchCampaignStatisticsMonthly,
+    fetchPassValue
   };
 });
 

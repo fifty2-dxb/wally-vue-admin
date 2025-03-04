@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useCampaignStore } from '@/stores/campaign';
 import DashboardCard from './DashboardCard.vue'
 import DonutChart from './DonutChart.vue'
 import BarChart from './BarChart.vue'
 import AccessLogsTable from './AccessLogsTable.vue'
-import * as demoCode from '@/views/demos/forms/tables/data-table/demoCodeDataTable'
-
-const router = useRouter();
 
 const route = useRoute();
 const type = route.query.type as string;
@@ -26,7 +23,7 @@ const statistics = ref<Record<string, number | null>>({
 
 const barchartStats = ref({})
 const isLoading = ref(true);
-
+const accessLogsData = ref([]);
 const startDate = ref('');
 const endDate = ref('');
 const currentDate = new Date();
@@ -60,6 +57,8 @@ const applyFilters = async () => {
   } finally {
     isLoading.value = false;
   }
+
+  fetchPassValueData()
 };
 
 const widgetData = computed(() => {
@@ -139,6 +138,35 @@ const handleMonthSelected = ({ startDate, endDate }) => {
   endDateMonthly.value = endDate;
 
   fetchStatistics();
+};
+
+const fetchPassValueData = async () => {
+  if (!startDate.value || !endDate.value) {
+    showSnackbar('Please select both start and end dates.', 'error');
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+    const passValueData = await campaignStore.fetchPassValue(
+      campaignGuid,
+      startDate.value,
+      endDate.value,
+      campaignType.value,
+    );
+
+    accessLogsData.value = passValueData?.map(item => ({
+      name: item.customerName || 'Unknown',
+      membershipType: item.passType || 'N/A',
+      date: new Date(item.createdAt).toLocaleString(),
+    }));
+
+    console.log('Access Logs Data:', accessLogsData.value);
+  } catch (error) {
+    console.error("Error fetching pass value data:", error);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 // Function to convert hex color to RGBA with opacity
@@ -240,19 +268,15 @@ const showSnackbar = (message: string, color: string) => {
           <DonutChart :data="widgetData" :isLoading="isLoading" />
         </VCol>
         <VCol cols="6" md="6">
-          <BarChart @monthSelected="handleMonthSelected"
-            :data="barchartStats" :campaignType="campaignType"/>
+          <BarChart @monthSelected="handleMonthSelected" :data="barchartStats" :campaignType="campaignType" />
         </VCol>
         <VCol cols="12">
-      <VCard v-if="campaignType === 'membership'">
-        <VCardTitle>{{ $t('Access Logs') }}</VCardTitle>
-        <AccessLogsTable />
-
-      </VCard>
-      
-    </VCol>
+          <VCard v-if="accessLogsData.length > 0">
+            <VCardTitle>{{ $t('Access Logs') }}</VCardTitle>
+            <AccessLogsTable :accessLogs=accessLogsData />
+          </VCard>
+        </VCol>
       </VRow>
-      
     </VCardText>
   </VCard>
 
