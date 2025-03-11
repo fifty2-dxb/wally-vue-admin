@@ -37,7 +37,6 @@ const endDateMonthly = ref(
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('');
-const campaignType = ref('')
 
 const applyFilters = async () => {
   if (!startDate.value || !endDate.value) {
