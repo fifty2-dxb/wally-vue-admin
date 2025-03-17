@@ -126,6 +126,7 @@ declare module 'vue-router/auto-routes' {
     'pages-campaigns-show-bar-chart': RouteRecordInfo<'pages-campaigns-show-bar-chart', '/pages/campaigns/show/BarChart', Record<never, never>, Record<never, never>>,
     'pages-campaigns-show-dashboard-card': RouteRecordInfo<'pages-campaigns-show-dashboard-card', '/pages/campaigns/show/DashboardCard', Record<never, never>, Record<never, never>>,
     'pages-campaigns-show-donut-chart': RouteRecordInfo<'pages-campaigns-show-donut-chart', '/pages/campaigns/show/DonutChart', Record<never, never>, Record<never, never>>,
+    'pages-campaigns-show-mobile': RouteRecordInfo<'pages-campaigns-show-mobile', '/pages/campaigns/show/mobile', Record<never, never>, Record<never, never>>,
     'pages-campaigns-topup': RouteRecordInfo<'pages-campaigns-topup', '/pages/campaigns/topup', Record<never, never>, Record<never, never>>,
     'pages-campaigns-topup-amount-card': RouteRecordInfo<'pages-campaigns-topup-amount-card', '/pages/campaigns/topup/AmountCard', Record<never, never>, Record<never, never>>,
     'pages-campaigns-topup-failed-payment-card': RouteRecordInfo<'pages-campaigns-topup-failed-payment-card', '/pages/campaigns/topup/FailedPaymentCard', Record<never, never>, Record<never, never>>,

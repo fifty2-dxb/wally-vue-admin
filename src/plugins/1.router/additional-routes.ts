@@ -192,4 +192,13 @@ export const routes: RouteRecordRaw[] = [
     name: 'pages-customers-show',
     component: showCustomerComponent,
   },
+  {
+    path: '/pwa/:id',
+    name: 'pages-campaigns-show-mobile-events',
+    component: () => import('@/pages/pages/campaigns/show/mobile.vue'),
+    meta: {
+      layout: 'blank',
+      requiresAuth: false,
+    },
+  },
 ]

@@ -11,6 +11,7 @@ import VueDevTools from 'vite-plugin-vue-devtools'
 import Layouts from 'vite-plugin-vue-layouts'
 import vuetify from 'vite-plugin-vuetify'
 import svgLoader from 'vite-svg-loader'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -89,7 +90,67 @@ export default defineConfig({
       ],
     }),
     svgLoader(),
-
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      manifest: {
+        name: 'Wally Campaign',
+        short_name: 'Wally',
+        description: 'Campaign Mobile View',
+        theme_color: '#7367F0',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/pages/campaigns/show/',
+        scope: '/pages/campaigns/show/',
+        icons: [
+          {
+            src: '/icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/dev-api\.wally\.ae\/.*$/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 86400, 
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/wally-images-bucket-dev\.s3\.eu-central-1\.amazonaws\.com\/.*$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 604800,
+              },
+            },
+          },
+        ],
+        cleanupOutdatedCaches: true,
+      },
+      strategies: 'generateSW',
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
+    }),
   ],
   define: { 'process.env': {} },
   resolve: {

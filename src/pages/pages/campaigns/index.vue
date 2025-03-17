@@ -167,6 +167,9 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
               </VBtn>
 
               <IconBtn @click="getPlatformUrl(c)" color="secondary" icon="tabler-share" />
+              <IconBtn v-if="c.styleSettings.type === 'event'" :to="{ name: 'pages-campaigns-show-mobile-events', params: { id: c.campaignGuid }, query: { mode: 'pwa' } }">
+                <VIcon icon="tabler-nfc" />
+              </IconBtn>
               <IconBtn v-if="c.styleSettings.type === 'stamp'" :to="{ name: 'pages-campaigns-show-mobile', params: { id: c.campaignGuid } }">
                 <VIcon icon="tabler-device-mobile" />
               </IconBtn>
