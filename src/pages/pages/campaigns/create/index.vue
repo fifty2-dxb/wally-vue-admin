@@ -180,18 +180,20 @@
   const validateForm = () => {
     const { properties, type } = loyaltyData.value.template;
 
-    errors.value.icon = type === 'balance' && !properties.icon;
-    errors.value.logo = type === 'balance' && !properties.logo;
+    console.log(loyaltyData.value);
+
+    errors.value.icon = (type === 'balance' || type === 'event') && !properties.icon;
+    errors.value.logo = (type === 'balance' || type === 'event') && !properties.logo;
 
     if (type === 'membership') {
       errors.value.stripImagePreviewApple = !properties.stripImagePreviewApple;
       errors.value.stripImagePreviewGoogle = !properties.stripImagePreviewGoogle;
       errors.value.reward = false;
     } else {
-      errors.value.reward = type !== 'balance' && !properties.reward;
-      errors.value.stripImagePreviewApple = false;
-      errors.value.stripImagePreviewGoogle = false;
-    }
+    errors.value.reward = type !== 'balance' && type !== 'event' && !properties.reward;
+    errors.value.stripImagePreviewApple = false;
+    errors.value.stripImagePreviewGoogle = false;
+  }
 
     if (
       errors.value.icon ||
@@ -214,7 +216,7 @@
       properties.icon &&
       (type === 'membership'
         ? properties.stripImagePreviewApple && properties.stripImagePreviewGoogle
-        : type === 'balance' || properties.reward
+        : type === 'balance' || type === 'event' || properties.reward
       )
     );
   });
@@ -371,6 +373,28 @@
                         </v-card-text>
                       </v-card>
                       </v-col> -->
+                      <v-col>
+                        <v-card
+                        rounded="lg"
+                        :style="
+                          campaignType == 'event'
+                            ? 'border-color:rgb(var(--v-theme-primary)) !important'
+                            : ''
+                        "
+                        :class="
+                          campaignType == 'event'
+                            ? 'border'
+                            : 'border border-dashed elevation-0'
+                        "
+                        @click="campaignType = 'event'"
+                      >
+                        <v-card-text class="text-center py-2">
+                          <div class="text-h6 font-weight-medium">
+                            {{$t("EVENT CARD")}}
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                      </v-col>
                     </v-row>
                     <v-divider class="my-3"></v-divider>
                     <v-row>

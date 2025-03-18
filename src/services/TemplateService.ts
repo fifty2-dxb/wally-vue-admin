@@ -228,6 +228,66 @@ const templates = [
       ],
     },
   },
+  {
+    name: "Event Template",
+    key: "wally-event",
+    description: "Wally Event",
+    image: "/images/loyalty/templates/barbershop-prw.png",
+    type: "event",
+    properties: {
+      icon: "",
+      logo: "",
+      backgroundImage: "",
+      background: "#ffffff",
+      text: "#000000"
+    },
+    fields: {
+      apple: {
+        f1: "name",
+        f2: "email",
+        f3: "phone"
+      },
+      google: {
+        f1: "name",
+        f2: "email",
+        f3: "phone"
+      }
+    },
+    additionalFields: [
+      {
+        title: "Event Details",
+        description: "Provide details about the event",
+        type: "Text"
+      },
+      {
+        title: "Terms",
+        description: "Please fill in your Terms and Conditions",
+        type: "Text"
+      }
+    ],
+    enrollmentForm: {
+      fields: [],
+      design: {}
+    },
+    details: {
+      cardDescription: "Join us for an exciting event!",
+      eventName: "",
+      eventDescription: "",
+      location: "",
+      startDate: "",
+      endDate: "",
+      capacity: "",
+      businessName: "",
+      usefulLinks: [
+        {
+          text: "Event Website",
+          link: "http://eventwebsite.com",
+          type: "Url"
+        }
+      ]
+    }
+  },  
+  
   // {
   //   name: "Wally",
   //   key: "wally",

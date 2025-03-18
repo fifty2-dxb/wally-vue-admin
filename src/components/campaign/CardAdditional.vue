@@ -205,6 +205,35 @@
   </v-dialog>
   </v-card>
 
+
+  <v-card class="elevation-0" :title="$t('Event Time')">
+    <v-card-text>
+      <v-text-field 
+        v-if="isEventCampaign" 
+        v-model="data.template.details.startDate" 
+        label="Start Date" 
+        type="date"
+        class="mb-6"
+      ></v-text-field>
+
+      <v-text-field 
+        v-if="isEventCampaign" 
+        v-model="data.template.details.endDate" 
+        label="End Date" 
+        type="date"
+        class="mb-6"
+      ></v-text-field>
+
+      <v-text-field 
+        v-if="isEventCampaign" 
+        v-model="data.template.details.capacity" 
+        label="Capacity"
+        type="number"
+        class="mb-6"
+      ></v-text-field>
+    </v-card-text>
+  </v-card>
+  
   <v-divider class=""></v-divider>
 
   <v-card class="elevation-0" :title="$t('Useful Links')">
@@ -280,6 +309,8 @@ let selectedLocationIndex = ref(null);
 
 let debounceTimeout = null;
 let marker = null;
+
+const isEventCampaign = computed(() => props.modelValue.template.type === "event");
 
 const toggleAdvancedFields = () => {
   advancedFieldsVisible.value = !advancedFieldsVisible.value;
