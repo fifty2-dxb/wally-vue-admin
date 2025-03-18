@@ -205,32 +205,6 @@ onMounted(() => {
         </template>
       </div>
     </div>
-
-    <div  class="test-controls">
-      <VBtn 
-        color="grey"
-        class="mb-2"
-        block
-        @click="resetScan"
-      >
-        Reset to Initial
-      </VBtn>
-      <VBtn 
-        color="success"
-        class="mb-2"
-        block
-        @click="testNewTag"
-      >
-        Test New Tag
-      </VBtn>
-      <VBtn 
-        color="error"
-        block
-        @click="testUsedTag"
-      >
-        Test Used Tag
-      </VBtn>
-    </div>
   </div>
 </template>
 
