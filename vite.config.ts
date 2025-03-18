@@ -100,8 +100,8 @@ export default defineConfig({
         theme_color: '#7367F0',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/pages/campaigns/show/',
-        scope: '/pages/campaigns/show/',
+        start_url: '/pwa/',
+        scope: '/pwa/',
         icons: [
           {
             src: '/icons/icon-192x192.png',
@@ -118,8 +118,21 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        navigateFallback: null,
+        navigateFallbackDenylist: [/^(?!\/pwa\/).*/],
+        globPatterns: [
+          '**/mobile.*.{js,css}',
+          'manifest.webmanifest'
+        ],
         runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/pwa/'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pwa-mobile-pages'
+            }
+          },
           {
             urlPattern: /^https:\/\/dev-api\.wally\.ae\/.*$/,
             handler: 'NetworkFirst',
@@ -127,9 +140,9 @@ export default defineConfig({
               cacheName: 'api-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 86400, 
-              },
-            },
+                maxAgeSeconds: 86400
+              }
+            }
           },
           {
             urlPattern: /^https:\/\/wally-images-bucket-dev\.s3\.eu-central-1\.amazonaws\.com\/.*$/,
@@ -138,18 +151,21 @@ export default defineConfig({
               cacheName: 'image-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 604800,
-              },
-            },
-          },
+                maxAgeSeconds: 604800
+              }
+            }
+          }
         ],
         cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        disableDevLogs: true
       },
       strategies: 'generateSW',
       devOptions: {
         enabled: true,
-        type: 'module',
-      },
+        type: 'module'
+      }
     }),
   ],
   define: { 'process.env': {} },
