@@ -1,8 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ConfettiExplosion from 'vue-confetti-explosion';
 import { useCampaignStore } from '@/stores/campaign';
+
+declare global {
+  class NDEFReader {
+    scan(): Promise<void>
+    addEventListener(type: string, callback: (event: any) => void): void
+    removeEventListener(type: string, callback: (event: any) => void): void
+  }
+  interface Window {
+    NDEFReader: new () => NDEFReader
+  }
+}
 
 interface Campaign {
   campaignName: string;
@@ -12,10 +23,20 @@ interface Campaign {
   };
 }
 
+interface CampaignResponse {
+  status: string;
+  campaign: Campaign;
+  event: {
+    eventGuid: string;
+    eventName: string;
+  };
+}
+
 const route = useRoute();
 const campaignGuid = route.params.id as string;
 const campaignStore = useCampaignStore();
 const campaign = ref<Campaign | null>(null);
+const eventGuid = ref('');
 const isLoading = ref(true);
 const scanState = ref('initial'); // 'initial', 'success', 'already_scanned'
 const scanTime = ref('');
@@ -50,62 +71,98 @@ const updateEventInfo = (campaign: Campaign | null) => {
   }
 };
 
-const simulateNFCScan = async (serialNumber: string) => {
+const handleNFCTap = async (event: any) => {
   try {
-    const mockNFCTag = {
-      id: serialNumber || `NFC-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      scannerId: `Scanner-${Math.floor(Math.random() * 1000000)}`
-    };
+    if (!eventGuid.value) {
+      console.error('Event GUID not available')
+      scanState.value = 'error'
+      return
+    }
 
-    nfcTagId.value = mockNFCTag.id;
-    scanTime.value = mockNFCTag.timestamp;
-    scannerID.value = mockNFCTag.scannerId;
+    
+    const response = await $wallyApi('/event-access', {
+      method: 'POST',
+      body: {
+        serialNumber: eventGuid.value,
+        campaignGuid,
+      },
+    })
 
-    const isAlreadyScanned = serialNumber === 'used-tag';
-    scanState.value = isAlreadyScanned ? 'already_scanned' : 'success';
+
+    nfcTagId.value = eventGuid.value
+    scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`
+
+    const isAlreadyScanned = response.status === 'already_scanned'
+    scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
     
     if (!isAlreadyScanned) {
-      showConfetti.value = true;
+      showConfetti.value = true
       setTimeout(() => {
-        showConfetti.value = false;
-      }, 2500);
+        showConfetti.value = false
+      }, 2500)
     }
   } catch (error) {
-    console.error('Error scanning NFC:', error);
+    console.error('Error validating NFC tag:', error)
+    scanState.value = 'error'
   }
-};
+}
 
-const resetScan = () => {
-  scanState.value = 'initial'
-  nfcTagId.value = ''
-  scanTime.value = ''
-  scannerID.value = ''
-};
-
-const testNewTag = () => {
-  simulateNFCScan(`new-tag-${Math.random().toString(36).substr(2, 6)}`);
-};
-
-const testUsedTag = () => {
-  simulateNFCScan('used-tag');
-};
+const setupNFC = async () => {
+  try {
+    if ('NDEFReader' in window) {
+      const ndef = new NDEFReader()
+      await ndef.scan()
+      
+      ndef.addEventListener('reading', handleNFCTap)
+    } else {
+      console.error('NFC not supported on this device')
+    }
+  } catch (error) {
+    console.error('Error setting up NFC:', error)
+  }
+}
 
 const fetchCampaignDetails = async () => {
   try {
-    await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
-    campaign.value = campaignStore.campaign as Campaign;
-    updateEventInfo(campaign.value);
-  } catch (error) {
-    console.error('Error fetching campaign:', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
+    const response = await campaignStore.fetchCampaignByCampaignGuid(campaignGuid)
 
-onMounted(() => {
-  fetchCampaignDetails();
-});
+    if (!response) {
+      console.error('No response received from campaign store')
+      scanState.value = 'error'
+
+      return
+    }
+
+    if (!response.campaign || !response.event) {
+      console.error('Invalid response structure:', response)
+      scanState.value = 'error'
+      return
+    }
+
+    campaign.value = response.campaign
+    eventGuid.value = response.event.eventGuid
+    updateEventInfo(campaign.value)
+  } catch (error) {
+    console.error('Error fetching campaign:', error)
+    scanState.value = 'error'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await fetchCampaignDetails()
+  await setupNFC()
+})
+
+onUnmounted(() => {
+  // Clean up NFC listener if needed
+  if ('NDEFReader' in window) {
+    const ndef = new NDEFReader()
+    ndef.removeEventListener('reading', handleNFCTap)
+  }
+})
 </script>
 
 <template>
@@ -139,6 +196,28 @@ onMounted(() => {
           </p>
         </template>
         
+        <template v-else-if="scanState === 'error'">
+          <div class="icon-container">
+            <VIcon
+              icon="tabler-alert-circle"
+              color="white"
+              size="64"
+            />
+          </div>
+
+          <h1 class="welcome-text">
+            {{ $t('Error Scanning Tag') }}
+          </h1>
+          
+          <h2 class="location-text">
+            {{ $t('Please try again') }}
+          </h2>
+
+          <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
+            {{ $t('Try Again') }}
+          </VBtn>
+        </template>
+
         <template v-else>
           <div class="icon-container">
             <VIcon
@@ -217,7 +296,6 @@ onMounted(() => {
   justify-content: center;
   padding: 1rem;
   background: #f5f5f5;
-  gap: 1rem;
 }
 
 .mobile-frame {
@@ -241,6 +319,10 @@ onMounted(() => {
 
 .mobile-frame.already_scanned {
   background: #FF5252;
+}
+
+.mobile-frame.error {
+  background: #FF9800;
 }
 
 .status-bar {
@@ -285,6 +367,10 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 400;
   margin-bottom: 3rem;
+}
+
+.location-text.text-black {
+  color: #000;
 }
 
 .ticket-info {
@@ -354,13 +440,8 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.test-controls {
-  width: 100%;
-  max-width: 390px;
-  padding: 1rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.mt-4 {
+  margin-top: 1rem;
 }
 
 @media (max-width: 480px) {
@@ -372,15 +453,6 @@ onMounted(() => {
     border-radius: 0;
     height: 100vh;
     max-height: 100vh;
-  }
-
-  .test-controls {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-width: none;
-    border-radius: 16px 16px 0 0;
   }
 }
 </style> 

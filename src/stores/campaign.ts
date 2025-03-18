@@ -66,6 +66,7 @@ export const useCampaignStore = defineStore("campaign", () => {
       } else {
         campaign.value = null;
       }
+      return response;
     } catch (error) {
       console.error("Error fetching campaign by campaign GUID:", error);
       throw error;
