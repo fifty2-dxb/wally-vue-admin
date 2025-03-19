@@ -55,32 +55,29 @@ const updateEventInfo = (campaign: Campaign | null) => {
 
 const receiveNfcData = async (data: string) => {
   try {
-    if (!eventGuid.value) {
-      console.error('Event GUID not available')
+    if (!data) {
+      console.error('No NFC data received')
       scanState.value = 'error'
       return
     }
 
-    console.log('NFC data received from mobile:', data);
-    
-    const serialNumber = data || eventGuid.value;
+    console.log('NFC data received from mobile:', data)
     
     const response = await $wallyApi('/event-access', {
       method: 'POST',
       body: {
-        serialNumber,
-        campaignGuid,
+        serialNumber: data
       },
     })
 
-    nfcTagId.value = serialNumber;
+    nfcTagId.value = data;
     scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`;
 
-    const isAlreadyScanned = response.status === 'already_scanned';
-    scanState.value = isAlreadyScanned ? 'already_scanned' : 'success';
+    const isDeniedOrAlreadyScanned = response.status === 403 || response.status === 'already_scanned';
+    scanState.value = isDeniedOrAlreadyScanned ? 'denied' : 'success';
     
-    if (!isAlreadyScanned) {
+    if (!isDeniedOrAlreadyScanned) {
       showConfetti.value = true;
       setTimeout(() => {
         showConfetti.value = false;
@@ -191,21 +188,21 @@ onUnmounted(() => {
           </VBtn>
         </template>
 
-        <template v-else-if="scanState === 'already_scanned'">
+        <template v-else-if="scanState === 'denied'">
           <div class="icon-container">
             <VIcon
-              icon="tabler-alert-triangle"
+              icon="tabler-alert-circle"
               color="white"
               size="64"
             />
           </div>
 
           <h1 class="welcome-text">
-            {{ $t('Ticket Already Scanned!') }}
+            {{ $t('Access Denied') }}
           </h1>
           
           <h2 class="location-text">
-            {{ campaign?.campaignName || $t('Event Location') }}
+            {{ $t('Already scanned or access denied') }}
           </h2>
 
           <div class="scan-info">
@@ -214,14 +211,14 @@ onUnmounted(() => {
               <span class="scan-value">{{ scanTime }}</span>
             </div>
             <div class="scan-row">
-              <span class="scan-label">{{ $t('SCANNED BY') }}</span>
-              <span class="scan-value">{{ scannerID }}</span>
-            </div>
-            <div class="scan-row">
               <span class="scan-label">{{ $t('NFC TAG ID') }}</span>
               <span class="scan-value">{{ nfcTagId }}</span>
             </div>
           </div>
+
+          <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
+            {{ $t('Try Again') }}
+          </VBtn>
         </template>
 
         <template v-else-if="scanState === 'success'">
