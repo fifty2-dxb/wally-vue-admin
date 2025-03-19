@@ -24,6 +24,7 @@ const scanState = ref('initial');
 const scanTime = ref('');
 const scannerID = ref('');
 const nfcTagId = ref('');
+const customerName = ref('');
 const showConfetti = ref(false);
 
 // Event information based on campaign type
@@ -56,28 +57,32 @@ const updateEventInfo = (campaign: Campaign | null) => {
 const receiveNfcData = async (data: string) => {
   try {
     if (!data) {
-      console.error('No NFC data received')
-      scanState.value = 'error'
-      return
+      console.error('No NFC data received');
+      scanState.value = 'error';
+      return;
     }
 
-    console.log('NFC data received from mobile:', data)
+    console.log('NFC data received from mobile:', data);
     
     const response = await $wallyApi('/event-access', {
       method: 'POST',
       body: {
-        serialNumber: data
+        serialNumber: data,
       },
-    })
+    });
 
     nfcTagId.value = data;
     scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`;
+    customerName.value = response.customerName || '';
 
     const isDeniedOrAlreadyScanned = response.status === 403 || response.status === 'already_scanned';
     scanState.value = isDeniedOrAlreadyScanned ? 'denied' : 'success';
     
-    if (!isDeniedOrAlreadyScanned) {
+    if (isDeniedOrAlreadyScanned) {
+      console.log('Access denied or already scanned:', response.message);
+      scanTime.value = new Date(response.scanTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
       showConfetti.value = true;
       setTimeout(() => {
         showConfetti.value = false;
@@ -122,6 +127,7 @@ const resetScan = () => {
   nfcTagId.value = '';
   scanTime.value = '';
   scannerID.value = '';
+  customerName.value = '';
 };
 
 onMounted(() => {
@@ -202,13 +208,17 @@ onUnmounted(() => {
           </h1>
           
           <h2 class="location-text">
-            {{ $t('Already scanned or access denied') }}
+            {{ $t('Already scanned') }}
           </h2>
 
           <div class="scan-info">
             <div class="scan-row">
               <span class="scan-label">{{ $t('SCANNED AT') }}</span>
               <span class="scan-value">{{ scanTime }}</span>
+            </div>
+            <div class="scan-row">
+              <span class="scan-label">{{ $t('Customer Name') }}</span>
+              <span class="scan-value">{{ customerName }}</span>
             </div>
             <div class="scan-row">
               <span class="scan-label">{{ $t('NFC TAG ID') }}</span>
@@ -260,6 +270,10 @@ onUnmounted(() => {
                 <div class="info-value">{{ eventInfo.tertiary.value }}</div>
               </div>
             </div>
+            <div class="scan-row">
+              <span class="scan-label">{{ $t('Customer Name') }}</span>
+              <span class="scan-value">{{ customerName }}</span>
+            </div>
           </div>
 
           <div class="message-text">
@@ -307,6 +321,10 @@ onUnmounted(() => {
 
 .mobile-frame.error {
   background: #FF9800;
+}
+
+.mobile-frame.denied {
+  background: #FF5252;
 }
 
 .status-bar {
