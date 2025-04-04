@@ -3,7 +3,17 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ConfettiExplosion from 'vue-confetti-explosion';
 import { useCampaignStore } from '@/stores/campaign';
-import { $wallyApi } from '@/utils/wally-api'
+
+declare global {
+  class NDEFReader {
+    scan(): Promise<void>
+    addEventListener(type: string, callback: (event: any) => void): void
+    removeEventListener(type: string, callback: (event: any) => void): void
+  }
+  interface Window {
+    NDEFReader: new () => NDEFReader
+  }
+}
 
 interface Campaign {
   campaignName: string;
@@ -13,6 +23,14 @@ interface Campaign {
   };
 }
 
+interface CampaignResponse {
+  status: string;
+  campaign: Campaign;
+  event: {
+    eventGuid: string;
+    eventName: string;
+  };
+}
 
 const route = useRoute();
 const campaignGuid = route.params.id as string;
@@ -20,11 +38,10 @@ const campaignStore = useCampaignStore();
 const campaign = ref<Campaign | null>(null);
 const eventGuid = ref('');
 const isLoading = ref(true);
-const scanState = ref('initial');
+const scanState = ref('initial'); // 'initial', 'success', 'already_scanned'
 const scanTime = ref('');
 const scannerID = ref('');
 const nfcTagId = ref('');
-const customerName = ref('');
 const showConfetti = ref(false);
 
 // Event information based on campaign type
@@ -54,49 +71,81 @@ const updateEventInfo = (campaign: Campaign | null) => {
   }
 };
 
-const receiveNfcData = async (data: string) => {
+// ... existing code ...
+const handleNFCTap = async (event: any) => {
   try {
-    if (!data) {
-      console.error('No NFC data received');
-      scanState.value = 'error';
-      return;
+    if (!eventGuid.value) {
+      console.error('Event GUID not available')
+      scanState.value = 'error'
+      return
     }
 
-    console.log('NFC data received from mobile:', data);
-    
-    const response = await $wallyApi('/event-access', {
-      method: 'POST',
-      body: {
-        serialNumber: data,
-      },
-    });
+    let response;
+    const campaignType = campaign.value?.styleSettings?.type;
 
-    nfcTagId.value = data;
-    scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`;
-    customerName.value = response.customerName || '';
-
-    const isDeniedOrAlreadyScanned = response.status === 403 || response.status === 'already_scanned';
-    scanState.value = isDeniedOrAlreadyScanned ? 'denied' : 'success';
-    
-    if (isDeniedOrAlreadyScanned) {
-      console.log('Access denied or already scanned:', response.message);
-      scanTime.value = new Date(response.scanTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (campaignType === 'membership') {
+      response = await $wallyApi('/pass-value', {
+        method: 'POST',
+        body: {
+          serialNumber: eventGuid.value,
+          value: "1",
+          type: "access"
+        },
+      });
+    } else if (campaignType === 'event') {
+      response = await $wallyApi('/event-access', {
+        method: 'POST',
+        body: {
+          serialNumber: eventGuid.value,
+          campaignGuid,
+        },
+      });
     } else {
-      showConfetti.value = true;
+      console.error('Invalid campaign type for NFC')
+      scanState.value = 'error'
+      return
+    }
+
+    nfcTagId.value = eventGuid.value
+    scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`
+
+    const isAlreadyScanned = response.status === 'already_scanned'
+    scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
+    
+    if (!isAlreadyScanned) {
+      showConfetti.value = true
       setTimeout(() => {
-        showConfetti.value = false;
-      }, 2500);
+        showConfetti.value = false
+      }, 2500)
     }
   } catch (error) {
-    console.error('Error validating NFC tag:', error);
-    scanState.value = 'error';
+    console.error('Error validating NFC tag:', error)
+    scanState.value = 'error'
+  }
+}
+// ... existing code ...
+
+const setupNFC = async () => {
+  try {
+    if ('NDEFReader' in window) {
+      const ndef = new NDEFReader()
+      await ndef.scan()
+      
+      ndef.addEventListener('reading', handleNFCTap)
+    } else {
+      console.error('NFC not supported on this device')
+    }
+  } catch (error) {
+    console.error('Error setting up NFC:', error)
   }
 }
 
 const fetchCampaignDetails = async () => {
   try {
     const response = await campaignStore.fetchCampaignByCampaignGuid(campaignGuid)
+
+    console.log('response', response)
 
     if (!response) {
       console.error('No response received from campaign store')
@@ -122,23 +171,18 @@ const fetchCampaignDetails = async () => {
   }
 }
 
-const resetScan = () => {
-  scanState.value = 'initial';
-  nfcTagId.value = '';
-  scanTime.value = '';
-  scannerID.value = '';
-  customerName.value = '';
-};
-
-onMounted(() => {
-  fetchCampaignDetails();
-  
-  (window as any).receiveNfcData = receiveNfcData;
-});
+onMounted(async () => {
+  await fetchCampaignDetails()
+  await setupNFC()
+})
 
 onUnmounted(() => {
-  (window as any).receiveNfcData = null;
-});
+  // Clean up NFC listener if needed
+  if ('NDEFReader' in window) {
+    const ndef = new NDEFReader()
+    ndef.removeEventListener('reading', handleNFCTap)
+  }
+})
 </script>
 
 <template>
@@ -164,12 +208,19 @@ onUnmounted(() => {
             {{ campaign?.campaignName || $t('Event Location') }}
           </h2>
 
-          <h1 class="welcome-text text-black">
-            {{ $t('Tap NFC to Enter Event') }}
-          </h1>
+          <!-- check if campaign type is membership -->
+          <template v-if="campaign?.styleSettings?.type === 'membership'">
+            <h1 class="welcome-text text-black">
+              {{ $t('Tap to Access Membership') }}
+            </h1>
           <p class="subtitle-text text-primary">
-            {{ $t('Hold your device near the NFC tag') }}
-          </p>
+              {{ $t('Hold your device near the NFC tag') }}
+            </p>
+          </template>
+
+          <VBtn color="primary" variant="outlined" class="mt-4" @click="handleNFCTap('ab469c6b-98c7-4deb-9ff0-88649010e5dc')">
+            {{ $t('Test NFC') }}
+          </VBtn>
         </template>
         
         <template v-else-if="scanState === 'error'">
@@ -194,91 +245,86 @@ onUnmounted(() => {
           </VBtn>
         </template>
 
-        <template v-else-if="scanState === 'denied'">
+        <template v-else>
           <div class="icon-container">
             <VIcon
-              icon="tabler-alert-circle"
+              :icon="scanState === 'already_scanned' ? 'tabler-alert-triangle' : 'tabler-circle-check'"
               color="white"
               size="64"
             />
           </div>
 
           <h1 class="welcome-text">
-            {{ $t('Access Denied') }}
-          </h1>
-          
-          <h2 class="location-text">
-            {{ $t('Already scanned') }}
-          </h2>
-
-          <div class="scan-info">
-            <div class="scan-row">
-              <span class="scan-label">{{ $t('SCANNED AT') }}</span>
-              <span class="scan-value">{{ scanTime }}</span>
-            </div>
-            <div class="scan-row">
-              <span class="scan-label">{{ $t('Customer Name') }}</span>
-              <span class="scan-value">{{ customerName }}</span>
-            </div>
-            <div class="scan-row">
-              <span class="scan-label">{{ $t('NFC TAG ID') }}</span>
-              <span class="scan-value">{{ nfcTagId }}</span>
-            </div>
-          </div>
-
-          <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
-            {{ $t('Try Again') }}
-          </VBtn>
-        </template>
-
-        <template v-else-if="scanState === 'success'">
-          <div class="icon-container">
-            <VIcon
-              icon="tabler-circle-check"
-              color="white"
-              size="64"
-            />
-          </div>
-
-          <h1 class="welcome-text">
-            {{ $t('Welcome In') }}
+            {{ scanState === 'already_scanned' ? $t('Ticket Already Scanned!') : $t('Welcome In') }}
           </h1>
           
           <h2 class="location-text">
             {{ campaign?.campaignName || $t('Event Location') }}
           </h2>
 
-          <div class="ticket-info">
-            <ConfettiExplosion 
-              v-if="showConfetti"
-              :particleCount="200"
-              :particleSize="12"
-              :force="0.8"
-              class="confetti-container"
-            />
-            <div class="info-row">
-              <div class="info-col">
-                <div class="info-label">{{ eventInfo.primary.label }}</div>
-                <div class="info-value">{{ eventInfo.primary.value }}</div>
-              </div>
-              <div class="info-col">
-                <div class="info-label">{{ eventInfo.secondary.label }}</div>
-                <div class="info-value">{{ eventInfo.secondary.value }}</div>
-              </div>
-              <div class="info-col">
-                <div class="info-label">{{ eventInfo.tertiary.label }}</div>
-                <div class="info-value">{{ eventInfo.tertiary.value }}</div>
-              </div>
-            </div>
-            <div class="scan-row">
-              <span class="scan-label">{{ $t('Customer Name') }}</span>
-              <span class="scan-value">{{ customerName }}</span>
-            </div>
-          </div>
+          <template v-if="scanState === 'success'">
+            <div class="ticket-info">
+              <ConfettiExplosion 
+                v-if="showConfetti"
+                :particleCount="200"
+                :particleSize="12"
+                :force="0.8"
+                class="confetti-container"
+              />
+              <template v-if="campaign?.styleSettings?.type === 'event'">
+                <div class="info-row">
+                  <div class="info-col">
+                    <div class="info-label">{{ eventInfo.primary.label }}</div>
+                  <div class="info-value">{{ eventInfo.primary.value }}</div>
+                </div>
+                <div class="info-col">
+                  <div class="info-label">{{ eventInfo.secondary.label }}</div>
+                  <div class="info-value">{{ eventInfo.secondary.value }}</div>
+                </div>
+                <div class="info-col">
+                  <div class="info-label">{{ eventInfo.tertiary.label }}</div>
+                  <div class="info-value">{{ eventInfo.tertiary.value }}</div>
+                </div>
+              </div>  
 
-          <div class="message-text">
-            {{ $t('Enjoy the event!') }}
-          </div>
+            <div class="message-text">
+              {{ $t('Enjoy the event!') }}
+            </div>
+              </template>
+              <template v-if="campaign?.styleSettings?.type === 'membership'">
+                <div class="info-row">
+                  <div class="info-col">
+                    <div class="info-label">{{ eventInfo.primary.label }}</div>
+                  </div>
+                </div>
+                <div class="message-text">
+                  {{ $t('Welcome to the membership!') }}
+                </div>
+              </template>
+            </div>
+
+
+            <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
+            {{ $t('Tap Again') }}
+          </VBtn>
+          </template>
+
+          <template v-else>
+            <div class="scan-info">
+              <div class="scan-row">
+                <span class="scan-label">{{ $t('SCANNED AT') }}</span>
+                <span class="scan-value">{{ scanTime }}</span>
+              </div>
+              <div class="scan-row">
+                <span class="scan-label">{{ $t('SCANNED BY') }}</span>
+                <span class="scan-value">{{ scannerID }}</span>
+              </div>
+              <div class="scan-row">
+                <span class="scan-label">{{ $t('NFC TAG ID') }}</span>
+                <span class="scan-value">{{ nfcTagId }}</span>
+              </div>
+            </div>
+          </template>
         </template>
       </div>
     </div>
@@ -321,10 +367,6 @@ onUnmounted(() => {
 
 .mobile-frame.error {
   background: #FF9800;
-}
-
-.mobile-frame.denied {
-  background: #FF5252;
 }
 
 .status-bar {
@@ -410,7 +452,6 @@ onUnmounted(() => {
   color: white;
   font-size: 1.5rem;
   font-weight: 500;
-  margin-bottom: 1.5rem;
 }
 
 .scan-info {
@@ -445,14 +486,6 @@ onUnmounted(() => {
 
 .mt-4 {
   margin-top: 1rem;
-}
-
-.confetti-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
 }
 
 @media (max-width: 480px) {
