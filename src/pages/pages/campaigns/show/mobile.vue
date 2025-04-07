@@ -187,6 +187,7 @@ const fetchCampaignDetails = async () => {
 }
 
 onMounted(async () => {
+  (window as any).receiveNfcData = receiveNfcData;
   await fetchCampaignDetails()
   await setupNFC()
 })
