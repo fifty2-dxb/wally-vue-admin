@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ConfettiExplosion from 'vue-confetti-explosion';
 import { useCampaignStore } from '@/stores/campaign';
+import { useCustomerStore } from '@/stores/customer';
 
 declare global {
   class NDEFReader {
@@ -43,7 +44,7 @@ const scanTime = ref('');
 const scannerID = ref('');
 const nfcTagId = ref('');
 const showConfetti = ref(false);
-
+const errorMessage = ref('');
 // Event information based on campaign type
 const eventInfo = ref({
   primary: { label: '', value: '' },
@@ -71,8 +72,15 @@ const updateEventInfo = (campaign: Campaign | null) => {
   }
 };
 
+const resetScan = () => {
+  scanState.value = 'initial'
+  scanTime.value = ''
+  scannerID.value = ''
+  nfcTagId.value = ''
+}
+
 // ... existing code ...
-const handleNFCTap = async (event: any) => {
+const receiveNfcData = async (event: any) => {
   try {
     if (!eventGuid.value) {
       console.error('Event GUID not available')
@@ -80,18 +88,52 @@ const handleNFCTap = async (event: any) => {
       return
     }
 
+    //creating a loading state
+    isLoading.value = true;
+
+    //get customer by serial number
+    await useCustomerStore().fetchCustomerBySerialNumber(event)
+    const customerStore = useCustomerStore();
+    console.log('customer', customerStore.customer);
+
+    //check if customer is found
+    if (!customerStore.customer) {
+      console.error('Customer not found')
+      scanState.value = 'error'
+      isLoading.value = false;
+      return
+    }
+
+    //hide loading state
+    isLoading.value = false;
+
     let response;
     const campaignType = campaign.value?.styleSettings?.type;
 
     if (campaignType === 'membership') {
+      // Show welcome message with customer name
+      const customerName = `${customerStore.customer.customers_details.name} ${customerStore.customer.customers_details.surname}`;
+      
       response = await $wallyApi('/pass-value', {
         method: 'POST',
         body: {
-          serialNumber: eventGuid.value,
+          serialNumber: event,
           value: "1",
-          type: "access"
+          type: "access",
+          eventGuid: eventGuid.value,
         },
       });
+
+      console.log('response', response);
+      //pass not found 
+      if (response.status !== 200) {
+        errorMessage.value = response.message
+        scanState.value = 'error'
+        return
+      } else {
+        scanState.value = 'success'
+      }
+
     } else if (campaignType === 'event') {
       response = await $wallyApi('/event-access', {
         method: 'POST',
@@ -100,6 +142,10 @@ const handleNFCTap = async (event: any) => {
           campaignGuid,
         },
       });
+      
+      const isAlreadyScanned = response.status === 'already_scanned'
+      scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
+
     } else {
       console.error('Invalid campaign type for NFC')
       scanState.value = 'error'
@@ -110,15 +156,7 @@ const handleNFCTap = async (event: any) => {
     scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`
 
-    const isAlreadyScanned = response.status === 'already_scanned'
-    scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
     
-    if (!isAlreadyScanned) {
-      showConfetti.value = true
-      setTimeout(() => {
-        showConfetti.value = false
-      }, 2500)
-    }
   } catch (error) {
     console.error('Error validating NFC tag:', error)
     scanState.value = 'error'
@@ -132,7 +170,7 @@ const setupNFC = async () => {
       const ndef = new NDEFReader()
       await ndef.scan()
       
-      ndef.addEventListener('reading', handleNFCTap)
+      ndef.addEventListener('reading', receiveNfcData)
     } else {
       console.error('NFC not supported on this device')
     }
@@ -172,6 +210,7 @@ const fetchCampaignDetails = async () => {
 }
 
 onMounted(async () => {
+  (window as any).receiveNfcData = receiveNfcData;
   await fetchCampaignDetails()
   await setupNFC()
 })
@@ -180,7 +219,7 @@ onUnmounted(() => {
   // Clean up NFC listener if needed
   if ('NDEFReader' in window) {
     const ndef = new NDEFReader()
-    ndef.removeEventListener('reading', handleNFCTap)
+    ndef.removeEventListener('reading', receiveNfcData)
   }
 })
 </script>
@@ -218,7 +257,7 @@ onUnmounted(() => {
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="mt-4" @click="handleNFCTap('ab469c6b-98c7-4deb-9ff0-88649010e5dc')">
+          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('58cb9cad-abb1-411e-ac2b-cf7ff42cadd9')">
             {{ $t('Test NFC') }}
           </VBtn>
         </template>
@@ -233,12 +272,13 @@ onUnmounted(() => {
           </div>
 
           <h1 class="welcome-text">
-            {{ $t('Error Scanning Tag') }}
+            {{ $t('Error Scanning Digital Card') }}
           </h1>
-          
-          <h2 class="location-text">
-            {{ $t('Please try again') }}
-          </h2>
+
+          <!-- show error message -->
+          <p class="error-message">
+            {{ errorMessage }}
+          </p>
 
           <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
             {{ $t('Try Again') }}
@@ -294,11 +334,9 @@ onUnmounted(() => {
               <template v-if="campaign?.styleSettings?.type === 'membership'">
                 <div class="info-row">
                   <div class="info-col">
-                    <div class="info-label">{{ eventInfo.primary.label }}</div>
+                    <div class="info-label">MEMBER</div>
+                    <div class="info-value">{{ useCustomerStore().customer.customers_details.name }} {{ useCustomerStore().customer.customers_details.surname }}</div>
                   </div>
-                </div>
-                <div class="message-text">
-                  {{ $t('Welcome to the membership!') }}
                 </div>
               </template>
             </div>
@@ -366,7 +404,7 @@ onUnmounted(() => {
 }
 
 .mobile-frame.error {
-  background: #FF9800;
+  background: #FF5252;
 }
 
 .status-bar {
@@ -394,6 +432,12 @@ onUnmounted(() => {
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: white;
+}
+
+.error-message {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
 .welcome-text.text-black {
@@ -439,13 +483,16 @@ onUnmounted(() => {
 .info-label {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
-  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
 }
 
 .info-value {
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
 .message-text {
