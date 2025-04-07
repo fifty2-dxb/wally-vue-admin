@@ -119,7 +119,7 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
         {{ $t('Campaigns') }}
       </h4>
       <div class="text-body-1">
-        {{ $t('Show all campaigns') }}
+        {{ $t('Show all digital cards') }}
       </div>
     </div>
 
@@ -136,52 +136,107 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
   <template v-if="isMerchantAvailable && !loading && isInitialized">
   <VRow>
     <VCol sm="6" cols="12" v-for="c in campaigns" :key="c.campaignGuid">
-      <VCard>
-        <v-row>
-          <v-col sm="12" md="4" :style="{ backgroundColor: getBackgroundColor(c) }">
-            <div
-              class="ma-auto pa-5 text-center"
-            >
+      <VCard class="campaign-card" elevation="2">
+        <VRow no-gutters>
+          <!-- Preview Section -->
+          <v-col sm="12" md="4" class="preview-section" :style="{ backgroundColor: getBackgroundColor(c) }">
+            <div class="preview-container">
               <img
-                width="100px"
                 :src="c.styleSettings.campaignPreview"
-                style="border-radius: 5px; border: 1px solid #ccc;"
+                alt="Campaign Preview"
+                class="preview-image"
               />
             </div>
           </v-col>
-          <VDivider :vertical="$vuetify.display.mdAndUp" />
-          <v-col sm="12" md="8">
-            <VCardItem>
-              <VCardTitle>{{ c.campaignName }}</VCardTitle>
-            </VCardItem>
 
-            <VCardText>
-              {{ c.campaignDescription }}
-            </VCardText>
+          <!-- Content Section -->
+          <v-col sm="12" md="8" class="content-section">
+            <div class="pa-6">
+              <!-- Campaign Type Badge -->
+              <VChip
+                :color="c.styleSettings.type === 'event' ? 'primary' : c.styleSettings.type === 'membership' ? 'success' : 'info'"
+                size="small"
+                class="mb-3"
+              >
+                {{ c.styleSettings.type.toUpperCase() }}
+              </VChip>
 
-            <VCardActions class="justify-space-between mt-10">
-              <VBtn :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid}, query: { type: c.styleSettings.type }}">
+              <!-- Campaign Title -->
+              <h3 class="text-h6 font-weight-bold mb-2">{{ c.campaignName }}</h3>
+              
+              <!-- Campaign Description -->
+              <p class="text-body-2 text-medium-emphasis mb-6">{{ c.campaignDescription }}</p>
 
-                <VIcon icon="tabler-folder-open" />
-                <span class="ms-2">{{ $t('Show Campaign') }}</span>
-              </VBtn>
+              <!-- Action Buttons -->
+              <div class="d-flex flex-wrap gap-2">
+                <!-- Primary Action -->
+                <VBtn
+                  :to="{ name: 'pages-campaigns-show', params: { id: c.campaignGuid}, query: { type: c.styleSettings.type }}"
+                  color="primary"
+                  variant="elevated"
+                  prepend-icon="tabler-folder-open"
+                >
+                  {{ $t('Show Digital Card') }}
+                </VBtn>
 
-              <IconBtn @click="getPlatformUrl(c)" color="secondary" icon="tabler-share" />
-              <IconBtn v-if="c.styleSettings.type === 'event' || c.styleSettings.type === 'membership'" :to="{ name: 'pages-campaigns-show-mobile-events', params: { id: c.campaignGuid }, query: { mode: 'pwa' } }">
-                <VIcon icon="tabler-nfc" />
-              </IconBtn>
-              <IconBtn v-if="c.styleSettings.type === 'stamp'" :to="{ name: 'pages-campaigns-show-mobile', params: { id: c.campaignGuid } }">
-                <VIcon icon="tabler-device-mobile" />
-              </IconBtn>
-              <IconBtn v-if="c.styleSettings.type === 'balance'" :to="{ name: 'pages-campaigns-topup-balance', params: { id: c.campaignGuid } }">
-                <VIcon icon="tabler-credit-card" />
-              </IconBtn>
-              <IconBtn @click="confirmDeleteCampaign(c.campaignGuid)">
-                <VIcon icon="tabler-trash" />
-              </IconBtn>
-            </VCardActions>
+                <!-- Secondary Actions -->
+                <div class="d-flex gap-2">
+                  <VBtn
+                    icon
+                    variant="tonal"
+                    color="secondary"
+                    @click="getPlatformUrl(c)"
+                  >
+                    <VIcon>tabler-share</VIcon>
+                  </VBtn>
+
+                  <!-- NFC Button for Event/Membership -->
+                  <VBtn
+                    v-if="c.styleSettings.type === 'event' || c.styleSettings.type === 'membership'"
+                    icon
+                    variant="tonal"
+                    color="primary"
+                    :to="{ name: 'pages-campaigns-show-mobile-events', params: { id: c.campaignGuid }, query: { mode: 'pwa' } }"
+                  >
+                    <VIcon>tabler-nfc</VIcon>
+                  </VBtn>
+
+                  <!-- Mobile Button for Stamp -->
+                  <VBtn
+                    v-if="c.styleSettings.type === 'stamp'"
+                    icon
+                    variant="tonal"
+                    color="info"
+                    :to="{ name: 'pages-campaigns-show-mobile', params: { id: c.campaignGuid } }"
+                  >
+                    <VIcon>tabler-device-mobile</VIcon>
+                  </VBtn>
+
+                  <!-- Balance Button -->
+                  <VBtn
+                    v-if="c.styleSettings.type === 'balance'"
+                    icon
+                    variant="tonal"
+                    color="success"
+                    :to="{ name: 'pages-campaigns-topup-balance', params: { id: c.campaignGuid } }"
+                  >
+                    <VIcon>tabler-credit-card</VIcon>
+                  </VBtn>
+
+                  <!-- Delete Button -->
+                  <VBtn
+                    icon
+                    variant="tonal"
+                    color="error"
+                    @click="confirmDeleteCampaign(c.campaignGuid)"
+                  >
+                    <VIcon>tabler-trash</VIcon>
+                  </VBtn>
+                </div>
+              </div>
+            </div>
           </v-col>
-        </v-row>
+        </VRow>
       </VCard>
     </VCol>
   </VRow>
@@ -208,3 +263,47 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
     {{ snackbarMessage }}
   </VSnackbar>
 </template>
+
+<style scoped>
+.campaign-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
+  overflow: hidden;
+}
+
+.campaign-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.1);
+}
+
+.preview-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 1.5rem;
+}
+
+.preview-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.content-section {
+  background-color: white;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+</style>

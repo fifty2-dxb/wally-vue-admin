@@ -210,9 +210,9 @@
       }
     }
   },
-  "Campaigns": "Campaigns",
-  "My Campaigns": "My Campaigns",
-  "Create New Campaign": "Create New Campaign",
+  "Campaigns": "My Smart Wallet",
+  "My Smart Wallet": "My Smart Wallet",
+  "Create New Campaign": "Create New Digital Card",
   "Campaign Settings": "Campaign Settings",
   "API Keys": "API Keys",
   "Certificates": "Certificates",

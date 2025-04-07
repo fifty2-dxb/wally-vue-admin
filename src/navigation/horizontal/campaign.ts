@@ -4,7 +4,7 @@ export default [
     icon: { icon: 'tabler-wallet' },
     children: [
       {
-        title: 'My Campaigns',
+        title: 'My Smart Wallet',
         to: 'pages-campaigns',
         icon: { icon: 'tabler-wallet' },
       },
