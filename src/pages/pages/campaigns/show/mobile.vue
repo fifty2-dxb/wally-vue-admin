@@ -72,7 +72,7 @@ const updateEventInfo = (campaign: Campaign | null) => {
 };
 
 // ... existing code ...
-const handleNFCTap = async (event: any) => {
+const receiveNfcData = async (event: any) => {
   try {
     if (!eventGuid.value) {
       console.error('Event GUID not available')
@@ -132,7 +132,7 @@ const setupNFC = async () => {
       const ndef = new NDEFReader()
       await ndef.scan()
       
-      ndef.addEventListener('reading', handleNFCTap)
+      ndef.addEventListener('reading', receiveNfcData)
     } else {
       console.error('NFC not supported on this device')
     }
@@ -180,7 +180,7 @@ onUnmounted(() => {
   // Clean up NFC listener if needed
   if ('NDEFReader' in window) {
     const ndef = new NDEFReader()
-    ndef.removeEventListener('reading', handleNFCTap)
+    ndef.removeEventListener('reading', receiveNfcData)
   }
 })
 </script>
@@ -218,7 +218,7 @@ onUnmounted(() => {
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="mt-4" @click="handleNFCTap('ab469c6b-98c7-4deb-9ff0-88649010e5dc')">
+          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('ab469c6b-98c7-4deb-9ff0-88649010e5dc')">
             {{ $t('Test NFC') }}
           </VBtn>
         </template>
