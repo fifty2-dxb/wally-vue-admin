@@ -2,12 +2,28 @@ import { useConfigStore } from "@/@core/stores/config";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+interface Event {
+  eventGuid: string;
+  eventName: string;
+  eventDescription: string;
+  capacity?: number;
+  eventBeginDt?: string;
+  eventEndDt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  campaign?: any;
+}
+
 export const useCampaignStore = defineStore("campaign", () => {
   const campaigns = ref([]);
   const campaign = ref(null);
   const customers = ref([]);
   const statistics = ref({})
   const barchartStats = ref({})
+  const events = ref<Event[]>([]);
+  const selectedEvent = ref<Event | null>(null);
+  const eventGuests = ref([]);
+  const isLoadingGuests = ref(false);
 
   const fetchCampaigns = async () => {
     try {
@@ -150,12 +166,123 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
+  const fetchEvents = async (campaignGuid: string) => {
+    try {
+      const response = await $wallyApi(`/events/campaign/${campaignGuid}`, { method: "GET" });
+      console.log('Raw events response:', response);
+      
+      // Handle different response structures
+      if (response) {
+        if (Array.isArray(response)) {
+          events.value = response;
+        } else if (typeof response === 'object') {
+          // If it's a single event object
+          if (response.eventGuid && response.eventName) {
+            events.value = [response];
+          } 
+          // If events might be nested inside the response
+          else if (response.events && Array.isArray(response.events)) {
+            events.value = response.events;
+          }
+          // For any other structure, try to find the first array or relevant data
+          else {
+            const potentialEvents = Object.values(response).find(val => Array.isArray(val));
+            if (potentialEvents) {
+              events.value = potentialEvents;
+            } else {
+              events.value = [];
+            }
+          }
+        } else {
+          events.value = [];
+        }
+      } else {
+        events.value = [];
+      }
+      
+      console.log('Processed events:', events.value);
+      
+      // Make sure eventName is available for all events
+      events.value.forEach((event, index) => {
+        if (!event.eventName && event.eventGuid) {
+          console.log(`Event ${index} is missing eventName:`, event);
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      events.value = [];
+      throw error;
+    }
+  };
+
+  const setSelectedEvent = (event: Event | null) => {
+    selectedEvent.value = event;
+  };
+
+  // Update the function to create an event with campaignGuid
+  const createEvent = async (campaignGuid: string, eventData: any) => {
+    try {
+      // Add campaign GUID to the event data
+      const eventDataWithCampaign = {
+        ...eventData,
+        campaignGuid: campaignGuid // Explicitly set campaignGuid for the event
+      };
+      
+      console.log('Creating event with data:', eventDataWithCampaign);
+      
+      const response = await $wallyApi('/events', {
+        method: 'POST',
+        body: eventDataWithCampaign
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error creating event:', error);
+      throw error;
+    }
+  };
+
+  const createGuest = async (eventGuid: string, guestData: any) => {
+    try {
+      const response = await $wallyApi(`/event-tickets/guest/${eventGuid}`, {
+        method: "POST",
+        body: guestData,
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error creating guest:', error);
+      throw error;
+    }
+  };
+
+  // Function to fetch guests for an event
+  const fetchEventGuests = async (eventGuid: string) => {
+    try {
+      isLoadingGuests.value = true;
+      const response = await $wallyApi(`/events/${eventGuid}/guests`, { method: "GET" });
+      console.log('Event guests response:', response);
+      eventGuests.value = Array.isArray(response) ? response : [];
+      return eventGuests.value;
+    } catch (error) {
+      console.error('Error fetching event guests:', error);
+      eventGuests.value = [];
+      throw error;
+    } finally {
+      isLoadingGuests.value = false;
+    }
+  };
+
   return {
     campaigns,
     campaign,
     customers,
     statistics,
     barchartStats,
+    events,
+    selectedEvent,
+    eventGuests,
+    isLoadingGuests,
     fetchCampaignByMerchantGuid,
     fetchCampaignByCampaignGuid,
     fetchCustomerByCampaignGuid,
@@ -164,7 +291,11 @@ export const useCampaignStore = defineStore("campaign", () => {
     updateCampaign,
     fetchCampaignStatistics,
     fetchCampaignStatisticsMonthly,
-    fetchPassValue
+    fetchPassValue,
+    fetchEvents,
+    setSelectedEvent,
+    createEvent,
+    fetchEventGuests,
+    createGuest,
   };
 });
-

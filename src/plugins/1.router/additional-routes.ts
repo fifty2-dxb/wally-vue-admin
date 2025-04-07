@@ -11,6 +11,7 @@ const showCustomerComponent = () => import('@/pages/pages/customers/show/index.v
 const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
 const activatioSuccessnRouteComponent = () => import ('@/pages/pages/activation/success-activation.vue')
 const platformChooseRouteComponent = () => import ('@/pages/pages/platform/index.vue')
+const downloadEventTicket = () => import ('@/pages/pages/platform/event-download-ticket.vue')
 const welcomeToPlatform = () => import ('@/components/campaign/WelcomeToPlatform.vue')
 const secretPartiesWelcome = () => import ('@/components/campaign/SecretPartiesWelcome.vue')
 const googleTableRouteComponent = () => import ('@/pages/pages/marketing/google/GoogleTable.vue')
@@ -96,6 +97,14 @@ export const redirects: RouteRecordRaw[] = [
     path: '/platform/:id',
     name: 'platform-choose',
     component: platformChooseRouteComponent,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/customer/:id',
+    name: 'download-event-ticket',
+    component: downloadEventTicket,
     meta: {
       requiresAuth: false,
     },

@@ -170,6 +170,7 @@ declare module 'vue-router/auto-routes' {
     'pages-nfc-keys-google-nfctable': RouteRecordInfo<'pages-nfc-keys-google-nfctable', '/pages/nfc-keys/GoogleNFCTable', Record<never, never>, Record<never, never>>,
     'pages-organisations': RouteRecordInfo<'pages-organisations', '/pages/organisations', Record<never, never>, Record<never, never>>,
     'pages-platform': RouteRecordInfo<'pages-platform', '/pages/platform', Record<never, never>, Record<never, never>>,
+    'pages-platform-event-download-ticket': RouteRecordInfo<'pages-platform-event-download-ticket', '/pages/platform/event-download-ticket', Record<never, never>, Record<never, never>>,
     'pages-pricing': RouteRecordInfo<'pages-pricing', '/pages/pricing', Record<never, never>, Record<never, never>>,
     'pages-readers': RouteRecordInfo<'pages-readers', '/pages/readers', Record<never, never>, Record<never, never>>,
     'pages-typography': RouteRecordInfo<'pages-typography', '/pages/typography', Record<never, never>, Record<never, never>>,

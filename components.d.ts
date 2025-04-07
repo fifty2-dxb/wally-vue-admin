@@ -385,7 +385,6 @@ declare module 'vue' {
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
     NFCAppleHowItWorks: typeof import('./src/components/dialogs/NFCAppleHowItWorks.vue')['default']
-    NFCReadersTable: typeof import('./src/views/demos/forms/tables/simple-table/NFCReadersTable.vue')['default']
     Notifications: typeof import('./src/@core/components/Notifications.vue')['default']
     PaymentProvidersDialog: typeof import('./src/components/dialogs/PaymentProvidersDialog.vue')['default']
     PhonePreview: typeof import('./src/components/campaign/PhonePreview.vue')['default']

@@ -49,6 +49,7 @@ if (!self.define) {
   self.define = (depsNames, factory) => {
     const uri = nextDefineUri || ("document" in self ? document.currentScript.src : "") || location.href;
     if (registry[uri]) {
+      // Module is already loading or loaded.
       return;
     }
     let exports = {};
@@ -66,35 +67,30 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-f70c5944'], (function (workbox) { 'use strict';
+define(['./workbox-f963c807'], (function (workbox) { 'use strict';
 
-  self.skipWaiting();
-  workbox.clientsClaim();
-
-  workbox.precacheAndRoute([{
-    "url": "registerSW.js",
-    "revision": "3ca0b8505b4bec776b69afdba2768812"
-  }, {
-    "url": "index.html",
-    "revision": "0.g2pgshj1ko"
-  }], {});
-  workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
-    allowlist: [/^\/$/]
-  }));
-  workbox.registerRoute(/^https:\/\/dev-api\.wally\.ae\/.*$/, new workbox.NetworkFirst({
-    "cacheName": "api-cache",
-    plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 50,
-      maxAgeSeconds: 86400
-    })]
-  }), 'GET');
-  workbox.registerRoute(/^https:\/\/wally-images-bucket-dev\.s3\.eu-central-1\.amazonaws\.com\/.*$/, new workbox.CacheFirst({
-    "cacheName": "image-cache",
-    plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 100,
-      maxAgeSeconds: 604800
-    })]
-  }), 'GET');
+	self.skipWaiting();
+	workbox.clientsClaim();
+	workbox.registerRoute(({
+	  url
+	}) => url.pathname.startsWith("/pwa/"), new workbox.NetworkFirst({
+	  "cacheName": "pwa-mobile-pages",
+	  plugins: []
+	}), 'GET');
+	workbox.registerRoute(/^https:\/\/dev-api\.wally\.ae\/.*$/, new workbox.NetworkFirst({
+	  "cacheName": "api-cache",
+	  plugins: [new workbox.ExpirationPlugin({
+	    maxEntries: 50,
+	    maxAgeSeconds: 86400
+	  })]
+	}), 'GET');
+	workbox.registerRoute(/^https:\/\/wally-images-bucket-dev\.s3\.eu-central-1\.amazonaws\.com\/.*$/, new workbox.CacheFirst({
+	  "cacheName": "image-cache",
+	  plugins: [new workbox.ExpirationPlugin({
+	    maxEntries: 100,
+	    maxAgeSeconds: 604800
+	  })]
+	}), 'GET');
+	self.__WB_DISABLE_DEV_LOGS = true;
 
 }));
