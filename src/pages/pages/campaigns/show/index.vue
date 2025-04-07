@@ -356,63 +356,49 @@ const createEvent = async () => {
 </script>
 
 <template>
-  <div class="d-flex justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
-    <div class="d-flex flex-column justify-center">
-      <h4 class="text-h4 font-weight-medium">
-        {{ $t('Campaign Details') }}
-      </h4>
-      <div class="text-body-1">
-        {{ $t('Configure your campaign') }}
-      </div>
-    </div>
-  </div>
-
-  <VCard class="mb-6">
-    <VCardText class="pa-0">
-      <VRow>
-        <v-col sm="12" md="3" :style="{ backgroundColor: backgroundColorWithOpacity }">
-          <div class="ma-auto pa-5 text-center">
-            <img width="100px" :src="campaign?.styleSettings.campaignPreview"
-              style="border-radius: 5px; border: 1px solid #ccc;" />
-          </div>
-        </v-col>
-        <VDivider :vertical="$vuetify.display.mdAndUp" />
-        <v-col sm="12" md="9">
-          <VCardItem>
-            <VCardTitle>{{ campaign?.campaignName }}</VCardTitle>
-          </VCardItem>
-
-          <VCardText>
-            {{ campaign?.campaignDescription }}
-          </VCardText>
-
-          <VCardActions class="justify-space-between mt-10">
-            <VBtn :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }">
-              <VIcon icon="tabler-folder" />
-              <span class="ms-2">{{ $t('Edit Campaign') }}</span>
-            </VBtn>
-
-            <IconBtn color="secondary" icon="tabler-share" />
-          </VCardActions>
-        </v-col>
-      </VRow>
-    </VCardText>
+  <!-- Campaign Header -->
+  <VCard class="modern-card  mb-6">
+    <VRow align="center" no-gutters>
+      <VCol cols="12" sm="4" md="3" class="text-center">
+        <img width="150" :src="campaign?.styleSettings.campaignPreview" class="campaign-preview" />
+      </VCol>
+      <VCol cols="12" sm="8" md="9" class="pa-6">
+        <h3 class="text-h4 font-weight-medium mb-2">{{ campaign?.campaignName }}</h3>
+        <p class="text-body-1 text-medium-emphasis mb-6">{{ campaign?.campaignDescription }}</p>
+        <div class="d-flex gap-4">
+          <VBtn 
+            prepend-icon="tabler-edit"
+            :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }"
+            class="action-btn"
+          >
+            {{ $t('Edit Campaign') }}
+          </VBtn>
+          <VBtn
+            icon
+            variant="tonal"
+            color="secondary"
+            class="action-btn"
+          >
+            <VIcon icon="tabler-share" />
+          </VBtn>
+        </div>
+      </VCol>
+    </VRow>
   </VCard>
 
-  <!-- Show the event selection section only when campaign type is 'event' -->
+  <!-- Event Selection (if campaign type is event) -->
   <VCard 
     v-if="campaignType === 'event'"
-    title="Select Event" 
-    class="mb-6" 
-    style="padding: 1rem; border-radius: 12px;"
+    class="modern-card  mb-6"
   >
-    <div class="d-flex justify-space-between align-center px-4 py-2">
-      <h6 class="text-h6">Events</h6>
-      <div class="d-flex align-center gap-2">
+    <div class="d-flex justify-space-between align-center px-6 py-4">
+      <h5 class="text-h6 font-weight-medium">Events</h5>
+      <div class="d-flex gap-3">
         <VBtn
           v-if="campaignStore.selectedEvent"
           color="error"
-          variant="outlined"
+          variant="tonal"
+          class="action-btn"
           @click="handleEventChange(null)"
         >
           Clear Selection
@@ -420,12 +406,15 @@ const createEvent = async () => {
         <VBtn
           color="primary"
           prepend-icon="tabler-plus"
+          class="action-btn"
           @click="isCreateEventModalOpen = true"
         >
           Create Event
         </VBtn>
       </div>
     </div>
+    
+    <VDivider />
     
     <VDataTable
       :headers="[
@@ -437,8 +426,8 @@ const createEvent = async () => {
       ]"
       :items="campaignStore.events"
       :loading="isLoading"
-      class="event-table"
-      density="compact"
+      class="modern-table"
+      density="comfortable"
       :items-per-page="5"
     >
       <template #item.eventName="{ item }">
@@ -475,7 +464,7 @@ const createEvent = async () => {
   <VCard 
     v-if="campaignType === 'event' && campaignStore.selectedEvent"
     title="Event Guests" 
-    class="mb-6" 
+    class="modern-card mb-6" 
     style="padding: 1rem; border-radius: 12px;"
   >
     <VCardText>
@@ -555,15 +544,149 @@ const createEvent = async () => {
     </VCardText>
   </VCard>
 
-  <!-- Create Event Modal -->
+  <!-- Stats and Charts Section -->
+  <VCard class="modern-card mb-6">
+    <VCardText>
+      <!-- Filters -->
+      <div class="filter-section">
+        <div class="filter-container">
+          <VTextField
+            v-model="startDate"
+            label="Start Date"
+            clearable
+            prepend-icon="tabler-calendar"
+            type="date"
+            class="filter-input"
+            hide-details
+            variant="outlined"
+            density="comfortable"
+          />
+          <VTextField
+            v-model="endDate"
+            label="End Date"
+            clearable
+            prepend-icon="tabler-calendar"
+            type="date"
+            class="filter-input"
+            hide-details
+            variant="outlined"
+            density="comfortable"
+          />
+          <VBtn
+            color="primary"
+            @click="applyFilters"
+            class="apply-button"
+            elevation="0"
+          >
+            <VIcon icon="tabler-filter" class="me-2" />
+            Apply Filters
+          </VBtn>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div v-for="(stat, index) in widgetData" :key="index" class="stat-card">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon" :style="{ background: `linear-gradient(135deg, rgba(var(--v-theme-${stat.color}), 0.1), rgba(var(--v-theme-${stat.color}), 0.05))` }">
+              <VIcon :icon="stat.icon" :color="stat.color" size="24" />
+            </div>
+            <div class="stat-title">{{ stat.title }}</div>
+          </div>
+          <div class="stat-value" :style="{ background: `linear-gradient(135deg, var(--v-theme-${stat.color}), rgba(var(--v-theme-${stat.color}), 0.8))` }">
+            {{ stat.value || 0 }}
+          </div>
+        </div>
+      </div>
+
+      <VRow>
+        <VCol cols="12" md="6">
+          <div class="chart-section">
+            <div class="chart-title">
+              <div class="icon">
+                <VIcon icon="tabler-chart-pie" size="20" color="primary" />
+              </div>
+              <span class="text">Customer Distribution</span>
+            </div>
+            <div class="chart-container">
+              <DonutChart :data="widgetData" :isLoading="isLoading" />
+            </div>
+          </div>
+        </VCol>
+        <VCol cols="12" md="6">
+          <div class="chart-section">
+            <div class="chart-title">
+              <div class="icon">
+                <VIcon icon="tabler-chart-bar" size="20" color="primary" />
+              </div>
+              <span class="text">Monthly Trends</span>
+            </div>
+            <div class="chart-container">
+              <BarChart 
+                v-if="Object.keys(barchartStats).length > 0"
+                @monthSelected="handleMonthSelected"
+                :data="barchartStats"
+                :campaignType="campaignType"
+              />
+            </div>
+          </div>
+        </VCol>
+      </VRow>
+
+      <!-- Access Logs -->
+      <VRow v-if="accessLogsData.length > 0" class="mt-6">
+        <VCol cols="12">
+          <div class="chart-section">
+            <div class="chart-title">
+              <div class="icon">
+                <VIcon icon="tabler-history" size="20" color="primary" />
+              </div>
+              <span class="text">Access Logs</span>
+            </div>
+            <AccessLogsTable :accessLogs="accessLogsData" />
+          </div>
+        </VCol>
+      </VRow>
+    </VCardText>
+  </VCard>
+
+  <VCard class="modern-card">
+    <VCardTitle class="pa-6">
+      <h6 class="text-h6">Customers</h6>
+    </VCardTitle>
+    <VDivider />
+    <VCardText class="pa-0">
+      <VDataTable
+        :headers="headers"
+        :items="customers"
+        density="comfortable"
+        :items-per-page="5"
+        class="modern-table"
+      >
+        <template #item.edit="{ item }">
+          <VBtn
+            icon
+            variant="text"
+            color="primary"
+            class="action-btn"
+            :to="{ name: 'pages-customers-show', params: { id: item.id } }"
+          >
+            <VIcon icon="tabler-edit" />
+          </VBtn>
+        </template>
+      </VDataTable>
+    </VCardText>
+  </VCard>
+
+  <!-- Modals -->
   <VDialog
     v-model="isCreateEventModalOpen"
-    max-width="600px"
-    persistent
+    max-width="600"
+    class="modern-modal"
   >
     <VCard>
-      <VCardTitle class="d-flex justify-space-between align-center pa-4">
-        <span>Create New Event</span>
+      <VCardTitle class="modal-header d-flex justify-space-between align-center">
+        <span class="text-h6">Create New Event</span>
         <VBtn
           icon
           variant="text"
@@ -573,8 +696,7 @@ const createEvent = async () => {
           <VIcon icon="tabler-x" />
         </VBtn>
       </VCardTitle>
-      <VDivider />
-      <VCardText class="pa-4">
+      <VCardText class="modal-body">
         <VForm @submit.prevent="createEvent">
           <VRow>
             <VCol cols="12">
@@ -625,12 +747,12 @@ const createEvent = async () => {
           </VRow>
         </VForm>
       </VCardText>
-      <VDivider />
-      <VCardActions class="pa-4">
+      <VCardActions class="modal-footer">
         <VSpacer />
         <VBtn
-          variant="outlined"
+          variant="tonal"
           color="secondary"
+          class="me-3"
           @click="isCreateEventModalOpen = false"
           :disabled="isCreatingEvent"
         >
@@ -647,6 +769,7 @@ const createEvent = async () => {
       </VCardActions>
     </VCard>
   </VDialog>
+
   <VDialog
   v-model="isAddGuestModalOpen"
   max-width="600px"
@@ -747,112 +870,256 @@ const createEvent = async () => {
   </VCard>
 </VDialog>
 
-  <VCard title="Filters" class="mb-6" style="padding: 1rem; border-radius: 12px;">
-    <VCardText>
-      <div class="filter-container">
-        <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
-          class="filter-input" />
-        <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
-          class="filter-input" />
-        <VBtn color="primary" @click="applyFilters" class="apply-button">
-          <VIcon icon="tabler-filter" class="me-2" />
-          Apply Filters
-        </VBtn>
-      </div>
-      <VDivider class="my-4" />
-
-      <VCol cols="12">
-        <DashboardCard :data="widgetData" :isLoading="isLoading" />
-      </VCol>
-
-      <VRow class="mt-10">
-        <VCol cols="6" md="6">
-          <DonutChart :data="widgetData" :isLoading="isLoading" />
-        </VCol>
-        <VCol cols="6" md="6">
-
-          <BarChart v-if="Object.keys(barchartStats).length > 0" @monthSelected="handleMonthSelected"
-            :data="barchartStats" :campaignType="campaignType"/>
-        </VCol>
-        <VCol cols="12">
-          <VCard v-if="accessLogsData.length > 0">
-            <VCardTitle>{{ $t('Access Logs') }}</VCardTitle>
-            <AccessLogsTable :accessLogs=accessLogsData />
-          </VCard>
-        </VCol>
-      </VRow>
-    </VCardText>
-  </VCard>
-
-  <VCard class="mb-6">
-    <VCardText class="px-3">
-      <VRow>
-        <VCol>
-          <VDataTable :headers="headers" :items="customers" density="compact" :items-per-page="5">
-            <template #item.edit="{ item }">
-              <IconBtn :to="{ name: 'pages-customers-show', params: { id: item.id } }">
-                <VIcon icon="tabler-edit" />
-              </IconBtn>
-            </template>
-          </VDataTable>
-        </VCol>
-      </VRow>
-    </VCardText>
-
-  </VCard>
-  <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
+  <VSnackbar
+    v-model="snackbarVisible"
+    :color="snackbarColor"
+    :timeout="5000"
+    location="top right"
+    class="modern-snackbar"
+  >
     {{ snackbarMessage }}
   </VSnackbar>
 </template>
 
 <style scoped>
-.filter-input {
-  border-radius: 8px;
-  background-color: rgba(var(--v-global-theme-primary), var(#fff));
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  margin-right: 1rem;
-  min-width: 200px;
+/* Modern Card Styles */
+.modern-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease;
+  background: white;
+  overflow: hidden;
 }
 
-.apply-button {
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  transition: 0.2s ease-in-out;
+.modern-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.08) !important;
 }
 
-.apply-button:hover {
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: #5a4fcf;
+/* Campaign Header Section */
+.campaign-header {
+  background: linear-gradient(to right, rgba(var(--v-theme-primary), 0.05), rgba(var(--v-theme-primary), 0.02));
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.campaign-preview {
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.campaign-preview:hover {
+  transform: scale(1.02);
+}
+
+/* Filter Section */
+.filter-section {
+  background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(var(--v-theme-primary), 0.05);
+  box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.05);
 }
 
 .filter-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-input {
+  flex: 1;
+  min-width: 200px;
+  max-width: none;
+  background: rgba(var(--v-theme-surface), 0.06);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.filter-input:hover {
+  background: rgba(var(--v-theme-surface), 0.1);
+}
+
+.apply-button {
+  min-width: 140px;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(var(--v-theme-primary), 0.2);
+}
+
+.apply-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(var(--v-theme-primary), 0.3);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
   margin-bottom: 2rem;
-  border-radius: 12px;
-  box-shadow: 0px 4px 6px rgb(0 0 0 / 5%)
 }
 
-.event-select-container {
+.stat-card {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+  border: 1px solid rgba(var(--v-theme-primary), 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, rgba(var(--v-theme-primary), 0.7), rgba(var(--v-theme-primary), 0.1));
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon-wrapper {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 12px;
+  margin-right: 1rem;
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.1), rgba(var(--v-theme-primary), 0.05));
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
-.event-table {
-  width: 100%;
+.stat-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
+  line-height: 1.2;
+}
+
+/* Chart Sections */
+.chart-section {
+  background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(var(--v-theme-primary), 0.08);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.chart-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.chart-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.08);
+}
+
+.chart-title .icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 8px;
-  box-shadow: 0px 4px 6px rgb(0 0 0 / 5%);
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.1), rgba(var(--v-theme-primary), 0.05));
 }
 
-.event-select {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+.chart-title .text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgba(var(--v-theme-on-surface), 0.87);
+}
+
+.chart-container {
+  position: relative;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(var(--v-theme-surface), 0.05);
+  /* border: 1px solid rgba(var(--v-theme-primary), 0.05); */
+}
+
+/* Table Styles */
+.modern-table {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--v-theme-primary), 0.05);
+}
+
+.modern-table :deep(th) {
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  background: rgba(var(--v-theme-surface), 0.5);
+}
+
+.modern-table :deep(td) {
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.05) !important;
+}
+
+/* Action Buttons */
+.action-btn {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Modal Styles */
+.modern-modal {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  background: rgba(var(--v-theme-surface), 0.5);
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(var(--v-theme-primary), 0.05);
 }
 </style>
