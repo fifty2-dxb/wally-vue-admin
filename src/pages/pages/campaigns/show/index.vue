@@ -356,63 +356,72 @@ const createEvent = async () => {
 </script>
 
 <template>
-  <div class="d-flex justify-start justify-sm-space-between gap-y-4 gap-x-6 mb-6">
-    <div class="d-flex flex-column justify-center">
-      <h4 class="text-h4 font-weight-medium">
-        {{ $t('Campaign Details') }}
+  <div class="page-header mb-6">
+    <div class="d-flex flex-column">
+      <h4 class="text-h4 font-weight-medium mb-2">
+        {{ $t('Digital Card Details') }}
       </h4>
-      <div class="text-body-1">
-        {{ $t('Configure your campaign') }}
+      <div class="text-body-1 text-medium-emphasis">
+        {{ $t('Configure your digital card') }}
       </div>
     </div>
   </div>
 
-  <VCard class="mb-6">
+  <!-- Card Preview Section -->
+  <VCard class="card-preview mb-6">
     <VCardText class="pa-0">
-      <VRow>
-        <v-col sm="12" md="3" :style="{ backgroundColor: backgroundColorWithOpacity }">
-          <div class="ma-auto pa-5 text-center">
-            <img width="100px" :src="campaign?.styleSettings.campaignPreview"
-              style="border-radius: 5px; border: 1px solid #ccc;" />
+      <VRow no-gutters>
+        <v-col sm="12" md="3" class="preview-section" :style="{ backgroundColor: backgroundColorWithOpacity }">
+          <div class="preview-container">
+            <img :src="campaign?.styleSettings.campaignPreview" alt="Card Preview" class="preview-image" />
           </div>
         </v-col>
-        <VDivider :vertical="$vuetify.display.mdAndUp" />
-        <v-col sm="12" md="9">
-          <VCardItem>
-            <VCardTitle>{{ campaign?.campaignName }}</VCardTitle>
-          </VCardItem>
-
-          <VCardText>
-            {{ campaign?.campaignDescription }}
-          </VCardText>
-
-          <VCardActions class="justify-space-between mt-10">
-            <VBtn :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }">
-              <VIcon icon="tabler-folder" />
-              <span class="ms-2">{{ $t('Edit Campaign') }}</span>
-            </VBtn>
-
-            <IconBtn color="secondary" icon="tabler-share" />
-          </VCardActions>
+        <v-col sm="12" md="9" class="content-section">
+          <div class="pa-6">
+            <VChip
+              :color="campaign?.styleSettings?.type === 'event' ? 'primary' : campaign?.styleSettings?.type === 'membership' ? 'success' : 'info'"
+              size="small"
+              class="mb-3"
+            >
+              {{ campaign?.styleSettings?.type?.toUpperCase() }}
+            </VChip>
+            <h3 class="text-h5 font-weight-bold mb-3">{{ campaign?.campaignName }}</h3>
+            <p class="text-body-1 text-medium-emphasis mb-6">{{ campaign?.campaignDescription }}</p>
+            
+            <div class="d-flex flex-wrap gap-3">
+              <VBtn
+                color="primary"
+                :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }"
+                prepend-icon="tabler-edit"
+              >
+                {{ $t('Edit Digital Card') }}
+              </VBtn>
+              <VBtn
+                color="secondary"
+                variant="tonal"
+                icon
+              >
+                <VIcon>tabler-share</VIcon>
+              </VBtn>
+            </div>
+          </div>
         </v-col>
       </VRow>
     </VCardText>
   </VCard>
 
-  <!-- Show the event selection section only when campaign type is 'event' -->
+  <!-- Event Selection Section -->
   <VCard 
     v-if="campaignType === 'event'"
-    title="Select Event" 
-    class="mb-6" 
-    style="padding: 1rem; border-radius: 12px;"
+    class="modern-card mb-6"
   >
-    <div class="d-flex justify-space-between align-center px-4 py-2">
-      <h6 class="text-h6">Events</h6>
+    <div class="d-flex justify-space-between align-center px-6 py-4">
+      <h5 class="text-h6 font-weight-medium">Events</h5>
       <div class="d-flex align-center gap-2">
         <VBtn
           v-if="campaignStore.selectedEvent"
           color="error"
-          variant="outlined"
+          variant="tonal"
           @click="handleEventChange(null)"
         >
           Clear Selection
@@ -427,6 +436,8 @@ const createEvent = async () => {
       </div>
     </div>
     
+    <VDivider />
+    
     <VDataTable
       :headers="[
         { title: 'EVENT NAME', key: 'eventName' },
@@ -437,8 +448,8 @@ const createEvent = async () => {
       ]"
       :items="campaignStore.events"
       :loading="isLoading"
-      class="event-table"
-      density="compact"
+      class="modern-table"
+      density="comfortable"
       :items-per-page="5"
     >
       <template #item.eventName="{ item }">
@@ -471,88 +482,167 @@ const createEvent = async () => {
     </VDataTable>
   </VCard>
 
-  <!-- Add the Guests section after the Event Selection section -->
+  <!-- Guests Section -->
   <VCard 
     v-if="campaignType === 'event' && campaignStore.selectedEvent"
-    title="Event Guests" 
-    class="mb-6" 
-    style="padding: 1rem; border-radius: 12px;"
+    class="modern-card mb-6"
   >
-    <VCardText>
-      <div class="d-flex justify-space-between align-center pb-4">
-        <h6 class="text-h6">
-          Guests for "{{ campaignStore.selectedEvent.eventName }}"
-        </h6>
+    <div class="d-flex justify-space-between align-center px-6 py-4">
+      <h5 class="text-h6 font-weight-medium">
+        Guests for "{{ campaignStore.selectedEvent.eventName }}"
+      </h5>
+      <VBtn
+        color="primary"
+        prepend-icon="tabler-user-plus"
+        @click="isAddGuestModalOpen = true"
+      >
+        Add Guest
+      </VBtn>
+    </div>
+
+    <VDivider />
+
+    <VDataTable
+      :headers="[
+        { title: 'NAME', key: 'name' },
+        { title: 'SURNAME', key: 'surname' },
+        { title: 'EMAIL', key: 'email' },
+        { title: 'TICKET TYPE', key: 'ticketType' },
+        { title: 'TICKET #', key: 'ticketNumber' },
+        { title: 'SEAT INFO', key: 'seatInfo' },
+        { title: 'ACTIONS', key: 'actions', sortable: false }
+      ]"
+      :items="campaignStore.eventGuests"
+      :loading="campaignStore.isLoadingGuests"
+      class="modern-table"
+      density="comfortable"
+      :items-per-page="10"
+    >
+      <template #item.actions="{ item }">
+        <div class="d-flex gap-2">
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            color="primary"
+          >
+            <VIcon icon="tabler-mail" />
+          </VBtn>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            color="error"
+            :disabled="!item?.serialNumber"
+            @click="item?.serialNumber ? $router.push(`/customer/${item?.serialNumber}`) : $event.preventDefault()"
+            >
+            <VIcon icon="tabler-share" />
+          </VBtn>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            color="primary"
+          >
+            <VIcon icon="tabler-edit" />
+          </VBtn>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            color="error"
+          >
+            <VIcon icon="tabler-trash" />
+          </VBtn>
+        </div>
+      </template>
+      <template #no-data>
+        <div class="text-center py-4">
+          No guests found for this event
+        </div>
+      </template>
+    </VDataTable>
+  </VCard>
+
+  <!-- Statistics Section -->
+  <VCard class="modern-card mb-6">
+    <div class="px-6 py-4">
+      <h5 class="text-h6 font-weight-medium mb-4">Analytics & Statistics</h5>
+      
+      <div class="filter-container mb-6">
+        <VTextField
+          v-model="startDate"
+          label="Start Date"
+          :clearable="true"
+          prepend-icon="tabler-calendar"
+          type="date"
+          class="filter-input"
+          density="comfortable"
+        />
+        <VTextField
+          v-model="endDate"
+          label="End Date"
+          :clearable="true"
+          prepend-icon="tabler-calendar"
+          type="date"
+          class="filter-input"
+          density="comfortable"
+        />
         <VBtn
           color="primary"
-          prepend-icon="tabler-user-plus"
-          size="small"
-          @click="isAddGuestModalOpen = true"
+          @click="applyFilters"
+          class="filter-button"
         >
-          Add Guest
+          <VIcon icon="tabler-filter" class="me-2" />
+          Apply Filters
         </VBtn>
       </div>
 
+      <VDivider class="mb-6" />
+
+      <VCol cols="12">
+        <DashboardCard :data="widgetData" :isLoading="isLoading" />
+      </VCol>
+
+      <VRow class="mt-6">
+        <VCol cols="6">
+          <DonutChart :data="widgetData" :isLoading="isLoading" />
+        </VCol>
+        <VCol cols="6">
+          <BarChart
+            v-if="Object.keys(barchartStats).length > 0"
+            @monthSelected="handleMonthSelected"
+            :data="barchartStats"
+            :campaignType="campaignType"
+          />
+        </VCol>
+      </VRow>
+
+      <VCol cols="12" v-if="accessLogsData.length > 0" class="mt-6">
+        <h5 class="text-h6 font-weight-medium mb-4">Access Logs</h5>
+        <AccessLogsTable :accessLogs="accessLogsData" />
+      </VCol>
+    </div>
+  </VCard>
+
+  <!-- Customers Section -->
+  <VCard class="modern-card mb-6">
+    <div class="px-6 py-4">
+      <h5 class="text-h6 font-weight-medium mb-4">Customers</h5>
       <VDataTable
-        :headers="[
-          { title: 'NAME', key: 'name' },
-          { title: 'SURNAME', key: 'surname' },
-          { title: 'EMAIL', key: 'email' },
-          { title: 'TICKET TYPE', key: 'ticketType' },
-          { title: 'TICKET #', key: 'ticketNumber' },
-          { title: 'SEAT INFO', key: 'seatInfo' },
-          { title: 'ACTIONS', key: 'actions', sortable: false }
-        ]"
-        :items="campaignStore.eventGuests"
-        :loading="campaignStore.isLoadingGuests"
-        density="compact"
-        :items-per-page="10"
+        :headers="headers"
+        :items="customers"
+        density="comfortable"
+        :items-per-page="5"
+        class="modern-table"
       >
-        <template #item.actions="{ item }">
-          <div class="d-flex gap-2">
-            <VBtn
-              icon
-              variant="text"
-              size="small"
-              color="primary"
-            >
-              <VIcon icon="tabler-mail" />
-            </VBtn>
-            <VBtn
-              icon
-              variant="text"
-              size="small"
-              color="error"
-              :disabled="!item?.serialNumber"
-              @click="item?.serialNumber ? $router.push(`/customer/${item?.serialNumber}`) : $event.preventDefault()"
-              >
-              <VIcon icon="tabler-share" />
-            </VBtn>
-            <VBtn
-              icon
-              variant="text"
-              size="small"
-              color="primary"
-            >
-              <VIcon icon="tabler-edit" />
-            </VBtn>
-            <VBtn
-              icon
-              variant="text"
-              size="small"
-              color="error"
-            >
-              <VIcon icon="tabler-trash" />
-            </VBtn>
-          </div>
-        </template>
-        <template #no-data>
-          <div class="text-center py-4">
-            No guests found for this event
-          </div>
+        <template #item.edit="{ item }">
+          <IconBtn :to="{ name: 'pages-customers-show', params: { id: item.id } }">
+            <VIcon icon="tabler-edit" />
+          </IconBtn>
         </template>
       </VDataTable>
-    </VCardText>
+    </div>
   </VCard>
 
   <!-- Create Event Modal -->
@@ -747,112 +837,125 @@ const createEvent = async () => {
   </VCard>
 </VDialog>
 
-  <VCard title="Filters" class="mb-6" style="padding: 1rem; border-radius: 12px;">
-    <VCardText>
-      <div class="filter-container">
-        <VTextField v-model="startDate" label="Start Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
-          class="filter-input" />
-        <VTextField v-model="endDate" label="End Date" :clearable="true" prepend-icon="tabler-calendar" type="date"
-          class="filter-input" />
-        <VBtn color="primary" @click="applyFilters" class="apply-button">
-          <VIcon icon="tabler-filter" class="me-2" />
-          Apply Filters
-        </VBtn>
-      </div>
-      <VDivider class="my-4" />
-
-      <VCol cols="12">
-        <DashboardCard :data="widgetData" :isLoading="isLoading" />
-      </VCol>
-
-      <VRow class="mt-10">
-        <VCol cols="6" md="6">
-          <DonutChart :data="widgetData" :isLoading="isLoading" />
-        </VCol>
-        <VCol cols="6" md="6">
-
-          <BarChart v-if="Object.keys(barchartStats).length > 0" @monthSelected="handleMonthSelected"
-            :data="barchartStats" :campaignType="campaignType"/>
-        </VCol>
-        <VCol cols="12">
-          <VCard v-if="accessLogsData.length > 0">
-            <VCardTitle>{{ $t('Access Logs') }}</VCardTitle>
-            <AccessLogsTable :accessLogs=accessLogsData />
-          </VCard>
-        </VCol>
-      </VRow>
-    </VCardText>
-  </VCard>
-
-  <VCard class="mb-6">
-    <VCardText class="px-3">
-      <VRow>
-        <VCol>
-          <VDataTable :headers="headers" :items="customers" density="compact" :items-per-page="5">
-            <template #item.edit="{ item }">
-              <IconBtn :to="{ name: 'pages-customers-show', params: { id: item.id } }">
-                <VIcon icon="tabler-edit" />
-              </IconBtn>
-            </template>
-          </VDataTable>
-        </VCol>
-      </VRow>
-    </VCardText>
-
-  </VCard>
   <VSnackbar v-model="snackbarVisible" :color="snackbarColor" :timeout="5000" location="top right">
     {{ snackbarMessage }}
   </VSnackbar>
 </template>
 
 <style scoped>
-.filter-input {
-  border-radius: 8px;
-  background-color: rgba(var(--v-global-theme-primary), var(#fff));
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  margin-right: 1rem;
-  min-width: 200px;
+.page-header {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
 }
 
-.apply-button {
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  transition: 0.2s ease-in-out;
+.modern-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  border: none;
 }
 
-.apply-button:hover {
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: #5a4fcf;
+.modern-card:hover {
+  box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.05);
+}
+
+.card-preview {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.preview-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 1.5rem;
+}
+
+.preview-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.content-section {
+  background: white;
 }
 
 .filter-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  margin-bottom: 2rem;
-  border-radius: 12px;
-  box-shadow: 0px 4px 6px rgb(0 0 0 / 5%)
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.event-select-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0;
-  border-radius: 12px;
+.filter-input {
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
 }
 
-.event-table {
-  width: 100%;
+.filter-button {
+  height: 56px;
+  padding: 0 24px;
+}
+
+.modern-table {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 8px;
-  box-shadow: 0px 4px 6px rgb(0 0 0 / 5%);
 }
 
-.event-select {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+.gap-2 {
+  gap: 8px;
+}
+
+.gap-3 {
+  gap: 12px;
+}
+
+:deep(.v-card-text) {
+  padding: 0;
+}
+
+:deep(.v-card-title) {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+:deep(.v-data-table) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:deep(.v-data-table-header) {
+  background-color: rgb(var(--v-theme-surface));
+}
+
+:deep(.v-data-table-header th) {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+:deep(.v-btn) {
+  text-transform: none;
+  font-weight: 500;
+}
+
+:deep(.v-chip) {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 </style>
