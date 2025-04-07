@@ -122,6 +122,107 @@ onMounted(() => {
         </div>
       </VCard>
 
+      <!-- Pass Details Section -->
+      <VCard class="modern-card mb-6">
+        <div class="px-6 py-4">
+          <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Pass Details') }}</h6>
+          
+          <div class="user-info-list">
+            <div class="info-item">
+              <div class="info-label">{{ $t('Pass Type') }}</div>
+              <div class="info-value">
+                <VChip
+                  :color="customerStore.customer.type === 'stamp' ? 'primary' : 'success'"
+                  size="small"
+                  class="mr-2"
+                >
+                  {{ customerStore.customer.type.toUpperCase() }}
+                </VChip>
+              </div>
+            </div>
+            <VDivider />
+            
+            <div class="info-item">
+              <div class="info-label">{{ $t('Serial Number') }}</div>
+              <div class="info-value">{{ customerStore.customer.serialNumber || '-' }}</div>
+            </div>
+            <VDivider />
+            
+            <div class="info-item">
+              <div class="info-label">{{ $t('Status') }}</div>
+              <div class="info-value">
+                <VChip
+                  :color="customerStore.customer.status === 'active' ? 'success' : 'error'"
+                  size="small"
+                  class="mr-2"
+                >
+                  {{ customerStore.customer.status ? customerStore.customer.status.toUpperCase() : 'INACTIVE' }}
+                </VChip>
+                <VChip
+                  v-if="customerStore.customer.isExpired"
+                  color="error"
+                  size="small"
+                >
+                  {{ $t('EXPIRED') }}
+                </VChip>
+              </div>
+            </div>
+            <VDivider />
+            
+            <div class="info-item">
+              <div class="info-label">{{ $t('Expiration') }}</div>
+              <div class="info-value">
+                <template v-if="customerStore.customer.expiresAt">
+                  {{ new Date(customerStore.customer.expiresAt).toLocaleDateString() }}
+                  <div class="text-caption text-medium-emphasis">
+                    {{ customerStore.customer.isExpired 
+                      ? $t('Pass has expired') 
+                      : $t('Valid pass') 
+                    }}
+                  </div>
+                </template>
+                <template v-else>
+                  {{ $t('No expiration date') }}
+                </template>
+              </div>
+            </div>
+            <VDivider />
+            
+            <div v-if="customerStore.customer.type === 'stamp'" class="info-item">
+              <div class="info-label">{{ $t('Stamps Progress') }}</div>
+              <div class="d-flex align-center mt-2">
+                <VProgressLinear
+                  :model-value="((customerStore.customer.currentStamps || 0) / (customerStore.customer.requiredStamps || 1)) * 100"
+                  color="primary"
+                  height="8"
+                  rounded
+                />
+                <span class="ml-4 text-primary font-weight-medium">
+                  {{ customerStore.customer.currentStamps || 0 }} / {{ customerStore.customer.requiredStamps || '-' }}
+                </span>
+              </div>
+            </div>
+            
+            <div v-if="customerStore.customer.type === 'stamp'" class="info-item">
+              <div class="info-label">{{ $t('Reward Status') }}</div>
+              <div class="info-value">
+                <VChip
+                  :color="customerStore.customer.redeemable ? 'success' : 'grey'"
+                  size="small"
+                  class="mr-2"
+                  :disabled="customerStore.customer.isExpired"
+                >
+                  {{ customerStore.customer.redeemable && !customerStore.customer.isExpired 
+                    ? $t('REDEEMABLE') 
+                    : $t('NOT REDEEMABLE') 
+                  }}
+                </VChip>
+              </div>
+            </div>
+          </div>
+        </div>
+      </VCard>
+
       <!-- Notes Section -->
       <VCard class="modern-card mb-6">
         <div class="px-6 py-4">

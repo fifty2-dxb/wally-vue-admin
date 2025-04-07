@@ -18,6 +18,7 @@ interface CustomerDetails {
 }
 
 interface Customer {
+  id?: string;
   status?: string;
   customers_details: CustomerDetails;
   serialNumber: string;
@@ -25,6 +26,10 @@ interface Customer {
   stats: any[];
   redeemable: boolean;
   stampImageUrl: string;
+  currentStamps?: number;
+  requiredStamps?: number;
+  expiresAt?: string;
+  isExpired?: boolean;
   logs?: any[];
 }
 
@@ -52,6 +57,10 @@ export const useCustomerStore = defineStore("customer", () => {
     stats: [],
     redeemable: false,
     stampImageUrl: "",
+    currentStamps: 0,
+    requiredStamps: 0,
+    expiresAt: "",
+    isExpired: false,
   });
   const serialNumberData = ref<any[]>([]);
   
@@ -88,6 +97,10 @@ export const useCustomerStore = defineStore("customer", () => {
           stats: response.stats || [],
           redeemable: response.redeemable,
           stampImageUrl: response.stampImageUrl,
+          currentStamps: response.currentStamps,
+          requiredStamps: response.requiredStamps,
+          expiresAt: response.expiresAt,
+          isExpired: response.isExpired,
         };
         fetchLogs(id);
       } else {
@@ -113,6 +126,10 @@ export const useCustomerStore = defineStore("customer", () => {
           stats: [],
           redeemable: false,
           stampImageUrl: "",
+          currentStamps: 0,
+          requiredStamps: 0,
+          expiresAt: "",
+          isExpired: false,
         };
       }
     } catch (error) {
@@ -154,7 +171,9 @@ export const useCustomerStore = defineStore("customer", () => {
         },
       });
       console.log("response", response);
-      await fetchCustomerById(customer.value.id);
+      if (customer.value.customers_details?.id) {
+        await fetchCustomerById(customer.value.customers_details.id);
+      }
     } catch (error) {
       console.error("Error stamping customer by GUID:", error);
       throw error;
@@ -176,7 +195,9 @@ export const useCustomerStore = defineStore("customer", () => {
         },
       });
       console.log("response", response);
-      await fetchCustomerById(customer.value.id);
+      if (customer.value.customers_details?.id) {
+        await fetchCustomerById(customer.value.customers_details.id);
+      }
     } catch (error) {
       console.error("Error redeeming customer by GUID:", error);
       throw error;
@@ -208,6 +229,10 @@ export const useCustomerStore = defineStore("customer", () => {
       stats: [],
       redeemable: false,
       stampImageUrl: "",
+      currentStamps: 0,
+      requiredStamps: 0,
+      expiresAt: "",
+      isExpired: false,
     };
     serialNumberData.value = [];
   };
