@@ -155,15 +155,15 @@ const saveCampaign = async () => {
 const validateForm = () => {
     const { properties, type } = loyaltyData.value.template;
 
-    errors.value.icon = type === 'balance' && !properties.icon;
-    errors.value.logo = type === 'balance' && !properties.logo;
+    errors.value.icon = (type === 'balance' || type === 'event') && !properties.icon;
+    errors.value.logo = (type === 'balance' || type === 'event') && !properties.logo;
 
     if (type === 'membership') {
       errors.value.stripImagePreviewApple = !properties.stripImagePreviewApple;
       errors.value.stripImagePreviewGoogle = !properties.stripImagePreviewGoogle;
       errors.value.reward = false;
     } else {
-      errors.value.reward = type !== 'balance' && !properties.reward;
+      errors.value.reward = type !== 'balance' && type !== 'event' && !properties.reward;
       errors.value.stripImagePreviewApple = false;
       errors.value.stripImagePreviewGoogle = false;
     }
@@ -188,9 +188,9 @@ const requiredFieldsFilled = computed(() => {
     properties.logo &&
     properties.icon &&
     (type === 'membership'
-      ? properties.stripImagePreviewApple && properties.stripImagePreviewGoogle
-      : type === 'balance' || properties.reward
-    )
+        ? properties.stripImagePreviewApple && properties.stripImagePreviewGoogle
+        : type === 'balance' || type === 'event' || properties.reward
+      )
   );
 });
 
