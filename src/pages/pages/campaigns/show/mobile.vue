@@ -43,7 +43,7 @@ const scanTime = ref('');
 const scannerID = ref('');
 const nfcTagId = ref('');
 const showConfetti = ref(false);
-
+const errorMessage = ref('');
 // Event information based on campaign type
 const eventInfo = ref({
   primary: { label: '', value: '' },
@@ -71,6 +71,13 @@ const updateEventInfo = (campaign: Campaign | null) => {
   }
 };
 
+const resetScan = () => {
+  scanState.value = 'initial'
+  scanTime.value = ''
+  scannerID.value = ''
+  nfcTagId.value = ''
+}
+
 // ... existing code ...
 const receiveNfcData = async (event: any) => {
   try {
@@ -87,11 +94,23 @@ const receiveNfcData = async (event: any) => {
       response = await $wallyApi('/pass-value', {
         method: 'POST',
         body: {
-          serialNumber: eventGuid.value,
+          serialNumber: event,
           value: "1",
-          type: "access"
+          type: "access",
+          eventGuid: eventGuid.value,
         },
       });
+
+      console.log('response', response);
+      //pass not found 
+      if (response.status !== 200) {
+        errorMessage.value = response.message
+        scanState.value = 'error'
+        return
+      } else {
+        scanState.value = 'success'
+      }
+
     } else if (campaignType === 'event') {
       response = await $wallyApi('/event-access', {
         method: 'POST',
@@ -100,6 +119,10 @@ const receiveNfcData = async (event: any) => {
           campaignGuid,
         },
       });
+      
+      const isAlreadyScanned = response.status === 'already_scanned'
+      scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
+
     } else {
       console.error('Invalid campaign type for NFC')
       scanState.value = 'error'
@@ -110,15 +133,7 @@ const receiveNfcData = async (event: any) => {
     scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`
 
-    const isAlreadyScanned = response.status === 'already_scanned'
-    scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
     
-    if (!isAlreadyScanned) {
-      showConfetti.value = true
-      setTimeout(() => {
-        showConfetti.value = false
-      }, 2500)
-    }
   } catch (error) {
     console.error('Error validating NFC tag:', error)
     scanState.value = 'error'
@@ -218,7 +233,7 @@ onUnmounted(() => {
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('ab469c6b-98c7-4deb-9ff0-88649010e5dc')">
+          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('58cb9cad-abb1-411e-ac2b-cf7ff42cadd9')">
             {{ $t('Test NFC') }}
           </VBtn>
         </template>
@@ -233,12 +248,13 @@ onUnmounted(() => {
           </div>
 
           <h1 class="welcome-text">
-            {{ $t('Error Scanning Tag') }}
+            {{ $t('Error Scanning Digital Card') }}
           </h1>
-          
-          <h2 class="location-text">
-            {{ $t('Please try again') }}
-          </h2>
+
+          <!-- show error message -->
+          <p class="error-message">
+            {{ errorMessage }}
+          </p>
 
           <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
             {{ $t('Try Again') }}
@@ -366,7 +382,7 @@ onUnmounted(() => {
 }
 
 .mobile-frame.error {
-  background: #FF9800;
+  background: #FF5252;
 }
 
 .status-bar {
@@ -394,6 +410,12 @@ onUnmounted(() => {
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: white;
+}
+
+.error-message {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
 .welcome-text.text-black {
