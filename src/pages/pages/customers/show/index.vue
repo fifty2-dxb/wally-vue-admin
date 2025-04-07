@@ -16,10 +16,9 @@ const fetchCustomerDetails = async (customerId: string) => {
 };
 
 onMounted(() => {
-  // Convert route.params.id to string if it exists
-  const customerId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
-  if (customerId) {
-    fetchCustomerDetails(customerId);
+  const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
+  if (id) {
+    fetchCustomerDetails(id);
   }
 })
 
@@ -40,7 +39,7 @@ onMounted(() => {
         prepend-icon="tabler-dots-vertical"
         variant="tonal"
       >
-        {{ $t("Actions") }}
+        {{ $t('Actions') }}
       </VBtn>
     </div>
   </div>
@@ -93,29 +92,31 @@ onMounted(() => {
 
       <!-- User Data Section -->
       <VCard class="modern-card mb-6">
-        <div class="pa-6">
+        <div class="px-6 py-4">
           <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Personal Information') }}</h6>
           
           <div class="user-info-list">
             <div class="info-item">
-              <div class="info-label">{{ $t('Name') }}</div>
-              <div class="info-value">{{ customerStore.customer.customers_details.name }}</div>
+              <div class="info-label">{{ $t('Phone') }}</div>
+              <div class="info-value">{{ customerStore.customer.customers_details.phonenumber || '-' }}</div>
             </div>
-            <div class="info-item">
-              <div class="info-label">{{ $t('Surname') }}</div>
-              <div class="info-value">{{ customerStore.customer.customers_details.surname }}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">{{ $t('Email') }}</div>
-              <div class="info-value">{{ customerStore.customer.customers_details.email }}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">{{ $t('Phone Number') }}</div>
-              <div class="info-value">{{ customerStore.customer.customers_details.phonenumber }}</div>
-            </div>
+            <VDivider />
+            
             <div class="info-item">
               <div class="info-label">{{ $t('Gender') }}</div>
-              <div class="info-value">{{ customerStore.customer.customers_details.gender || 'Not specified' }}</div>
+              <div class="info-value">{{ customerStore.customer.customers_details.gender || '-' }}</div>
+            </div>
+            <VDivider />
+            
+            <div class="info-item">
+              <div class="info-label">{{ $t('Birthday') }}</div>
+              <div class="info-value">{{ customerStore.customer.customers_details.birthday || '-' }}</div>
+            </div>
+            <VDivider />
+            
+            <div class="info-item">
+              <div class="info-label">{{ $t('Member Since') }}</div>
+              <div class="info-value">{{ new Date(customerStore.customer.customers_details.createdAt).toLocaleDateString() }}</div>
             </div>
           </div>
         </div>
@@ -123,23 +124,22 @@ onMounted(() => {
 
       <!-- Notes Section -->
       <VCard class="modern-card mb-6">
-        <div class="pa-6">
+        <div class="px-6 py-4">
           <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Notes') }}</h6>
           <VTextarea
             v-model="customerStore.customer.customers_details.note"
             :placeholder="$t('Add notes about this customer')"
-            rows="5"
+            rows="4"
             hide-details
-            density="comfortable"
             variant="outlined"
-            class="mb-4"
+            density="comfortable"
           />
-          <div class="d-flex justify-end">
+          <div class="d-flex justify-end mt-4">
             <VBtn
               color="primary"
-              variant="elevated"
+              size="small"
             >
-              {{ $t("Save Notes") }}
+              {{ $t('Save Notes') }}
             </VBtn>
           </div>
         </div>
@@ -153,7 +153,7 @@ onMounted(() => {
         v-if="customerStore.customer.stats.length > 0"
         class="modern-card mb-6"
       >
-        <div class="pa-6">
+        <div class="px-6 py-4">
           <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Statistics') }}</h6>
           <VRow>
             <VCol 
@@ -172,24 +172,24 @@ onMounted(() => {
         </div>
       </VCard>
 
-      <!-- Customer History -->
+      <!-- Activity History -->
       <VCard class="modern-card">
-        <div class="pa-6">
+        <div class="px-6 py-4">
           <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Activity History') }}</h6>
           <VDataTable
             :headers="[
-              { title: 'Date', key: 'date', align: 'start' },
-              { title: 'Description', key: 'description', align: 'start' },
+              { title: 'DATE', key: 'date', sortable: true },
+              { title: 'ACTIVITY', key: 'description' },
             ]"
             :items="customerStore.customer.logs"
             :items-per-page="10"
             class="modern-table"
             :loading="customerStore.gettingLogs"
           >
-            <template v-slot:item.date="{ item }">
+            <template #item.date="{ item }">
               {{ new Date(item.updatedAt).toLocaleString() }}
             </template>
-            <template v-slot:item.description="{ item }">
+            <template #item.description="{ item }">
               <VChip
                 :color="item.type === 'stamp' ? (item.value > 0 ? 'success' : 'error') : 'info'"
                 size="small"
@@ -198,10 +198,10 @@ onMounted(() => {
                 {{ item.type.toUpperCase() }}
               </VChip>
               <span v-if="item.type === 'stamp' && item.value > 0">
-                {{ $t("Gained") }} {{ item.value }} {{ $t("stamps") }}
+                {{ $t("Gained {0} stamps", [item.value]) }}
               </span>
               <span v-else-if="item.type === 'stamp' && item.value < 0">
-                {{ Math.abs(item.value) }} {{ $t("stamps reverted") }}
+                {{ $t("Removed {0} stamps", [Math.abs(item.value)]) }}
               </span>
               <span v-else-if="item.type === 'redeem'">
                 {{ $t("Redeemed reward") }}
@@ -223,9 +223,9 @@ onMounted(() => {
 
 .modern-card {
   border-radius: 12px;
-  border: none;
-  transition: box-shadow 0.2s;
   overflow: hidden;
+  transition: box-shadow 0.2s;
+  border: none;
 }
 
 .modern-card:hover {
@@ -235,6 +235,7 @@ onMounted(() => {
 .stamp-image {
   border-radius: 8px;
   margin: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .user-info-list {
@@ -244,42 +245,41 @@ onMounted(() => {
 }
 
 .info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  padding: 8px 0;
 }
 
 .info-label {
   font-size: 0.875rem;
   color: rgba(var(--v-theme-on-surface), 0.6);
-  font-weight: 500;
+  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .info-value {
   font-size: 1rem;
-  color: rgb(var(--v-theme-on-surface));
+  font-weight: 500;
 }
 
 .stat-card {
   background: rgb(var(--v-theme-surface));
-  border-radius: 8px;
   padding: 16px;
-  height: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 .stat-label {
   font-size: 0.875rem;
   color: rgba(var(--v-theme-on-surface), 0.6);
   margin-bottom: 8px;
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
   font-size: 1.5rem;
   font-weight: 600;
-  color: rgb(var(--v-theme-on-surface));
+  color: rgb(var(--v-theme-primary));
 }
 
 .modern-table {
@@ -288,10 +288,10 @@ onMounted(() => {
 }
 
 :deep(.v-data-table-header th) {
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .gap-2 {
@@ -301,7 +301,6 @@ onMounted(() => {
 :deep(.v-btn) {
   text-transform: none;
   font-weight: 500;
-  letter-spacing: 0.5px;
 }
 
 :deep(.v-chip) {
