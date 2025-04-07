@@ -23,7 +23,9 @@ const fetchCustomerDetails = async (serialNumber: string) => {
 const receiveNfcData = async (data: string) => {
   if (data) {
     try {
+      console.log('data', data);
       await customerStore.fetchCustomerBySerialNumber(data);
+      console.log('customerStore', customerStore);
       customerLoaded.value = true; 
     } catch (error) {
       customerLoaded.value = false;

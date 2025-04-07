@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ConfettiExplosion from 'vue-confetti-explosion';
 import { useCampaignStore } from '@/stores/campaign';
+import { useCustomerStore } from '@/stores/customer';
 
 declare global {
   class NDEFReader {
@@ -87,10 +88,32 @@ const receiveNfcData = async (event: any) => {
       return
     }
 
+    //creating a loading state
+    isLoading.value = true;
+
+    //get customer by serial number
+    await useCustomerStore().fetchCustomerBySerialNumber(event)
+    const customerStore = useCustomerStore();
+    console.log('customer', customerStore.customer);
+
+    //check if customer is found
+    if (!customerStore.customer) {
+      console.error('Customer not found')
+      scanState.value = 'error'
+      isLoading.value = false;
+      return
+    }
+
+    //hide loading state
+    isLoading.value = false;
+
     let response;
     const campaignType = campaign.value?.styleSettings?.type;
 
     if (campaignType === 'membership') {
+      // Show welcome message with customer name
+      const customerName = `${customerStore.customer.customers_details.name} ${customerStore.customer.customers_details.surname}`;
+      
       response = await $wallyApi('/pass-value', {
         method: 'POST',
         body: {
@@ -311,11 +334,9 @@ onUnmounted(() => {
               <template v-if="campaign?.styleSettings?.type === 'membership'">
                 <div class="info-row">
                   <div class="info-col">
-                    <div class="info-label">{{ eventInfo.primary.label }}</div>
+                    <div class="info-label">MEMBER</div>
+                    <div class="info-value">{{ useCustomerStore().customer.customers_details.name }} {{ useCustomerStore().customer.customers_details.surname }}</div>
                   </div>
-                </div>
-                <div class="message-text">
-                  {{ $t('Welcome to the membership!') }}
                 </div>
               </template>
             </div>
@@ -462,13 +483,16 @@ onUnmounted(() => {
 .info-label {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
-  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
 }
 
 .info-value {
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
 .message-text {

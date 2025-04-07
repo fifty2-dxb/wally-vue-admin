@@ -1,15 +1,59 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+interface CustomerDetails {
+  id: string;
+  name: string;
+  surname: string;
+  phonenumber: string;
+  email: string;
+  promotion: string;
+  birthday: string | null;
+  gender: string | null;
+  smsMarketing: boolean | null;
+  emailMarketing: boolean | null;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Customer {
+  status?: string;
+  customers_details: CustomerDetails;
+  serialNumber: string;
+  type: string;
+  stats: any[];
+  redeemable: boolean;
+  stampImageUrl: string;
+  logs?: any[];
+}
+
 export const useCustomerStore = defineStore("customer", () => {
-  const customers = ref([]);
-  const customer = ref({
-    id: "",
+  const customers = ref<CustomerDetails[]>([]);
+  const customer = ref<Customer>({
+    status: "",
+    customers_details: {
+      id: "",
+      name: "",
+      surname: "",
+      phonenumber: "",
+      email: "",
+      promotion: "",
+      birthday: null,
+      gender: null,
+      smsMarketing: null,
+      emailMarketing: null,
+      note: null,
+      createdAt: "",
+      updatedAt: "",
+    },
     serialNumber: "",
-    stats: [],
     type: "",
+    stats: [],
+    redeemable: false,
+    stampImageUrl: "",
   });
-  const serialNumberData = ref([])
+  const serialNumberData = ref<any[]>([]);
   
 
   const fetchCustomers = async () => {
@@ -24,6 +68,7 @@ export const useCustomerStore = defineStore("customer", () => {
   const fetchCustomerBySerialNumber = async (serialNumber: string) => {
     try {
       const response = await $wallyApi(`/customers/pass/${serialNumber}`, { method: "GET" });
+      customer.value = response || [];
       serialNumberData.value = response || [];
     } catch (error) {
       console.error("Error fetching customers", error);
@@ -35,17 +80,39 @@ export const useCustomerStore = defineStore("customer", () => {
       const response = await $wallyApi(`/customers/${id}`, { method: "GET" });
       console.log("response", response);
       if (response?.customers_details) {
-        customer.value = response.customers_details;
-        customer.value.serialNumber = response.serialNumber;
-        customer.value.stampImageUrl = response.stampImageUrl;
-        customer.value.redeemable = response.redeemable;
-        customer.value.stats = response.stats;
-        customer.value.type = response.type;
+        customer.value = {
+          status: response.status,
+          customers_details: response.customers_details,
+          serialNumber: response.serialNumber,
+          type: response.type,
+          stats: response.stats || [],
+          redeemable: response.redeemable,
+          stampImageUrl: response.stampImageUrl,
+        };
         fetchLogs(id);
       } else {
         customer.value = {
-          id: "",
-          serialNumber: ""
+          status: "",
+          customers_details: {
+            id: "",
+            name: "",
+            surname: "",
+            phonenumber: "",
+            email: "",
+            promotion: "",
+            birthday: null,
+            gender: null,
+            smsMarketing: null,
+            emailMarketing: null,
+            note: null,
+            createdAt: "",
+            updatedAt: "",
+          },
+          serialNumber: "",
+          type: "",
+          stats: [],
+          redeemable: false,
+          stampImageUrl: "",
         };
       }
     } catch (error) {
@@ -120,10 +187,27 @@ export const useCustomerStore = defineStore("customer", () => {
 
   const resetCustomerData = () => {
     customer.value = {
-      id: "",
+      status: "",
+      customers_details: {
+        id: "",
+        name: "",
+        surname: "",
+        phonenumber: "",
+        email: "",
+        promotion: "",
+        birthday: null,
+        gender: null,
+        smsMarketing: null,
+        emailMarketing: null,
+        note: null,
+        createdAt: "",
+        updatedAt: "",
+      },
       serialNumber: "",
-      stats: [],
       type: "",
+      stats: [],
+      redeemable: false,
+      stampImageUrl: "",
     };
     serialNumberData.value = [];
   };
