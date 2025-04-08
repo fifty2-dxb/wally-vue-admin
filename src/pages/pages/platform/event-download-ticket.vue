@@ -1,375 +1,485 @@
-<script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+  <script setup lang="ts">
+  import { computed, onMounted, onUnmounted, ref } from 'vue'
+  import { useRoute } from 'vue-router'
 
-definePage({
-  meta: {
-    layout: 'blank',
-    unauthenticatedOnly: true,
-  },
-})
+  definePage({
+    meta: {
+      layout: 'blank',
+      unauthenticatedOnly: true,
+    },
+  })
 
-const googleLogo = new URL('@images/google-wallet.svg', import.meta.url).href;
-const appleLogo = new URL('@images/apple-wallet.svg', import.meta.url).href;
+  const googleLogo = new URL('@images/google-wallet.svg', import.meta.url).href
+  const appleLogo = new URL('@images/apple-wallet.svg', import.meta.url).href
 
-const platformData = ref({});
-const route = useRoute();
-const googleLoading = ref(false);
-const appleLoading = ref(false);
-const deviceDetected = ref(false);
-const helpDialogOpen = ref(false);
-const platform = ref(0)
+  const platformData = ref({})
+  const route = useRoute()
+  const googleLoading = ref(false)
+  const appleLoading = ref(false)
+  const deviceDetected = ref(false)
+  const helpDialogOpen = ref(false)
+  const currentStep = ref(0)
+  const selectedPlatform = ref(-1)
 
-const userDevice = computed(() => {
-  if (typeof navigator !== 'undefined') {
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/i.test(userAgent)) return 'ios';
-    if (/android/i.test(userAgent)) return 'android';
-  }
-
-  return 'unknown';
-})
-
-const steps = [
-  { title: 'Apple', icon: 'tabler-brand-apple', cardTitle: 'Add card to Apple Wallet', cardDescription: 'To add the card to the Apple Wallet app, press the button below.', buttonText: 'Save to phone', logo: appleLogo, showButton: false },
-  { title: 'Google', icon: 'tabler-brand-android', cardTitle: 'Add card to Google Pay', cardDescription: 'To add the card press the button below. Perhaps you will need to log in to your Google account.', buttonText: 'Save to phone', logo: googleLogo, showButton: true },
-];
-
-const fetchPlatformData = async () => {
-  try {
-    const response = await $wallyApi(`/campaigns/platform/${route.params.id}`, { method: "GET" });
-    platformData.value = response || {};
-  } catch (error) {
-    console.error("Error fetching campaigns", error);
-  }
-};
-
-const downloadGoogleCard = async () => {
-  try {
-    googleLoading.value = true
-    console.log(platformData)
-
-    const response = await $wallyApi(`v1/passes/event/${platformData.value.eventGuid}/google`, { method: "GET" });
-
-    const googleWalletUrl = response
-
-    if (googleWalletUrl) {
-      window.location.href = googleWalletUrl;
-    } else {
-      console.error("Google Wallet URL not found in the response");
+  const userDevice = computed(() => {
+    if (typeof navigator !== 'undefined') {
+      const userAgent = navigator.userAgent.toLowerCase()
+      if (/iphone|ipad|ipod/i.test(userAgent)) return 'ios'
+      if (/android/i.test(userAgent)) return 'android'
     }
-  } catch (error) {
-    console.error("Error fetching Google Wallet link", error);
-  } finally {
-    googleLoading.value = false;
-  }
-};
 
-const downloadAppleCard = async () => {
-  try {
-    appleLoading.value = true;
-    console.log(platformData);
+    return 'unknown'
+  })
 
-    const response = await $wallyApi(`v1/passes/event/${platformData.value.eventGuid}`, {
-      method: "GET",
-      responseType: 'blob'
-    });
+  const wallets = [
+    { 
+      title: 'Apple', 
+      icon: 'tabler-brand-apple', 
+      cardTitle: 'Add to Apple Wallet', 
+      cardDescription: 'To add the card to the Apple Wallet app, press the button below.', 
+      buttonText: 'Add to Apple Wallet', 
+      logo: appleLogo
+    },
+    { 
+      title: 'Google', 
+      icon: 'tabler-brand-android', 
+      cardTitle: 'Add to Google Wallet', 
+      cardDescription: 'To add the card press the button below. You may need to sign in to your Google account.', 
+      buttonText: 'Add to Google Wallet', 
+      logo: googleLogo
+    },
+  ]
 
-    const url = window.URL.createObjectURL(new Blob([response], { type: 'application/vnd.apple.pkpass' }));
-
-    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      window.location.href = url;
-    } else {
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "pass.pkpass");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const fetchPlatformData = async () => {
+    try {
+      const response = await $wallyApi(`/campaigns/platform/${route.params.id}`, { method: 'GET' })
+      platformData.value = response || {}
+    } catch (error) {
+      console.error('Error fetching campaigns', error)
     }
-  } catch (error) {
-    console.error("Error fetching apple card link", error);
-  } finally {
-    appleLoading.value = false;
   }
-};
 
-const toggleHelp = () => {
-  helpDialogOpen.value = !helpDialogOpen.value;
-};
+  const downloadGoogleCard = async () => {
+    try {
+      googleLoading.value = true
+      const response = await $wallyApi(`v1/passes/event/${platformData.value.eventGuid}/google`, { method: 'GET' })
+      const googleWalletUrl = response
 
-const handleKeyDown = (event) => {
-  if (event.key === 'Escape' && helpDialogOpen.value) {
-    helpDialogOpen.value = false;
+      if (googleWalletUrl) {
+        window.location.href = googleWalletUrl
+      } else {
+        console.error('Google Wallet URL not found in the response')
+      }
+    } catch (error) {
+      console.error('Error fetching Google Wallet link', error)
+    } finally {
+      googleLoading.value = false
+    }
   }
-};
 
-onMounted(async () => {
-  await fetchPlatformData();
+  const downloadAppleCard = async () => {
+    try {
+      appleLoading.value = true
+      const response = await $wallyApi(`v1/passes/event/${platformData.value.eventGuid}`, {
+        method: 'GET',
+        responseType: 'blob',
+      })
 
-  if (userDevice.value === 'ios') {
-    platform.value = 0;
-    deviceDetected.value = true;
-  } else if (userDevice.value === 'android') {
-    platform.value = 1;
-    deviceDetected.value = true;
+      const url = window.URL.createObjectURL(new Blob([response], { type: 'application/vnd.apple.pkpass' }))
+
+      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        window.location.href = url
+      } else {
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', 'pass.pkpass')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    } catch (error) {
+      console.error('Error fetching apple card link', error)
+    } finally {
+      appleLoading.value = false
+    }
   }
-  
-  window.addEventListener('keydown', handleKeyDown);
-});
 
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-});
-</script>
+  const selectPlatform = (platform: number) => {
+    selectedPlatform.value = platform
+    currentStep.value = 1
+  }
 
-<template>
-  <div class="d-flex justify-center align-center">
-    <VCard class="inner-card" width="450px" elevation="2">
-      <div class="text-center">
-        <img :src="platformData.companyLogo" alt="" height="60px">
-      </div>
+  const goBack = () => {
+    currentStep.value = 0
+  }
 
-      <v-card-text>
-        <div class="tab-container">
-          <div class="tab-header">
-            <div class="tab" :class="{ 'active': platform === 0 }" @click="platform = 0">
-              <i class="tabler-brand-apple tab-icon"></i>
-              <div>Apple</div>
-            </div>
-            <div class="tab" :class="{ 'active': platform === 1 }" @click="platform = 1">
-              <i class="tabler-brand-android tab-icon"></i>
-              <div>Google</div>
-            </div>
-          </div>
+  const toggleHelp = () => {
+    helpDialogOpen.value = !helpDialogOpen.value
+  }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && helpDialogOpen.value) {
+      helpDialogOpen.value = false
+    }
+  }
+
+  onMounted(async () => {
+    await fetchPlatformData()
+
+    if (userDevice.value === 'ios' || userDevice.value === 'android') {
+      deviceDetected.value = true
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown)
+  })
+  </script>
+
+  <template>
+    <div class="d-flex justify-center align-center">
+      <VCard class="modern-card" width="450px" elevation="2">
+        <div class="logo-section">
+          <img :src="platformData.companyLogo" alt="" height="60px">
         </div>
-      </v-card-text>
+        <template v-if="currentStep === 0">
+          <VCardText class="text-center">
+            <h1 class="selection-title">Select Your Platform</h1>
+            <p class="selection-description">Choose your device's platform to download the ticket to your wallet</p>
 
-      <VRow no-gutters class="w-100">
-        <VCol cols="12" class="text-center">
+            <div class="platform-container">
+              <div class="platform-option" :class="{ active: selectedPlatform === 0 }" @click="selectPlatform(0)">
+                <VIcon icon="tabler-brand-apple" size="32" class="platform-icon" />
+                <span class="platform-label">Apple</span>
+                <small v-if="userDevice.value === 'ios'" class="device-hint">Recommended for your device</small>
+              </div>
+
+              <div class="platform-option" :class="{ active: selectedPlatform === 1 }" @click="selectPlatform(1)">
+                <VIcon icon="tabler-brand-android" size="32" class="platform-icon" />
+                <span class="platform-label">Google</span>
+                <small v-if="userDevice.value === 'android'" class="device-hint">Recommended for your device</small>
+              </div>
+            </div>
+          </VCardText>
+        </template>
+
+        <template v-else>
           <VCardText class="text-center px-15 py-40">
-            <h1 class="card-title">{{ steps[platform].cardTitle }}</h1>
-            <p class="card-description">{{ steps[platform].cardDescription }}</p>
+            <VBtn icon variant="text" size="small" class="back-button" @click="goBack">
+              <VIcon icon="tabler-arrow-left" />
+              <span class="ml-2">Back</span>
+            </VBtn>
 
-            <VBtn :loading="googleLoading" v-if="platform === 1" block
-              class="walletBtn d-flex justify-center align-center btn-lg" @click="downloadGoogleCard">
-              <img :src="steps[platform].logo" alt="wallet logo" class="mr-2" style="width: 46px; height: 18px;" />
+            <h1 class="card-title">{{ wallets[selectedPlatform].cardTitle }}</h1>
+            <p class="card-description">{{ wallets[selectedPlatform].cardDescription }}</p>
+
+            <VBtn v-if="selectedPlatform === 1" :loading="googleLoading" block
+              class="wallet-btn d-flex justify-center align-center btn-lg" @click="downloadGoogleCard">
+              <img :src="wallets[selectedPlatform].logo" alt="wallet logo" class="mr-2"
+                style="width: 46px; height: 18px;" />
               <span class="divider mx-2">|</span>
-              <p class="mb-0 text-14">{{ steps[platform].buttonText }}</p>
+              <p class="mb-0 text-14">{{ wallets[selectedPlatform].buttonText }}</p>
             </VBtn>
 
             <div v-else>
-              <img v-if="!appleLoading" :src="steps[platform].logo" alt="wallet logo" class="asset-apple mt-40"
+              <img v-if="!appleLoading" :src="wallets[selectedPlatform].logo" alt="wallet logo" class="asset-apple mt-40"
                 @click="downloadAppleCard" />
-              <v-btn :loading="true" v-if="appleLoading" variant="text" color="primary"></v-btn>
+              <VBtn v-if="appleLoading" :loading variant="text" color="primary" />
             </div>
 
             <p class="text-primary cursor-pointer mt-4 mb-0 text-16" role="button" @click="toggleHelp">
               Don't know how to install the card?
             </p>
           </VCardText>
-        </VCol>
-      </VRow>
+        </template>
 
-      <Teleport to="body" v-if="helpDialogOpen">
-        <div class="help-dialog" @click="helpDialogOpen = false">
-          <div class="help-dialog-content" @click.stop>
-            <div class="help-header">
-              <h3>Installation Help</h3>
-              <button class="close-x" @click="helpDialogOpen = false">×</button>
+        <Teleport to="body" v-if="helpDialogOpen">
+          <div class="help-dialog" @click="helpDialogOpen = false">
+            <div class="help-dialog-content" @click.stop>
+              <div class="help-header">
+                <h3>Installation Help</h3>
+                <VBtn icon variant="text" size="small" class="close-x" @click="helpDialogOpen = false">
+                  <VIcon icon="tabler-x" />
+                </VBtn>
+              </div>
+
+              <template v-if="selectedPlatform === 0">
+                <ol>
+                  <li>Tap the "Add to Apple Wallet" button above</li>
+                  <li>Your iOS device will display a preview of the pass</li>
+                  <li>Tap "Add" in the top-right corner</li>
+                  <li>Your ticket will be saved to Apple Wallet</li>
+                </ol>
+              </template>
+              <template v-else>
+                <ol>
+                  <li>Tap the "Add to Google Wallet" button above</li>
+                  <li>Sign in to your Google account if prompted</li>
+                  <li>Review the pass details</li>
+                  <li>Tap "Save" to add it to Google Wallet</li>
+                </ol>
+              </template>
+
+              <VBtn color="primary" block class="close-dialog" @click="helpDialogOpen = false">
+                Close
+              </VBtn>
             </div>
-            
-            <template v-if="platform === 0">
-              <ol>
-                <li>Tap the "Add to Apple Wallet" button above</li>
-                <li>Your iOS device will display a preview of the pass</li>
-                <li>Tap "Add" in the top-right corner</li>
-                <li>Your ticket will be saved to Apple Wallet</li>
-              </ol>
-            </template>
-            <template v-else>
-              <ol>
-                <li>Tap the "Save to phone" button above</li>
-                <li>Sign in to your Google account if prompted</li>
-                <li>Review the pass details</li>
-                <li>Tap "Save" to add it to Google Wallet</li>
-              </ol>
-            </template>
-            
-            <button class="close-dialog" @click="helpDialogOpen = false">Close</button>
           </div>
-        </div>
-      </Teleport>
-    </VCard>
-  </div>
-</template>
+        </Teleport>
+      </VCard>
+    </div>
+  </template>
 
-<style scoped>
-.d-flex {
-  height: 100vh;
+  <style scoped>
+  .d-flex {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+  }
+
+  .modern-card {
+    border-radius: 16px !important;
+    box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease;
+    background: white;
+    overflow: hidden;
+  }
+
+  .modern-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .logo-section {
+    text-align: center;
+    padding: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  }
+
+  .selection-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    margin-bottom: 0.5rem;
+  }
+
+  .selection-description {
+    font-size: 14px;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+  }
+
+.platform-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column; 
+  gap: 16px;
+  padding: 1rem;
+  align-items: center; 
+  margin-top: 1rem;
 }
 
-.tab-container {
+.platform-option {
   width: 100%;
-  margin: 0 auto;
-}
-
-.tab-header {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.tab {
-  flex: 1;
+  max-width: 220px; 
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 15px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
+  padding: 1.5rem;
+  background: rgba(var(--v-theme-surface), 0.5);
+  border: 1px solid rgba(var(--v-theme-primary), 0.1);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 100px;
 }
 
-.tab.active {
-  background-color: #efe1ff;
-}
+  .platform-option:hover {
+    transform: translateY(-2px);
+    background: rgba(var(--v-theme-primary), 0.05);
+    border-color: rgba(var(--v-theme-primary), 0.2);
+    box-shadow: 0 4px 20px rgba(var(--v-theme-primary), 0.1);
+  }
 
-.tab-icon {
-  font-size: 20px;
-  margin-bottom: 5px;
-  color: #333;
-}
+  .platform-option.active {
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.1), rgba(var(--v-theme-primary), 0.05));
+    border-color: rgba(var(--v-theme-primary), 0.3);
+    box-shadow: 0 4px 20px rgba(var(--v-theme-primary), 0.15);
+  }
 
-.inner-card {
-  padding: 20px;
-  border-radius: 8px;
-}
+  .platform-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+  }
 
-.walletBtn {
-  height: 48px;
-  font-size: 14px;
-  padding: 13px 24px;
-  margin-top: 40px;
-}
+  .platform-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    margin-bottom: 4px;
+  }
 
-.card-title {
-  font-size: 22px;
-  margin: 30px 0 20px;
-}
+  .device-hint {
+    font-size: 11px;
+    color: var(--v-theme-primary);
+    text-align: center;
+    margin-top: 8px;
+  }
 
-.card-description {
-  font-size: 14px;
-  margin: 0;
-}
+  .wallet-btn {
+    height: 48px;
+    font-size: 14px;
+    padding: 13px 24px;
+    margin-top: 24px;
+    background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
 
-.divider {
-  font-size: 18px;
-}
+  .wallet-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(var(--v-theme-primary), 0.3);
+  }
 
-.asset-apple {
-  width: 170px;
-  height: 52px;
-  margin-top: 40px;
-  cursor: pointer;
-}
+  .card-title {
+    font-size: 22px;
+    margin: 30px 0 20px;
+    font-weight: 600;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+  }
 
-.help-dialog {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-  padding: 1rem;
-  backdrop-filter: blur(5px);
-}
+  .card-description {
+    font-size: 14px;
+    margin: 0;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+  }
 
-.help-dialog-content {
-  background: #fff;
-  color: #333;
-  border-radius: 16px;
-  padding: 2.5rem;
-  max-width: 420px;
-  width: 100%;
-  text-align: left;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  position: relative;
-}
+  .divider {
+    font-size: 18px;
+    color: rgba(var(--v-theme-on-surface), 0.3);
+  }
 
-.help-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
+  .asset-apple {
+    width: 170px;
+    height: 52px;
+    margin-top: 24px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
 
-.help-dialog-content h3 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin: 0;
-}
+  .asset-apple:hover {
+    transform: scale(1.05);
+  }
 
-.close-x {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  line-height: 1;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  margin: 0;
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
+  .help-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    padding: 1rem;
+    backdrop-filter: blur(5px);
+  }
 
-.close-x:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-}
+  .help-dialog-content {
+    background: white;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: left;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+  }
 
-.help-dialog-content ol {
-  padding-left: 1.8rem;
-  margin-bottom: 2rem;
-}
+  .help-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
 
-.help-dialog-content li {
-  margin-bottom: 0.8rem;
-  line-height: 1.5;
-}
+  .help-dialog-content h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+  }
 
-.close-dialog {
-  border: none;
-  border-radius: 10px;
-  padding: 0.9rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  width: 100%;
-  transition: all 0.3s ease;
-  background-color: #6200ee;
-  color: white;
-}
+  .close-x {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
 
-.close-dialog:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
-</style>
+  .close-x:hover {
+    background-color: rgba(var(--v-theme-surface), 0.1);
+  }
+
+  .help-dialog-content ol {
+    padding-left: 1.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .help-dialog-content li {
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+  }
+
+  .close-dialog {
+    border-radius: 10px;
+    padding: 0.9rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
+    color: white;
+  }
+
+  .close-dialog:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  .back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    text-transform: none;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    font-size: 14px;
+  }
+
+  .back-button:hover {
+    color: var(--v-theme-primary);
+  }
+  </style>
