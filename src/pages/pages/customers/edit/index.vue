@@ -59,7 +59,14 @@ const handleSubmit = async () => {
   try {
     loading.value = true;
     const customerId = customerStore.customer.customers_details.id;
-    await customerStore.updateCustomer(customerId, formData.value);
+    
+    const updatedData = {
+      ...formData.value,
+      smsMarketing: formData.value.smsMarketing ? 1 : 0,
+      emailMarketing: formData.value.emailMarketing ? 1 : 0,
+    };
+    
+    await customerStore.updateCustomer(customerId, updatedData);
     showSuccess('Customer details updated successfully');
     router.push(`/pages/customers/show/${customerId}`);
   } catch (error) {
