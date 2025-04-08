@@ -121,17 +121,13 @@ const deliveryExceptionsChartConfig = computed(() => ({
 </script>
 
 <template>
-  <VCard>
-    <VCardItem title="Customer & Card Overview" subtitle="Breaking down customer data by card preference">
-    </VCardItem>
-    <VCardText>
-      <div v-if="isLoading" class="loader-container">
-        <VProgressCircular indeterminate color="primary" size="64" width="5" />
-        <div class="loading-text mt-4">Loading data...</div>
-      </div>
-      <VueApexCharts v-else type="donut" height="370" :options="deliveryExceptionsChartConfig" :series="deliveryExceptionsChartSeries" />
-    </VCardText>
-  </VCard>
+  <div v-if="isLoading" class="loader-container">
+    <VProgressCircular indeterminate color="primary" size="64" width="5" />
+    <div class="loading-text mt-4">Loading data...</div>
+  </div>
+  <VueApexCharts v-else type="donut" height="405" :options="deliveryExceptionsChartConfig"
+    :series="deliveryExceptionsChartSeries" />
+
 </template>
 
 <style lang="scss">
