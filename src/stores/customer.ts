@@ -262,11 +262,16 @@ export const useCustomerStore = defineStore("customer", () => {
     }
   };
 
-  const addMember = async (customerData: Partial<CustomerDetails>, event: any) => {
+  const addMember = async (customerData: Partial<CustomerDetails>, event: { eventId: string }) => {
     try {
-      const response = await $wallyApi(`/member/${event.eventGuid}`, {
+      const updatedData = {
+        ...customerData,
+        smsMarketing: Number(customerData.smsMarketing ? 1 : 0),
+        emailMarketing: Number(customerData.emailMarketing ? 1 : 0),
+      };
+      const response = await $wallyApi(`/customers/member/${event.eventId}`, {
         method: "POST",
-        body: customerData,
+        body: updatedData,
       });
       console.log("response", response);
     } catch (error) {
@@ -274,6 +279,7 @@ export const useCustomerStore = defineStore("customer", () => {
       throw error;
     }
   };
+
   return {
     customers,
     customer,
