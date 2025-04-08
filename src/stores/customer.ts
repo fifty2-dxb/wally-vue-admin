@@ -262,6 +262,18 @@ export const useCustomerStore = defineStore("customer", () => {
     }
   };
 
+  const addMember = async (customerData: Partial<CustomerDetails>, event: any) => {
+    try {
+      const response = await $wallyApi(`/member/${event.eventGuid}`, {
+        method: "POST",
+        body: customerData,
+      });
+      console.log("response", response);
+    } catch (error) {
+      console.error("Error adding customer:", error);
+      throw error;
+    }
+  };
   return {
     customers,
     customer,
@@ -277,5 +289,6 @@ export const useCustomerStore = defineStore("customer", () => {
     resetCustomerData,
     updating,
     updateCustomer,
+    addMember,
   };
 });
