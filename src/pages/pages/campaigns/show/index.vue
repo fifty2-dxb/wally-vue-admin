@@ -595,7 +595,7 @@ const handleAddMember = async () => {
                 >
                   <VIcon
                     :icon="log.passValue === 1 ? 'tabler-check' : 'tabler-x'"
-                    color="white"
+                    color="black"
                   />
                 </VAvatar>
               </template>
