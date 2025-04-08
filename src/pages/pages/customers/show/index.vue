@@ -34,13 +34,22 @@ onMounted(() => {
           {{ customerStore.customer.customers_details.email }}
         </div>
       </div>
-      <VBtn
-        color="primary"
-        prepend-icon="tabler-dots-vertical"
-        variant="tonal"
-      >
-        {{ $t('Actions') }}
-      </VBtn>
+      <div class="d-flex gap-3">
+        <VBtn
+          color="primary"
+          prepend-icon="tabler-edit"
+          :to="`/pages/customers/edit/${route.params.id}`"
+        >
+          {{ $t('Edit Customer') }}
+        </VBtn>
+        <VBtn
+          color="secondary"
+          prepend-icon="tabler-dots-vertical"
+          variant="tonal"
+        >
+          {{ $t('More Actions') }}
+        </VBtn>
+      </div>
     </div>
   </div>
 

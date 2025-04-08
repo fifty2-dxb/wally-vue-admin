@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useTheme } from 'vuetify'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
+import GlobalSnackbar from '@/components/common/GlobalSnackbar.vue'
 import initCore from '@core/initCore'
 import { initConfigStore, useConfigStore } from '@core/stores/config'
 import { hexToRgb } from '@core/utils/colorConverter'
@@ -33,6 +34,7 @@ if ('serviceWorker' in navigator) {
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
       <RouterView />
       <ScrollToTop />
+      <GlobalSnackbar />
     </VApp>
   </VLocaleProvider>
 </template>

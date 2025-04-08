@@ -8,6 +8,7 @@ const showThankYouBalanceComponent = () => import('@/pages/pages/campaigns/topup
 const showFailedBalanceComponent = () => import('@/pages/pages/campaigns/topup/FailedPaymentCard.vue')
 const showUpdateComponent = () => import('@/pages/pages/campaigns/update/index.vue')
 const showCustomerComponent = () => import('@/pages/pages/customers/show/index.vue')
+const editCustomerComponent = () => import('@/pages/pages/customers/edit/index.vue')
 const activationRouteComponent = () => import ('@/pages/pages/activation/index.vue')
 const activatioSuccessnRouteComponent = () => import ('@/pages/pages/activation/success-activation.vue')
 const platformChooseRouteComponent = () => import ('@/pages/pages/platform/index.vue')
@@ -200,6 +201,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/pages/customers/show/:id',
     name: 'pages-customers-show',
     component: showCustomerComponent,
+  },
+  {
+    path: '/pages/customers/edit/:id',
+    name: 'pages-customers-edit',
+    component: editCustomerComponent,
   },
   {
     path: '/pwa/:id',

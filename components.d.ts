@@ -380,6 +380,7 @@ declare module 'vue' {
     EnrollmentForm: typeof import('./src/components/campaign/EnrollmentForm.vue')['default']
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
     FormPreview: typeof import('./src/components/campaign/FormPreview.vue')['default']
+    GlobalSnackbar: typeof import('./src/components/common/GlobalSnackbar.vue')['default']
     GoogleNFCHowItWorksDialog: typeof import('./src/components/dialogs/GoogleNFCHowItWorksDialog.vue')['default']
     GooglePhonePreview: typeof import('./src/components/marketing/GooglePhonePreview.vue')['default']
     I18n: typeof import('./src/@core/components/I18n.vue')['default']

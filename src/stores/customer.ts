@@ -10,8 +10,8 @@ interface CustomerDetails {
   promotion: string;
   birthday: string | null;
   gender: string | null;
-  smsMarketing: boolean | null;
-  emailMarketing: boolean | null;
+  smsMarketing: number;
+  emailMarketing: number;
   note: string | null;
   createdAt: string;
   updatedAt: string;
@@ -46,8 +46,8 @@ export const useCustomerStore = defineStore("customer", () => {
       promotion: "",
       birthday: null,
       gender: null,
-      smsMarketing: null,
-      emailMarketing: null,
+      smsMarketing: 0,
+      emailMarketing: 0,
       note: null,
       createdAt: "",
       updatedAt: "",
@@ -115,8 +115,8 @@ export const useCustomerStore = defineStore("customer", () => {
             promotion: "",
             birthday: null,
             gender: null,
-            smsMarketing: null,
-            emailMarketing: null,
+            smsMarketing: 0,
+            emailMarketing: 0,
             note: null,
             createdAt: "",
             updatedAt: "",
@@ -218,8 +218,8 @@ export const useCustomerStore = defineStore("customer", () => {
         promotion: "",
         birthday: null,
         gender: null,
-        smsMarketing: null,
-        emailMarketing: null,
+        smsMarketing: false,
+        emailMarketing: false,
         note: null,
         createdAt: "",
         updatedAt: "",
@@ -237,6 +237,31 @@ export const useCustomerStore = defineStore("customer", () => {
     serialNumberData.value = [];
   };
 
+  const updating = ref(false);
+  const updateCustomer = async (id: string, customerData: Partial<CustomerDetails>) => {
+    updating.value = true;
+    try {
+      const response = await $wallyApi(`/customers/${id}`, {
+        method: "PATCH",
+        body: customerData,
+      });
+      
+      if (response?.customers_details) {
+        // Update the local customer state with the response
+        customer.value = {
+          ...customer.value,
+          customers_details: response.customers_details,
+        };
+      }
+      return response;
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      throw error;
+    } finally {
+      updating.value = false;
+    }
+  };
+
   return {
     customers,
     customer,
@@ -249,6 +274,8 @@ export const useCustomerStore = defineStore("customer", () => {
     redeem,
     gettingLogs,
     serialNumberData,
-    resetCustomerData 
+    resetCustomerData,
+    updating,
+    updateCustomer,
   };
 });
