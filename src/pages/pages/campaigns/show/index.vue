@@ -501,7 +501,7 @@ const handleAddMember = async () => {
   <!-- Campaign Header -->
   <VRow no-gutters>
     <VCol cols="12" md="8">
-      <VCard class="modern-card mb-4">
+      <VCard class="modern-card mb-5">
         <VRow align="center" no-gutters>
           <VCol cols="12" sm="4" md="3" class="text-center pa-4">
             <img width="150" :src="campaign?.styleSettings.campaignPreview" class="campaign-preview" />
@@ -531,26 +531,28 @@ const handleAddMember = async () => {
       </VCard>
 
       <!-- Members Section -->
-      <VCard  v-if="campaignType === 'membership'" class="modern-card">
-        <VCardTitle class="pa-4 d-flex justify-space-between align-center">
-          <h6 class="text-h6">Members</h6>
-          <div class="d-flex gap-3">
-            <VBtn
-              color="primary"
-              prepend-icon="tabler-user-plus"
-              @click="isAddMemberModalOpen = true"
-              size="small"
-            >
-              Add Member
-            </VBtn>
-            <VBtn
-              color="secondary"
-              variant="tonal"
-              prepend-icon="tabler-file-import"
-              size="small"
-            >
-              Import Members
-            </VBtn>
+      <VCard v-if="campaignType === 'membership'" class="modern-card mb-5">
+        <VCardTitle class="pa-4">
+          <div class="d-flex flex-wrap justify-space-between align-center gap-y-4">
+            <h6 class="text-h6 mb-0">Members</h6>
+            <div class="d-flex gap-3">
+              <VBtn
+                color="primary"
+                prepend-icon="tabler-user-plus"
+                @click="isAddMemberModalOpen = true"
+                size="small"
+              >
+                Add Member
+              </VBtn>
+              <VBtn
+                color="secondary"
+                variant="tonal"
+                prepend-icon="tabler-file-import"
+                size="small"
+              >
+                Import Members
+              </VBtn>
+            </div>
           </div>
         </VCardTitle>
         <VDivider />
@@ -602,7 +604,7 @@ const handleAddMember = async () => {
     </VCol>
 
     <!-- Access Logs Section -->
-    <VCol cols="12" md="4" class="pl-md-4">
+    <VCol cols="12" md="4" class="ps-md-4">
       <VCard class="modern-card sticky-card">
         <VCardTitle class="pa-4 d-flex align-center">
           <VIcon icon="tabler-history" color="primary" class="me-2" />
@@ -737,8 +739,7 @@ const handleAddMember = async () => {
   <VCard 
     v-if="campaignType === 'event' && campaignStore.selectedEvent"
     title="Event Guests" 
-    class="modern-card mb-6" 
-    style="padding: 1rem; border-radius: 12px;"
+    class="modern-card mb-5"
   >
     <VCardText>
       <div class="d-flex justify-space-between align-center pb-4">
@@ -818,9 +819,9 @@ const handleAddMember = async () => {
   </VCard>
 
   <!-- Stats and Charts Section -->
-  <VRow class="">
+  <VRow class="mb-5">
     <VCol cols="12">
-      <VCard class="modern-card mb-2">
+      <VCard class="modern-card">
         <VCardText>
           <!-- Filters -->
           <div class="filter-section">
@@ -911,36 +912,39 @@ const handleAddMember = async () => {
       </VCard>
     </VCol>
   </VRow>
-  <VCard v-if="campaignType === 'event'" class="modern-card">
-    <VCardTitle class="pa-6 d-flex justify-space-between align-center">
-      <h6 class="text-h6">Members</h6>
-      <div class="d-flex gap-3">
-        <VTooltip
-          :disabled="!isAddMemberDisabled"
-          location="top"
-          content-class="tooltip-custom"
-        >
-          <template v-slot:activator="{ props }">
-            <div v-bind="props">
-              <VBtn
-                color="primary"
-                prepend-icon="tabler-user-plus"
-                @click="isAddMemberModalOpen = true"
-                :disabled="isAddMemberDisabled"
-              >
-                Add Member
-              </VBtn>
-            </div>
-          </template>
-          <span>Please select an event first</span>
-        </VTooltip>
-        <VBtn
-          color="secondary"
-          variant="tonal"
-          prepend-icon="tabler-file-import"
-        >
-          Import Members
-        </VBtn>
+
+  <VCard v-if="campaignType === 'event'" class="modern-card mb-5">
+    <VCardTitle class="pa-6">
+      <div class="d-flex flex-wrap justify-space-between align-center gap-y-4">
+        <h6 class="text-h6 mb-0">Members</h6>
+        <div class="d-flex flex-wrap gap-3">
+          <VTooltip
+            :disabled="!isAddMemberDisabled"
+            location="top"
+            content-class="tooltip-custom"
+          >
+            <template v-slot:activator="{ props }">
+              <div v-bind="props">
+                <VBtn
+                  color="primary"
+                  prepend-icon="tabler-user-plus"
+                  @click="isAddMemberModalOpen = true"
+                  :disabled="isAddMemberDisabled"
+                >
+                  Add Member
+                </VBtn>
+              </div>
+            </template>
+            <span>Please select an event first</span>
+          </VTooltip>
+          <VBtn
+            color="secondary"
+            variant="tonal"
+            prepend-icon="tabler-file-import"
+          >
+            Import Members
+          </VBtn>
+        </div>
       </div>
     </VCardTitle>
     <VDivider />
@@ -1648,5 +1652,32 @@ const handleAddMember = async () => {
   padding: 8px 12px;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+@media (max-width: 599px) {
+  .gap-y-4 {
+    row-gap: 1rem !important;
+  }
+  
+  .d-flex.flex-wrap.gap-3 {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .d-flex.flex-wrap.gap-3 .v-btn {
+    flex: 1;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .ps-md-4 {
+    padding-left: 0 !important;
+    margin-top: 1.25rem;
+  }
+  
+  .modern-card {
+    margin-bottom: 1.25rem !important;
+  }
 }
 </style>
