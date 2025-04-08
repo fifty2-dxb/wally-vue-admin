@@ -223,33 +223,25 @@ const ChartData = computed(() => ({
 </script>
 
 <template>
-  <VCard>
-    <VCardItem
-      :title="campaignType === 'stamp' ? 'Monthly Stamp and Redeem Overview' : 'Membership Access Overview'"
-      :subtitle="campaignType === 'stamp'
-        ? 'Daily breakdown of stamps and redeems during the month'
-        : 'Daily membership access trends'"
-    >
-      <template #append>
-        <VSelect :items="months" v-model="selectedMonth" @change="handleMonthChange" label="Select Month" outlined />
-        <VSelect :items="years" v-model="selectedYear" label="Select Year" outlined />
-      </template>
-    </VCardItem>
-    <VCardText>
-      <div v-if="isLoading || !dataInitialized" class="loader-container">
-        <VProgressCircular indeterminate color="primary" size="64" width="5" />
-        <div class="loading-text mt-4">Loading data...</div>
-      </div>
-      <VueApexCharts
-        v-else
-        id="campaign-statistics"
-        type="line"
-        height="340"
-        :options="ChartData"
-        :series="series"
-      />
-    </VCardText>
-  </VCard>
+  <div>
+    <div class="d-flex justify-end">
+      <VSelect :items="months" v-model="selectedMonth" @change="handleMonthChange" label="Select Month" outlined />
+      <VSelect :items="years" v-model="selectedYear" label="Select Year" outlined />
+    </div>
+
+    <div v-if="isLoading || !dataInitialized" class="loader-container">
+      <VProgressCircular indeterminate color="primary" size="64" width="5" />
+      <div class="loading-text mt-4">Loading data...</div>
+    </div>
+    <VueApexCharts
+      v-else
+      id="campaign-statistics"
+      type="line"
+      height="340"
+      :options="ChartData"
+      :series="series"
+    />
+  </div>
 </template>
 
 <style lang="scss">
