@@ -139,7 +139,7 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
       <VCard class="campaign-card" elevation="2">
         <VRow no-gutters>
           <!-- Preview Section -->
-          <v-col sm="12" md="4" class="preview-section" :style="{ backgroundColor: getBackgroundColor(c) }">
+          <v-col sm="12" md="4" class="hide-on-mobile preview-section" :style="{ backgroundColor: getBackgroundColor(c) }">
             <div class="preview-container">
               <img
                 :src="c.styleSettings.campaignPreview"
@@ -372,5 +372,11 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
 :deep(.v-snackbar .v-snackbar__content) {
   font-weight: 500;
   letter-spacing: 0.5px;
+}
+
+@media (max-width: 767px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
 }
 </style>
