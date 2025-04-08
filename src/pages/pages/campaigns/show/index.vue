@@ -232,7 +232,7 @@ const fetchLatestLogs = async () => {
       name: log.customerName,
       date: new Date(log.createdAt),
       serialNumber: log.serialNumber,
-      status: log.customerName !== 'Unknown' ? 'success' : 'error'
+      passValue: log.passValue || 0 // Default to 0 if passValue is undefined
     }));
 
   } catch (error) {
@@ -559,19 +559,19 @@ const handleAddMember = async () => {
         <VList lines="two" class="access-logs-list">
           <template v-if="accessLogsData.length > 0">
             <VListItem
-              v-for="(log, index) in accessLogsData"
+              v-for="log in accessLogsData"
               :key="log.serialNumber"
               :title="log.name || 'Unknown Member'"
               :subtitle="new Date(log.date).toLocaleString()"
             >
               <template #prepend>
                 <VAvatar
-                  :color="log.status === 'success' ? 'success' : 'error'"
+                  :color="log.passValue === 1 ? 'success' : 'error'"
                   variant="tonal"
                   size="40"
                 >
                   <VIcon
-                    :icon="log.status === 'success' ? 'tabler-check' : 'tabler-x'"
+                    :icon="log.passValue === 1 ? 'tabler-check' : 'tabler-x'"
                     color="white"
                   />
                 </VAvatar>
@@ -579,10 +579,10 @@ const handleAddMember = async () => {
               <template #append>
                 <VChip
                   size="small"
-                  :color="log.status === 'success' ? 'success' : 'error'"
+                  :color="log.passValue === 1 ? 'success' : 'error'"
                   variant="tonal"
                 >
-                  {{ log.status === 'success' ? 'Access Granted' : 'Access Denied' }}
+                  {{ log.passValue === 1 ? 'Access Granted' : 'Access Denied' }}
                 </VChip>
               </template>
             </VListItem>

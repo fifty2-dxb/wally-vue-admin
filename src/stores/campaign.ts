@@ -276,6 +276,7 @@ export const useCampaignStore = defineStore("campaign", () => {
   const fetchDailyLog = async (campaignGuid: string, type: string, startDate: string, endDate: string) => {
     try {
       const response = await $wallyApi(`/pass-value/campaigId/${campaignGuid}?type=${type}&startDate=${startDate}&endDate=${endDate}`, { method: "GET" });
+      console.log('Daily log response:', response);
       return response;
     } catch (error) {
       console.error("Error fetching daily log:", error);
