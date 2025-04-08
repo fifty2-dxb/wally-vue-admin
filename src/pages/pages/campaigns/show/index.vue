@@ -84,6 +84,9 @@ const genderOptions = [
   { title: 'Other', value: 'Other' },
 ];
 
+const deleteDialog = ref(false);
+const memberToDelete = ref<any>(null);
+
 const fetchEvents = async () => {
   try {
     console.log('Fetching events for campaign:', campaignGuid);
@@ -117,6 +120,32 @@ const handleEventChange = (event: any) => {
     fetchEventGuests(event.eventGuid);
   } else {
     campaignStore.setSelectedEvent(null);
+  }
+};
+
+const handleDeleteMember = async (item: any) => {
+  memberToDelete.value = item;
+  deleteDialog.value = true;
+};
+
+const closeDelete = () => {
+  deleteDialog.value = false;
+  memberToDelete.value = null;
+};
+
+const deleteItemConfirm = async () => {
+  try {
+    if (!memberToDelete.value) return;
+    
+    await useCustomerStore().deleteMember(memberToDelete.value.id);
+    showSnackbar('Member deleted successfully', 'success');
+    
+    await fetchCampaignDetails(campaignGuid);
+  } catch (error) {
+    console.error('Error deleting member:', error);
+    showSnackbar('Failed to delete member', 'error');
+  } finally {
+    closeDelete();
   }
 };
 
@@ -173,7 +202,7 @@ const headers = [
   { title: 'SURNAME', key: 'surname' },
   { title: 'PHONENUMBER', key: 'phonenumber' },
   { title: 'EMAIL', key: 'email' },
-  { title: 'EDIT', key: 'edit', sortable: false },
+  { title: 'Actions', key: 'edit', sortable: false },
 ];
 
 const fetchCampaignDetails = async (campaignGuid: string) => {
@@ -502,7 +531,7 @@ const handleAddMember = async () => {
       </VCard>
 
       <!-- Members Section -->
-      <VCard class="modern-card">
+      <VCard  v-if="campaignType === 'membership'" class="modern-card">
         <VCardTitle class="pa-4 d-flex justify-space-between align-center">
           <h6 class="text-h6">Members</h6>
           <div class="d-flex gap-3">
@@ -554,6 +583,16 @@ const handleAddMember = async () => {
                   :to="{ name: 'pages-customers-show', params: { id: item.id } }"
                 >
                   <VIcon icon="tabler-edit" />
+                </VBtn>
+                <VBtn
+                  icon
+                  variant="text"
+                  size="small"
+                  color="error"
+                  class="action-btn"
+                  @click="handleDeleteMember(item)"
+                >
+                  <VIcon icon="tabler-trash" />
                 </VBtn>
               </div>
             </template>
@@ -872,7 +911,7 @@ const handleAddMember = async () => {
       </VCard>
     </VCol>
   </VRow>
-  <VCard class="modern-card">
+  <VCard v-if="campaignType === 'event'" class="modern-card">
     <VCardTitle class="pa-6 d-flex justify-space-between align-center">
       <h6 class="text-h6">Members</h6>
       <div class="d-flex gap-3">
@@ -1285,6 +1324,35 @@ const handleAddMember = async () => {
           :disabled="isAddingMember"
         >
           Add Member
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <VDialog
+    v-model="deleteDialog"
+    max-width="500px"
+  >
+    <VCard title="Delete Member">
+      <VCardText>
+        Are you sure you want to delete this member? This action cannot be undone.
+      </VCardText>
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="error"
+          variant="outlined"
+          @click="closeDelete"
+        >
+          Cancel
+        </VBtn>
+        <VBtn
+          color="error"
+          variant="elevated"
+          @click="deleteItemConfirm"
+          :loading="isLoading"
+        >
+          Delete
         </VBtn>
       </VCardActions>
     </VCard>

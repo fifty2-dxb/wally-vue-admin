@@ -273,9 +273,19 @@ export const useCustomerStore = defineStore("customer", () => {
         method: "POST",
         body: updatedData,
       });
-      console.log("response", response);
     } catch (error) {
       console.error("Error adding customer:", error);
+      throw error;
+    }
+  };
+
+  const deleteMember = async (id: string) => {
+    try {
+      const response = await $wallyApi(`/customers/${id}`, {
+        method: "DELETE",
+      })
+        await fetchCustomers();
+    } catch (error) {
       throw error;
     }
   };
@@ -296,5 +306,6 @@ export const useCustomerStore = defineStore("customer", () => {
     updating,
     updateCustomer,
     addMember,
+    deleteMember
   };
 });
