@@ -79,9 +79,9 @@ const newMember = ref({
 });
 
 const genderOptions = [
-  { title: 'Male', value: 'male' },
-  { title: 'Female', value: 'female' },
-  { title: 'Other', value: 'other' },
+  { title: 'Male', value: 'Male' },
+  { title: 'Female', value: 'Female' },
+  { title: 'Other', value: 'Other' },
 ];
 
 const fetchEvents = async () => {
@@ -405,18 +405,43 @@ const createEvent = async () => {
   }
 };
 
+const isAddMemberDisabled = computed(() => {
+  return campaignType.value === 'event' && !campaignStore.selectedEvent;
+});
+
 const handleAddMember = async () => {
   if (!newMember.value.name || !newMember.value.surname || !newMember.value.email) {
-    showSnackbar('Please fill in all required fields', 'error');
-    return;
+    showSnackbar('Please fill in all required fields', 'error')
+
+    return
   }
 
   try {
     isAddingMember.value = true;
-    // TODO: Implement member creation API call
+
+    const memberData = {
+      ...newMember.value,
+      smsMarketing: newMember.value.smsMarketing ? 1 : 0,
+      emailMarketing: newMember.value.emailMarketing ? 1 : 0,
+    };
+
+    let eventGuid;
+    if (campaignType.value === 'membership') {
+      eventGuid = campaignStore.events[0]?.eventGuid;
+    } else if (campaignType.value === 'event') {
+      eventGuid = campaignStore.selectedEvent?.eventGuid;
+    }
+
+    if (!eventGuid) {
+      showSnackbar('No event found for this campaign', 'error');
+      return;
+    }
+
+    await useCustomerStore().addMember(memberData, { eventId: eventGuid });
+
     showSnackbar('Member added successfully', 'success');
     isAddMemberModalOpen.value = false;
-    
+
     // Reset form
     newMember.value = {
       name: '',
@@ -430,8 +455,6 @@ const handleAddMember = async () => {
       emailMarketing: 0,
       note: '',
     };
-
-    await useCustomerStore().addMember(newMember.value, campaignStore.selectedEvent);
     
     // Refresh members list
     await fetchCampaignDetails(campaignGuid);
@@ -849,6 +872,61 @@ const handleAddMember = async () => {
       </VCard>
     </VCol>
   </VRow>
+  <VCard class="modern-card">
+    <VCardTitle class="pa-6 d-flex justify-space-between align-center">
+      <h6 class="text-h6">Members</h6>
+      <div class="d-flex gap-3">
+        <VTooltip
+          :disabled="!isAddMemberDisabled"
+          location="top"
+          content-class="tooltip-custom"
+        >
+          <template v-slot:activator="{ props }">
+            <div v-bind="props">
+              <VBtn
+                color="primary"
+                prepend-icon="tabler-user-plus"
+                @click="isAddMemberModalOpen = true"
+                :disabled="isAddMemberDisabled"
+              >
+                Add Member
+              </VBtn>
+            </div>
+          </template>
+          <span>Please select an event first</span>
+        </VTooltip>
+        <VBtn
+          color="secondary"
+          variant="tonal"
+          prepend-icon="tabler-file-import"
+        >
+          Import Members
+        </VBtn>
+      </div>
+    </VCardTitle>
+    <VDivider />
+    <VCardText class="pa-0">
+      <VDataTable
+        :headers="headers"
+        :items="customers"
+        density="comfortable"
+        :items-per-page="5"
+        class="modern-table"
+      >
+        <template #item.edit="{ item }">
+          <VBtn
+            icon
+            variant="text"
+            color="primary"
+            class="action-btn"
+            :to="{ name: 'pages-customers-show', params: { id: item.id } }"
+          >
+            <VIcon icon="tabler-edit" />
+          </VBtn>
+        </template>
+      </VDataTable>
+    </VCardText>
+  </VCard>
 
   <!-- Modals -->
   <VDialog
@@ -1491,5 +1569,16 @@ const handleAddMember = async () => {
 
 .chart-section {
   margin-bottom: 1.5rem;
+}
+
+:deep(.tooltip-custom) {
+  background-color: rgba(var(--v-theme-surface), 0.9);
+  color: rgba(var(--v-theme-on-surface), 0.87);
+  border: 1px solid rgba(var(--v-theme-primary), 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 </style>
