@@ -267,13 +267,16 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
 <style scoped>
 .campaign-card {
   transition: transform 0.2s, box-shadow 0.2s;
-  border: none;
+  border-radius: 16px !important;
   overflow: hidden;
+  background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+  border: 1px solid rgba(var(--v-theme-primary), 0.05);
+  box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.05) !important;
 }
 
 .campaign-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
 }
 
 .preview-section {
@@ -282,6 +285,8 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
   justify-content: center;
   min-height: 200px;
   padding: 1.5rem;
+  background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+  border-right: 1px solid rgba(var(--v-theme-primary), 0.05);
 }
 
 .preview-container {
@@ -295,15 +300,77 @@ const isMerchantAvailable = computed(() => !!configStore.activeMerchant);
 .preview-image {
   max-width: 100%;
   max-height: 150px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.preview-image:hover {
+  transform: scale(1.02);
 }
 
 .content-section {
-  background-color: white;
+  background: transparent;
 }
 
 .gap-2 {
   gap: 0.5rem;
+}
+
+/* Modern Button Styles */
+:deep(.v-btn) {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+:deep(.v-btn:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(var(--v-theme-primary), 0.2);
+}
+
+:deep(.v-btn.v-btn--icon) {
+  border-radius: 8px;
+}
+
+/* Chip Styles */
+:deep(.v-chip) {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.text-h6 {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+}
+
+.text-body-2 {
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  line-height: 1.5;
+}
+
+:deep(.v-dialog .v-card) {
+  background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+  border: 1px solid rgba(var(--v-theme-primary), 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.v-dialog .v-card-title) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+:deep(.v-snackbar) {
+  border-radius: 12px;
+}
+
+:deep(.v-snackbar .v-snackbar__content) {
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 </style>

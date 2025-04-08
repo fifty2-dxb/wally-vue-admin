@@ -372,7 +372,7 @@ const createEvent = async () => {
             class="action-btn"
           >
             {{ $t('Edit Campaign') }}
-          </VBtn>
+            </VBtn>
           <VBtn
             icon
             variant="tonal"
@@ -383,7 +383,7 @@ const createEvent = async () => {
           </VBtn>
         </div>
       </VCol>
-    </VRow>
+      </VRow>
   </VCard>
 
   <!-- Event Selection (if campaign type is event) -->
