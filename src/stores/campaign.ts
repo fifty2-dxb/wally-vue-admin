@@ -273,6 +273,16 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
+  const fetchDailyLog = async (campaignGuid: string, type: string, startDate: string, endDate: string) => {
+    try {
+      const response = await $wallyApi(`/pass-value/campaigId/${campaignGuid}?type=${type}&startDate=${startDate}&endDate=${endDate}`, { method: "GET" });
+      return response;
+    } catch (error) {
+      console.error("Error fetching daily log:", error);
+      throw error;
+    }
+  };
+
   return {
     campaigns,
     campaign,
@@ -297,5 +307,6 @@ export const useCampaignStore = defineStore("campaign", () => {
     createEvent,
     fetchEventGuests,
     createGuest,
+    fetchDailyLog,
   };
 });

@@ -173,7 +173,6 @@ const headers = [
   { title: 'SURNAME', key: 'surname' },
   { title: 'PHONENUMBER', key: 'phonenumber' },
   { title: 'EMAIL', key: 'email' },
-  { title: 'PROMOTIONS', key: 'promotions' },
   { title: 'EDIT', key: 'edit', sortable: false },
 ];
 
@@ -188,6 +187,7 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
 
     await campaignStore.fetchCustomerByCampaignGuid(campaignGuid);
     customers.value = campaignStore.customers;
+    console.log("customers", customers.value);
   } catch (error) {
     console.error('Error fetching campaign or customers:', error);
   } finally {
@@ -212,10 +212,40 @@ const fetchStatistics = async () => {
   }
 };
 
+const fetchLatestLogs = async () => {
+  try {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const startDate = today.toISOString().split('T')[0];
+    const endDate = tomorrow.toISOString().split('T')[0];
+
+    const logs = await campaignStore.fetchDailyLog(
+      campaignGuid,
+      'access',
+      startDate,
+      endDate
+    );
+
+    accessLogsData.value = logs.map(log => ({
+      name: log.customerName,
+      date: new Date(log.createdAt),
+      serialNumber: log.serialNumber,
+      status: log.customerName !== 'Unknown' ? 'success' : 'error'
+    }));
+
+  } catch (error) {
+    console.error('Error fetching daily logs:', error);
+    showSnackbar('Failed to fetch access logs', 'error');
+  }
+};
+
 onMounted(() => {
   fetchCampaignDetails(campaignGuid);
   fetchStatistics();
   fetchEvents();
+  fetchLatestLogs();
 });
 
 const handleMonthSelected = ({ startDate, endDate }) => {
@@ -417,34 +447,155 @@ const handleAddMember = async () => {
 
 <template>
   <!-- Campaign Header -->
-  <VCard class="modern-card  mb-6">
-    <VRow align="center" no-gutters>
-      <VCol cols="12" sm="4" md="3" class="text-center">
-        <img width="150" :src="campaign?.styleSettings.campaignPreview" class="campaign-preview" />
-      </VCol>
-      <VCol cols="12" sm="8" md="9" class="pa-6">
-        <h3 class="text-h4 font-weight-medium mb-2">{{ campaign?.campaignName }}</h3>
-        <p class="text-body-1 text-medium-emphasis mb-6">{{ campaign?.campaignDescription }}</p>
-        <div class="d-flex gap-4">
-          <VBtn 
-            prepend-icon="tabler-edit"
-            :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }"
-            class="action-btn"
-          >
-            {{ $t('Edit Campaign') }}
+  <VRow no-gutters>
+    <VCol cols="12" md="8">
+      <VCard class="modern-card mb-4">
+        <VRow align="center" no-gutters>
+          <VCol cols="12" sm="4" md="3" class="text-center pa-4">
+            <img width="150" :src="campaign?.styleSettings.campaignPreview" class="campaign-preview" />
+          </VCol>
+          <VCol cols="12" sm="8" md="9" class="pa-4">
+            <h3 class="text-h4 font-weight-medium mb-2">{{ campaign?.campaignName }}</h3>
+            <p class="text-body-1 text-medium-emphasis mb-4">{{ campaign?.campaignDescription }}</p>
+            <div class="d-flex gap-4">
+              <VBtn 
+                prepend-icon="tabler-edit"
+                :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }"
+                class="action-btn"
+              >
+                {{ $t('Edit Campaign') }}
+              </VBtn>
+              <VBtn
+                icon
+                variant="tonal"
+                color="secondary"
+                class="action-btn"
+              >
+                <VIcon icon="tabler-share" />
+              </VBtn>
+            </div>
+          </VCol>
+        </VRow>
+      </VCard>
+
+      <!-- Members Section -->
+      <VCard class="modern-card">
+        <VCardTitle class="pa-4 d-flex justify-space-between align-center">
+          <h6 class="text-h6">Members</h6>
+          <div class="d-flex gap-3">
+            <VBtn
+              color="primary"
+              prepend-icon="tabler-user-plus"
+              @click="isAddMemberModalOpen = true"
+              size="small"
+            >
+              Add Member
             </VBtn>
+            <VBtn
+              color="secondary"
+              variant="tonal"
+              prepend-icon="tabler-file-import"
+              size="small"
+            >
+              Import Members
+            </VBtn>
+          </div>
+        </VCardTitle>
+        <VDivider />
+        <VCardText class="pa-0">
+          <VDataTable
+            :headers="headers"
+            :items="customers"
+            density="comfortable"
+            :items-per-page="10"
+            class="modern-table"
+          >
+            <template #item.edit="{ item }">
+              <div class="d-flex gap-2">
+                <VBtn
+                  icon
+                  variant="text"
+                  size="small"
+                  color="error"
+                  :disabled="!item?.passes?.[0]?.serialNumber"
+                  @click="item?.passes?.[0]?.serialNumber ? $router.push(`/customer/${item?.passes?.[0]?.serialNumber}`) : $event.preventDefault()"
+                >
+                  <VIcon icon="tabler-mail" />
+                </VBtn>
+                <VBtn
+                  icon
+                  variant="text"
+                  size="small"
+                  color="primary"
+                  class="action-btn"
+                  :to="{ name: 'pages-customers-show', params: { id: item.id } }"
+                >
+                  <VIcon icon="tabler-edit" />
+                </VBtn>
+              </div>
+            </template>
+          </VDataTable>
+        </VCardText>
+      </VCard>
+    </VCol>
+
+    <!-- Access Logs Section -->
+    <VCol cols="12" md="4" class="pl-md-4">
+      <VCard class="modern-card sticky-card">
+        <VCardTitle class="pa-4 d-flex align-center">
+          <VIcon icon="tabler-history" color="primary" class="me-2" />
+          <span>Latest Activity</span>
+          <VSpacer />
           <VBtn
             icon
-            variant="tonal"
-            color="secondary"
-            class="action-btn"
+            variant="text"
+            size="small"
+            @click="fetchLatestLogs"
           >
-            <VIcon icon="tabler-share" />
+            <VIcon icon="tabler-refresh" />
           </VBtn>
-        </div>
-      </VCol>
-      </VRow>
-  </VCard>
+        </VCardTitle>
+        <VDivider />
+        <VList lines="two" class="access-logs-list">
+          <template v-if="accessLogsData.length > 0">
+            <VListItem
+              v-for="(log, index) in accessLogsData"
+              :key="log.serialNumber"
+              :title="log.name || 'Unknown Member'"
+              :subtitle="new Date(log.date).toLocaleString()"
+            >
+              <template #prepend>
+                <VAvatar
+                  :color="log.status === 'success' ? 'success' : 'error'"
+                  variant="tonal"
+                  size="40"
+                >
+                  <VIcon
+                    :icon="log.status === 'success' ? 'tabler-check' : 'tabler-x'"
+                    color="white"
+                  />
+                </VAvatar>
+              </template>
+              <template #append>
+                <VChip
+                  size="small"
+                  :color="log.status === 'success' ? 'success' : 'error'"
+                  variant="tonal"
+                >
+                  {{ log.status === 'success' ? 'Access Granted' : 'Access Denied' }}
+                </VChip>
+              </template>
+            </VListItem>
+          </template>
+          <VListItem v-else>
+            <div class="text-center py-4 text-medium-emphasis">
+              No recent activity
+            </div>
+          </VListItem>
+        </VList>
+      </VCard>
+    </VCol>
+  </VRow>
 
   <!-- Event Selection (if campaign type is event) -->
   <VCard 
@@ -572,8 +723,8 @@ const handleAddMember = async () => {
               variant="text"
               size="small"
               color="error"
-              :disabled="!item?.serialNumber"
-              @click="item?.serialNumber ? $router.push(`/customer/${item?.serialNumber}`) : $event.preventDefault()"
+              :disabled="!item?.passes?.[0]?.serialNumber"
+              @click="item?.passes?.[0]?.serialNumber ? $router.push(`/customer/${item?.passes?.[0]?.serialNumber}`) : $event.preventDefault()"
               >
               <VIcon icon="tabler-share" />
             </VBtn>
@@ -605,154 +756,99 @@ const handleAddMember = async () => {
   </VCard>
 
   <!-- Stats and Charts Section -->
-  <VCard class="modern-card mb-6">
-    <VCardText>
-      <!-- Filters -->
-      <div class="filter-section">
-        <div class="filter-container">
-          <VTextField
-            v-model="startDate"
-            label="Start Date"
-            clearable
-            prepend-icon="tabler-calendar"
-            type="date"
-            class="filter-input"
-            hide-details
-            variant="outlined"
-            density="comfortable"
-          />
-          <VTextField
-            v-model="endDate"
-            label="End Date"
-            clearable
-            prepend-icon="tabler-calendar"
-            type="date"
-            class="filter-input"
-            hide-details
-            variant="outlined"
-            density="comfortable"
-          />
-          <VBtn
-            color="primary"
-            @click="applyFilters"
-            class="apply-button"
-            elevation="0"
-          >
-            <VIcon icon="tabler-filter" class="me-2" />
-            Apply Filters
-          </VBtn>
-        </div>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div v-for="(stat, index) in widgetData" :key="index" class="stat-card">
-          <div class="stat-icon-wrapper">
-            <div class="stat-icon" :style="{ background: `linear-gradient(135deg, rgba(var(--v-theme-${stat.color}), 0.1), rgba(var(--v-theme-${stat.color}), 0.05))` }">
-              <VIcon :icon="stat.icon" :color="stat.color" size="24" />
-            </div>
-            <div class="stat-title">{{ stat.title }}</div>
-          </div>
-          <div class="stat-value" :style="{ background: `linear-gradient(135deg, var(--v-theme-${stat.color}), rgba(var(--v-theme-${stat.color}), 0.8))` }">
-            {{ stat.value || 0 }}
-          </div>
-        </div>
-      </div>
-
-      <VRow>
-        <VCol cols="12" md="6">
-          <div class="chart-section">
-            <div class="chart-title">
-              <div class="icon">
-                <VIcon icon="tabler-chart-pie" size="20" color="primary" />
-              </div>
-              <span class="text">Customer Distribution</span>
-            </div>
-            <div class="chart-container">
-              <DonutChart :data="widgetData" :isLoading="isLoading" />
-            </div>
-          </div>
-        </VCol>
-        <VCol cols="12" md="6">
-          <div class="chart-section">
-            <div class="chart-title">
-              <div class="icon">
-                <VIcon icon="tabler-chart-bar" size="20" color="primary" />
-              </div>
-              <span class="text">Monthly Trends</span>
-            </div>
-            <div class="chart-container">
-              <BarChart 
-                v-if="Object.keys(barchartStats).length > 0"
-                @monthSelected="handleMonthSelected"
-                :data="barchartStats"
-                :campaignType="campaignType"
+  <VRow class="">
+    <VCol cols="12">
+      <VCard class="modern-card mb-2">
+        <VCardText>
+          <!-- Filters -->
+          <div class="filter-section">
+            <div class="filter-container">
+              <VTextField
+                v-model="startDate"
+                label="Start Date"
+                clearable
+                prepend-icon="tabler-calendar"
+                type="date"
+                class="filter-input"
+                hide-details
+                variant="outlined"
+                density="comfortable"
               />
+              <VTextField
+                v-model="endDate"
+                label="End Date"
+                clearable
+                prepend-icon="tabler-calendar"
+                type="date"
+                class="filter-input"
+                hide-details
+                variant="outlined"
+                density="comfortable"
+              />
+              <VBtn
+                color="primary"
+                @click="applyFilters"
+                class="apply-button"
+                elevation="0"
+              >
+                <VIcon icon="tabler-filter" class="me-2" />
+                Apply Filters
+              </VBtn>
             </div>
           </div>
-        </VCol>
-      </VRow>
 
-      <!-- Access Logs -->
-      <VRow v-if="accessLogsData.length > 0" class="mt-6">
-        <VCol cols="12">
-          <div class="chart-section">
-            <div class="chart-title">
-              <div class="icon">
-                <VIcon icon="tabler-history" size="20" color="primary" />
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div v-for="(stat, index) in widgetData" :key="index" class="stat-card">
+              <div class="stat-icon-wrapper">
+                <div class="stat-icon" :style="{ background: `linear-gradient(135deg, rgba(var(--v-theme-${stat.color}), 0.1), rgba(var(--v-theme-${stat.color}), 0.05))` }">
+                  <VIcon :icon="stat.icon" :color="stat.color" size="24" />
+                </div>
+                <div class="stat-title">{{ stat.title }}</div>
               </div>
-              <span class="text">Access Logs</span>
+              <div class="stat-value" :style="{ background: `linear-gradient(135deg, var(--v-theme-${stat.color}), rgba(var(--v-theme-${stat.color}), 0.8))` }">
+                {{ stat.value || 0 }}
+              </div>
             </div>
-            <AccessLogsTable :accessLogs="accessLogsData" />
           </div>
-        </VCol>
-      </VRow>
-    </VCardText>
-  </VCard>
 
-  <VCard class="modern-card">
-    <VCardTitle class="pa-6 d-flex justify-space-between align-center">
-      <h6 class="text-h6">Members</h6>
-      <div class="d-flex gap-3">
-        <VBtn
-          color="primary"
-          prepend-icon="tabler-user-plus"
-          @click="isAddMemberModalOpen = true"
-        >
-          Add Member
-        </VBtn>
-        <VBtn
-          color="secondary"
-          variant="tonal"
-          prepend-icon="tabler-file-import"
-        >
-          Import Members
-        </VBtn>
-      </div>
-    </VCardTitle>
-    <VDivider />
-    <VCardText class="pa-0">
-      <VDataTable
-        :headers="headers"
-        :items="customers"
-        density="comfortable"
-        :items-per-page="5"
-        class="modern-table"
-      >
-        <template #item.edit="{ item }">
-          <VBtn
-            icon
-            variant="text"
-            color="primary"
-            class="action-btn"
-            :to="{ name: 'pages-customers-show', params: { id: item.id } }"
-          >
-            <VIcon icon="tabler-edit" />
-          </VBtn>
-        </template>
-      </VDataTable>
-    </VCardText>
-  </VCard>
+          <VRow>
+            <VCol cols="12" md="6">
+              <div class="chart-section">
+                <div class="chart-title">
+                  <div class="icon">
+                    <VIcon icon="tabler-chart-pie" size="20" color="primary" />
+                  </div>
+                  <span class="text">Customer Distribution</span>
+                </div>
+                <div class="chart-container">
+                  <DonutChart :data="widgetData" :isLoading="isLoading" />
+                </div>
+              </div>
+            </VCol>
+            <VCol cols="12" md="6">
+              <div class="chart-section">
+                <div class="chart-title">
+                  <div class="icon">
+                    <VIcon icon="tabler-chart-bar" size="20" color="primary" />
+                  </div>
+                  <span class="text">Monthly Trends</span>
+                </div>
+                <div class="chart-container">
+                  <BarChart 
+                    v-if="Object.keys(barchartStats).length > 0"
+                    @monthSelected="handleMonthSelected"
+                    :data="barchartStats"
+                    :campaignType="campaignType"
+                  />
+                </div>
+              </div>
+            </VCol>
+          </VRow>
+        </VCardText>
+      </VCard>
+    </VCol>
+  </VRow>
 
   <!-- Modals -->
   <VDialog
@@ -1130,33 +1226,13 @@ const handleAddMember = async () => {
 <style scoped>
 /* Modern Card Styles */
 .modern-card {
-  border-radius: 16px !important;
-  box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.05) !important;
-  transition: all 0.3s ease;
-  background: white;
-  overflow: hidden;
-}
-
-.modern-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Campaign Header Section */
-.campaign-header {
-  background: linear-gradient(to right, rgba(var(--v-theme-primary), 0.05), rgba(var(--v-theme-primary), 0.02));
-  border-radius: 16px;
-  padding: 2rem;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 15px 0 rgba(0, 0, 0, 0.05) !important;
 }
 
 .campaign-preview {
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
-}
-
-.campaign-preview:hover {
-  transform: scale(1.02);
+  max-width: 120px;
+  height: auto;
 }
 
 /* Filter Section */
@@ -1325,18 +1401,16 @@ const handleAddMember = async () => {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(var(--v-theme-primary), 0.05);
+  font-size: 0.875rem;
 }
 
 .modern-table :deep(th) {
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   font-size: 0.75rem;
-  background: rgba(var(--v-theme-surface), 0.5);
+  padding: 0.5rem 1rem !important;
 }
 
 .modern-table :deep(td) {
-  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.05) !important;
+  padding: 0.5rem 1rem !important;
 }
 
 /* Action Buttons */
@@ -1367,5 +1441,55 @@ const handleAddMember = async () => {
 .modal-footer {
   padding: 1.5rem;
   border-top: 1px solid rgba(var(--v-theme-primary), 0.05);
+}
+
+.sticky-card {
+  position: sticky;
+  top: 1rem;
+}
+
+.access-logs-list {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.access-logs-list :deep(.v-list-item) {
+  padding: 12px 16px;
+  min-height: 72px;
+}
+
+.access-logs-list :deep(.v-list-item:not(:last-child)) {
+  border-bottom: 1px solid rgba(var(--v-border-color), 0.08);
+}
+
+.access-logs-list :deep(.v-list-item__prepend) {
+  margin-right: 16px;
+}
+
+.access-logs-list :deep(.v-list-item__title) {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.access-logs-list :deep(.v-list-item__subtitle) {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Update spacing for better visual hierarchy */
+.mt-8 {
+  margin-top: 2rem !important;
+}
+
+.filter-section {
+  margin-bottom: 2.5rem;
+}
+
+.stats-grid {
+  margin-bottom: 2.5rem;
+}
+
+.chart-section {
+  margin-bottom: 1.5rem;
 }
 </style>

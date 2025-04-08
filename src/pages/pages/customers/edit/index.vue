@@ -205,7 +205,7 @@ onMounted(() => {
               <VCol cols="12">
                 <VTextField
                   v-model="formData.promotion"
-                  :label="$t('Promotion Code')"
+                  :label="$t('Promotion')"
                   density="comfortable"
                   variant="outlined"
                   :disabled="loading"
