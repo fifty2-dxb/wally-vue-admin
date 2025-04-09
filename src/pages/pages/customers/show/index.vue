@@ -1,12 +1,45 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import {useCustomerStore} from '@/stores/customer';  // Import the store
 const router = useRouter()
 
 const route = useRoute('pages-customers-show')
 
 const customerStore = useCustomerStore()
+
+// Add refs for the edit dialog
+const isEditPassDialogOpen = ref(false)
+const editedPassDetails = ref({
+  isActive: false,
+  expirationDate: '',
+})
+
+const openEditPassDialog = () => {
+  console.log("customerStore.customer", customerStore.customer)
+  editedPassDetails.value = {
+    isActive: customerStore.customer.activated || false,
+    expirationDate: customerStore.customer.expiresAt 
+      ? new Date(customerStore.customer.expiresAt).toISOString().split('T')[0]
+      : '',
+  }
+  isEditPassDialogOpen.value = true
+}
+
+const savePassDetails = async () => {
+  try {
+    await customerStore.updatePassDetails(customerStore.customer.serialNumber, {
+      activated: editedPassDetails.value.isActive,
+      expirationDate: editedPassDetails.value.expirationDate || '',
+    })
+    isEditPassDialogOpen.value = false
+    // Refresh customer details
+    await fetchCustomerDetails(route.params.id as string)
+  } catch (error) {
+    console.error('Error updating pass details:', error)
+  }
+}
+
 const fetchCustomerDetails = async (customerId: string) => {
   try {
     await customerStore.fetchCustomerById(customerId);
@@ -134,7 +167,17 @@ onMounted(() => {
       <!-- Pass Details Section -->
       <VCard class="modern-card mb-6">
         <div class="px-6 py-4">
-          <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Pass Details') }}</h6>
+          <div class="d-flex justify-space-between align-center mb-4">
+            <h6 class="text-h6 font-weight-medium">{{ $t('Pass Details') }}</h6>
+            <VBtn
+              icon
+              variant="text"
+              size="small"
+              @click="openEditPassDialog"
+            >
+              <VIcon icon="tabler-edit" />
+            </VBtn>
+          </div>
           
           <div class="user-info-list">
             <div class="info-item">
@@ -161,11 +204,11 @@ onMounted(() => {
               <div class="info-label">{{ $t('Status') }}</div>
               <div class="info-value">
                 <VChip
-                  :color="customerStore.customer.status === 'active' ? 'success' : 'error'"
+                  :color="customerStore.customer.activated ? 'success' : 'error'"
                   size="small"
                   class="mr-2"
                 >
-                  {{ customerStore.customer.status ? customerStore.customer.status.toUpperCase() : 'INACTIVE' }}
+                  {{ customerStore.customer.activated ? 'ACTIVE' : 'INACTIVE' }}
                 </VChip>
                 <VChip
                   v-if="customerStore.customer.isExpired"
@@ -322,6 +365,69 @@ onMounted(() => {
       </VCard>
     </VCol>
   </VRow>
+
+  <!-- Edit Pass Details Dialog -->
+  <VDialog
+    v-model="isEditPassDialogOpen"
+    max-width="500px"
+  >
+    <VCard>
+      <VCardTitle class="pa-4 d-flex justify-space-between align-center">
+        <span class="text-h6">{{ $t('Edit Pass Details') }}</span>
+        <VBtn
+          icon
+          variant="text"
+          size="small"
+          @click="isEditPassDialogOpen = false"
+        >
+          <VIcon icon="tabler-x" />
+        </VBtn>
+      </VCardTitle>
+      <VDivider />
+      <VCardText class="pa-4">
+        <VForm @submit.prevent="savePassDetails">
+          <VRow>
+            <VCol cols="12">
+              <VSwitch
+                v-model="editedPassDetails.isActive"
+                :label="$t('Activate Pass')"
+                color="primary"
+                hide-details
+                class="mb-4"
+              />
+            </VCol>
+            <VCol cols="12">
+              <VTextField
+                v-model="editedPassDetails.expirationDate"
+                :label="$t('Expiration Date')"
+                type="date"
+                variant="outlined"
+                density="comfortable"
+                :min="new Date().toISOString().split('T')[0]"
+              />
+            </VCol>
+          </VRow>
+        </VForm>
+      </VCardText>
+      <VDivider />
+      <VCardActions class="pa-4">
+        <VSpacer />
+        <VBtn
+          variant="tonal"
+          color="secondary"
+          @click="isEditPassDialogOpen = false"
+        >
+          {{ $t('Cancel') }}
+        </VBtn>
+        <VBtn
+          color="primary"
+          @click="savePassDetails"
+        >
+          {{ $t('Save Changes') }}
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
 </template>
 
 <style scoped>

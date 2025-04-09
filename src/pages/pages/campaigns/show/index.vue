@@ -620,43 +620,27 @@ const handleAddMember = async () => {
           </VBtn>
         </VCardTitle>
         <VDivider />
-        <VList lines="two" class="access-logs-list">
-          <template v-if="accessLogsData.length > 0">
-            <VListItem
-              v-for="log in accessLogsData"
-              :key="log.serialNumber"
-              :title="log.name || 'Unknown Member'"
-              :subtitle="new Date(log.date).toLocaleString()"
+        <VDataTable
+          :headers="[
+            { text: 'Name', value: 'name' },
+            { text: 'Date', value: 'date' },
+            { text: 'Serial Number', value: 'serialNumber' },
+            { text: 'Status', value: 'status' }
+          ]"
+          :items="accessLogsData"
+          :items-per-page="10"
+          class="modern-table"
+        >
+          <template #item.status="{ item }">
+            <VChip
+              size="small"
+              :color="item.passValue === 1 ? 'success' : 'error'"
+              variant="tonal"
             >
-              <template #prepend>
-                <VAvatar
-                  :color="log.passValue === 1 ? 'success' : 'error'"
-                  variant="tonal"
-                  size="40"
-                >
-                  <VIcon
-                    :icon="log.passValue === 1 ? 'tabler-check' : 'tabler-x'"
-                    color="black"
-                  />
-                </VAvatar>
-              </template>
-              <template #append>
-                <VChip
-                  size="small"
-                  :color="log.passValue === 1 ? 'success' : 'error'"
-                  variant="tonal"
-                >
-                  {{ log.passValue === 1 ? 'Access Granted' : 'Access Denied' }}
-                </VChip>
-              </template>
-            </VListItem>
+              {{ item.passValue === 1 ? 'Access Granted' : 'Access Denied' }}
+            </VChip>
           </template>
-          <VListItem v-else>
-            <div class="text-center py-4 text-medium-emphasis">
-              No recent activity
-            </div>
-          </VListItem>
-        </VList>
+        </VDataTable>
       </VCard>
     </VCol>
   </VRow>

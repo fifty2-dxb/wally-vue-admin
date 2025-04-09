@@ -131,7 +131,11 @@ const receiveNfcData = async (event: any) => {
         scanState.value = 'error'
         return
       } else {
-        scanState.value = 'success'
+        if (response.passValue.value === '1') {
+          scanState.value = 'success'
+        } else {
+          scanState.value = 'error'
+        }
       }
 
     } else if (campaignType === 'event') {
@@ -272,7 +276,9 @@ onUnmounted(() => {
           </div>
 
           <h1 class="welcome-text">
-            {{ $t('Error Scanning Digital Card') }}
+            {{ $t('Access Denied') }}
+            <br>
+            {{ $t('Please try again') }}
           </h1>
 
           <!-- show error message -->

@@ -28,9 +28,15 @@ interface Customer {
   stampImageUrl: string;
   currentStamps?: number;
   requiredStamps?: number;
+  activated?: boolean;
   expiresAt?: string;
   isExpired?: boolean;
   logs?: any[];
+}
+
+interface UpdatePassDetails {
+  expirationDate: string;
+  activated: boolean;
 }
 
 export const useCustomerStore = defineStore("customer", () => {
@@ -99,6 +105,7 @@ export const useCustomerStore = defineStore("customer", () => {
           stampImageUrl: response.stampImageUrl,
           currentStamps: response.currentStamps,
           requiredStamps: response.requiredStamps,
+          activated: response.activated,
           expiresAt: response.expiresAt,
           isExpired: response.isExpired,
         };
@@ -218,8 +225,8 @@ export const useCustomerStore = defineStore("customer", () => {
         promotion: "",
         birthday: null,
         gender: null,
-        smsMarketing: false,
-        emailMarketing: false,
+        smsMarketing: 0,
+        emailMarketing: 0,
         note: null,
         createdAt: "",
         updatedAt: "",
@@ -290,6 +297,26 @@ export const useCustomerStore = defineStore("customer", () => {
     }
   };
 
+  const updatePassDetails = async (serialNumber: string, details: UpdatePassDetails) => {
+    try {
+      const response = await $wallyApi(`/passes/${serialNumber}`, {
+        method: 'PATCH',
+        body: details,
+      });
+      if (response.data) {
+        // Update the customer object with new pass details
+        customer.value = {
+          ...customer.value,
+          status: details.activated ? 'active' : 'inactive',
+          expiresAt: details.expirationDate,
+        };
+      }
+    } catch (error) {
+      console.error('Error updating pass details:', error);
+      throw error;
+    }
+  };
+
   return {
     customers,
     customer,
@@ -306,6 +333,7 @@ export const useCustomerStore = defineStore("customer", () => {
     updating,
     updateCustomer,
     addMember,
-    deleteMember
+    deleteMember,
+    updatePassDetails,
   };
 });
