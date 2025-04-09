@@ -261,7 +261,7 @@ onUnmounted(() => {
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('58cb9cad-abb1-411e-ac2b-cf7ff42cadd9')">
+          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('408f2fd7-5071-4628-be76-6b57b180e9e2')">
             {{ $t('Test NFC') }}
           </VBtn>
         </template>

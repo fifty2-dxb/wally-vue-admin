@@ -384,6 +384,7 @@ declare module 'vue' {
     GoogleNFCHowItWorksDialog: typeof import('./src/components/dialogs/GoogleNFCHowItWorksDialog.vue')['default']
     GooglePhonePreview: typeof import('./src/components/marketing/GooglePhonePreview.vue')['default']
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
+    ImportMembersWizard: typeof import('./src/components/campaign/ImportMembersWizard.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
     NFCAppleHowItWorks: typeof import('./src/components/dialogs/NFCAppleHowItWorks.vue')['default']
     Notifications: typeof import('./src/@core/components/Notifications.vue')['default']

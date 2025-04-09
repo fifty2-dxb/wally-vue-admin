@@ -7,6 +7,7 @@ import DonutChart from './DonutChart.vue'
 import BarChart from './BarChart.vue'
 import AccessLogsTable from './AccessLogsTable.vue'
 import { useCustomerStore } from '@/stores/customer';
+import ImportMembersWizard from '@/components/campaign/ImportMembersWizard.vue';
 
 const route = useRoute();
 const type = route.query.type as string;
@@ -86,6 +87,8 @@ const genderOptions = [
 
 const deleteDialog = ref(false);
 const memberToDelete = ref<any>(null);
+
+const isImportMembersWizardOpen = ref(false);
 
 const fetchEvents = async () => {
   try {
@@ -548,7 +551,7 @@ const handleAddMember = async () => {
                 color="secondary"
                 variant="tonal"
                 prepend-icon="tabler-file-import"
-                size="small"
+                @click="isImportMembersWizardOpen = true"
               >
                 Import Members
               </VBtn>
@@ -951,6 +954,7 @@ const handleAddMember = async () => {
             color="secondary"
             variant="tonal"
             prepend-icon="tabler-file-import"
+            @click="isImportMembersWizardOpen = true"
           >
             Import Members
           </VBtn>
@@ -1381,6 +1385,12 @@ const handleAddMember = async () => {
   >
     {{ snackbarMessage }}
   </VSnackbar>
+
+  <ImportMembersWizard
+    v-model:isOpen="isImportMembersWizardOpen"
+    :event-id="campaignStore.selectedEvent?.eventGuid"
+    @imported="fetchCampaignDetails(campaignGuid)"
+  />
 </template>
 
 <style scoped>

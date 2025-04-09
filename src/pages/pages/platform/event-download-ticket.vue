@@ -62,7 +62,7 @@
   const downloadGoogleCard = async () => {
     try {
       googleLoading.value = true
-      const response = await $wallyApi(`v1/passes/event/${platformData.value.eventGuid}/google`, { method: 'GET' })
+      const response = await $wallyApi(`v1/passes/google/${route.params.id}/membership`, { method: 'GET' })
       const googleWalletUrl = response
 
       if (googleWalletUrl) {

@@ -15,6 +15,7 @@ interface CustomerDetails {
   note: string | null;
   createdAt: string;
   updatedAt: string;
+  additionalData: string;
 }
 
 interface Customer {
@@ -56,6 +57,7 @@ export const useCustomerStore = defineStore("customer", () => {
       smsMarketing: 0,
       emailMarketing: 0,
       note: null,
+      additionalData: "",
       createdAt: "",
       updatedAt: "",
     },
