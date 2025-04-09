@@ -80,7 +80,7 @@
   const downloadAppleCard = async () => {
     try {
       appleLoading.value = true
-      const response = await $wallyApi(`v1/passes/event/${platformData.value.eventGuid}`, {
+      const response = await $wallyApi(`v1/passes/${route.params.id}`, {
         method: 'GET',
         responseType: 'blob',
       })

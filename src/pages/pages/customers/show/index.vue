@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
 import { onMounted, ref } from 'vue';
-import {useCustomerStore} from '@/stores/customer';  // Import the store
+import { useCustomerStore } from '@/stores/customer';
+import { useSnackbar } from '@/composables/useSnackbar';
+
 const router = useRouter()
-
 const route = useRoute('pages-customers-show')
-
 const customerStore = useCustomerStore()
+const { showSuccess, showError } = useSnackbar()
 
 // Add refs for the edit dialog
 const isEditPassDialogOpen = ref(false)
+const isMoreActionsMenuOpen = ref(false)
 const editedPassDetails = ref({
   isActive: false,
   expirationDate: '',
@@ -48,6 +50,10 @@ const fetchCustomerDetails = async (customerId: string) => {
   }
 };
 
+const sendUpdateNotification = async () => {
+  await customerStore.sendUpdateNotification();
+}
+
 onMounted(() => {
   const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
   if (id) {
@@ -79,6 +85,7 @@ onMounted(() => {
           color="secondary"
           prepend-icon="tabler-dots-vertical"
           variant="tonal"
+          @click="isMoreActionsMenuOpen = true"
         >
           {{ $t('More Actions') }}
         </VBtn>
@@ -428,6 +435,23 @@ onMounted(() => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <VMenu
+    v-model="isMoreActionsMenuOpen"
+    :close-on-content-click="false"
+  >
+    <VList>
+      <VListItem
+        v-if="customerStore.customer.platform === 'apple'"
+        @click="sendUpdateNotification"
+      >
+        <template #prepend>
+          <VIcon icon="tabler-device-mobile" />
+        </template>
+        <VListItemTitle>{{ $t('Send Update') }}</VListItemTitle>
+      </VListItem>
+    </VList>
+  </VMenu>
 </template>
 
 <style scoped>

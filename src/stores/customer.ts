@@ -30,6 +30,7 @@ interface Customer {
   requiredStamps?: number;
   activated?: boolean;
   expiresAt?: string;
+  platform?: string;
   isExpired?: boolean;
   logs?: any[];
 }
@@ -66,6 +67,7 @@ export const useCustomerStore = defineStore("customer", () => {
     currentStamps: 0,
     requiredStamps: 0,
     expiresAt: "",
+    platform: "",
     isExpired: false,
   });
   const serialNumberData = ref<any[]>([]);
@@ -106,6 +108,7 @@ export const useCustomerStore = defineStore("customer", () => {
           currentStamps: response.currentStamps,
           requiredStamps: response.requiredStamps,
           activated: response.activated,
+          platform: response.platform,
           expiresAt: response.expiresAt,
           isExpired: response.isExpired,
         };
@@ -135,7 +138,9 @@ export const useCustomerStore = defineStore("customer", () => {
           stampImageUrl: "",
           currentStamps: 0,
           requiredStamps: 0,
+          activated: false,
           expiresAt: "",
+          platform: "",
           isExpired: false,
         };
       }
@@ -233,6 +238,7 @@ export const useCustomerStore = defineStore("customer", () => {
       },
       serialNumber: "",
       type: "",
+      platform: "",
       stats: [],
       redeemable: false,
       stampImageUrl: "",
@@ -317,6 +323,28 @@ export const useCustomerStore = defineStore("customer", () => {
     }
   };
 
+  const sendUpdateNotification = async () => {
+    try {
+      const response = await $wallyApi(`/v1/devices/notification/${customer.value.serialNumber}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: "Your card has been updated"
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to send notification')
+      }
+      
+
+    } catch (error) {
+      console.error('Error sending update notification:', error)
+    }
+  }
+
   return {
     customers,
     customer,
@@ -335,5 +363,6 @@ export const useCustomerStore = defineStore("customer", () => {
     addMember,
     deleteMember,
     updatePassDetails,
+    sendUpdateNotification,
   };
 });

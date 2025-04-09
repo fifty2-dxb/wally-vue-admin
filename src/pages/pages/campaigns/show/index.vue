@@ -620,27 +620,53 @@ const handleAddMember = async () => {
           </VBtn>
         </VCardTitle>
         <VDivider />
-        <VDataTable
-          :headers="[
-            { text: 'Name', value: 'name' },
-            { text: 'Date', value: 'date' },
-            { text: 'Serial Number', value: 'serialNumber' },
-            { text: 'Status', value: 'status' }
-          ]"
-          :items="accessLogsData"
-          :items-per-page="10"
-          class="modern-table"
-        >
-          <template #item.status="{ item }">
-            <VChip
-              size="small"
-              :color="item.passValue === 1 ? 'success' : 'error'"
-              variant="tonal"
-            >
-              {{ item.passValue === 1 ? 'Access Granted' : 'Access Denied' }}
-            </VChip>
-          </template>
-        </VDataTable>
+        <VList class="pa-0">
+          <VListItem
+            v-for="log in accessLogsData"
+            :key="log.id"
+            class="px-4 py-3"
+          >
+            <template #prepend>
+              <VAvatar
+                :color="log.passValue === 1 ? 'success' : 'error'"
+                variant="tonal"
+                size="40"
+                class="me-4"
+              >
+                <VIcon
+                  :icon="log.passValue === 1 ? 'tabler-check' : 'tabler-x'"
+                  size="24"
+                  color="black"
+                />
+              </VAvatar>
+            </template>
+            <VListItemTitle class="font-weight-medium">
+              {{ log.name }}
+            </VListItemTitle>
+            <VListItemSubtitle class="text-medium-emphasis">
+              {{ new Date(log.date).toLocaleString() }}
+            </VListItemSubtitle>
+            <template #append>
+              <VChip
+                size="small"
+                :color="log.passValue === 1 ? 'success' : 'error'"
+                variant="tonal"
+                class="ml-2"
+              >
+                {{ log.passValue === 1 ? 'Access Granted' : 'Access Denied' }}
+              </VChip>
+            </template>
+          </VListItem>
+        </VList>
+        <VDivider />
+        <div class="d-flex justify-center pa-2">
+          <VPagination
+            v-model="currentPage"
+            :length="totalPages"
+            :total-visible="5"
+            density="comfortable"
+          />
+        </div>
       </VCard>
     </VCol>
   </VRow>
