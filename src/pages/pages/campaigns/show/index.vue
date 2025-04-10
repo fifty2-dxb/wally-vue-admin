@@ -8,6 +8,7 @@ import BarChart from './BarChart.vue'
 import AccessLogsTable from './AccessLogsTable.vue'
 import { useCustomerStore } from '@/stores/customer';
 import ImportMembersWizard from '@/components/campaign/ImportMembersWizard.vue';
+import AddMemberWizard from '@/components/campaign/AddMemberWizard.vue';
 
 const route = useRoute();
 const type = route.query.type as string;
@@ -64,20 +65,7 @@ const newEvent = ref({
 });
 const isCreatingEvent = ref(false);
 
-const isAddMemberModalOpen = ref(false);
-const isAddingMember = ref(false);
-const newMember = ref({
-  name: '',
-  surname: '',
-  phonenumber: '',
-  email: '',
-  promotion: '',
-  gender: null,
-  birthday: null,
-  smsMarketing: 0,
-  emailMarketing: 0,
-  note: '',
-});
+const isAddMemberWizardOpen = ref(false);
 
 const genderOptions = [
   { title: 'Male', value: 'Male' },
@@ -441,20 +429,36 @@ const isAddMemberDisabled = computed(() => {
   return campaignType.value === 'event' && !campaignStore.selectedEvent;
 });
 
+const addAdditionalField = () => {
+  newMember.value.additionalFields.push({ key: '', value: '' });
+};
+
+const removeAdditionalField = (index: number) => {
+  newMember.value.additionalFields.splice(index, 1);
+};
+
 const handleAddMember = async () => {
   if (!newMember.value.name || !newMember.value.surname || !newMember.value.email) {
-    showSnackbar('Please fill in all required fields', 'error')
-
-    return
+    showSnackbar('Please fill in all required fields', 'error');
+    return;
   }
 
   try {
     isAddingMember.value = true;
 
+    // Convert additional fields to JSON string
+    const additionalData = newMember.value.additionalFields.reduce((acc, field) => {
+      if (field.key && field.value) {
+        acc[field.key] = field.value;
+      }
+      return acc;
+    }, {} as Record<string, string>);
+
     const memberData = {
       ...newMember.value,
       smsMarketing: newMember.value.smsMarketing ? 1 : 0,
       emailMarketing: newMember.value.emailMarketing ? 1 : 0,
+      additionalData: JSON.stringify(additionalData),
     };
 
     let eventGuid;
@@ -472,7 +476,7 @@ const handleAddMember = async () => {
     await useCustomerStore().addMember(memberData, { eventId: eventGuid });
 
     showSnackbar('Member added successfully', 'success');
-    isAddMemberModalOpen.value = false;
+    isAddMemberWizardOpen.value = false;
 
     // Reset form
     newMember.value = {
@@ -486,6 +490,7 @@ const handleAddMember = async () => {
       smsMarketing: 0,
       emailMarketing: 0,
       note: '',
+      additionalFields: [],
     };
     
     // Refresh members list
@@ -542,7 +547,7 @@ const handleAddMember = async () => {
               <VBtn
                 color="primary"
                 prepend-icon="tabler-user-plus"
-                @click="isAddMemberModalOpen = true"
+                @click="isAddMemberWizardOpen = true"
                 size="small"
               >
                 Add Member
@@ -941,7 +946,7 @@ const handleAddMember = async () => {
                 <VBtn
                   color="primary"
                   prepend-icon="tabler-user-plus"
-                  @click="isAddMemberModalOpen = true"
+                  @click="isAddMemberWizardOpen = true"
                   :disabled="isAddMemberDisabled"
                 >
                   Add Member
@@ -1177,175 +1182,12 @@ const handleAddMember = async () => {
   </VCard>
 </VDialog>
 
-  <!-- Add Member Modal -->
-  <VDialog
-    v-model="isAddMemberModalOpen"
-    max-width="800px"
-    persistent
-  >
-    <VCard>
-      <VCardTitle class="d-flex justify-space-between align-center pa-4">
-        <span class="text-h6">Add New Member</span>
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          @click="isAddMemberModalOpen = false"
-        >
-          <VIcon icon="tabler-x" />
-        </VBtn>
-      </VCardTitle>
-      <VDivider />
-      <VCardText class="pa-4">
-        <VForm @submit.prevent="handleAddMember">
-          <VRow>
-            <!-- Personal Information -->
-            <VCol cols="12" md="6">
-              <h6 class="text-subtitle-1 font-weight-medium mb-4">Personal Information</h6>
-              
-              <VRow>
-                <VCol cols="12" md="6">
-                  <VTextField
-                    v-model="newMember.name"
-                    label="First Name"
-                    density="comfortable"
-                    variant="outlined"
-                    :disabled="isAddingMember"
-                    required
-                  />
-                </VCol>
-                
-                <VCol cols="12" md="6">
-                  <VTextField
-                    v-model="newMember.surname"
-                    label="Last Name"
-                    density="comfortable"
-                    variant="outlined"
-                    :disabled="isAddingMember"
-                    required
-                  />
-                </VCol>
-                
-                <VCol cols="12">
-                  <VTextField
-                    v-model="newMember.email"
-                    label="Email"
-                    type="email"
-                    density="comfortable"
-                    variant="outlined"
-                    :disabled="isAddingMember"
-                    required
-                  />
-                </VCol>
-                
-                <VCol cols="12">
-                  <VTextField
-                    v-model="newMember.phonenumber"
-                    label="Phone Number"
-                    density="comfortable"
-                    variant="outlined"
-                    :disabled="isAddingMember"
-                  />
-                </VCol>
-                
-                <VCol cols="12" md="6">
-                  <VSelect
-                    v-model="newMember.gender"
-                    :items="genderOptions"
-                    item-title="title"
-                    item-value="value"
-                    label="Gender"
-                    density="comfortable"
-                    variant="outlined"
-                    :disabled="isAddingMember"
-                    clearable
-                  />
-                </VCol>
-                
-                <VCol cols="12" md="6">
-                  <VTextField
-                    v-model="newMember.birthday"
-                    label="Birthday"
-                    type="date"
-                    density="comfortable"
-                    variant="outlined"
-                    :disabled="isAddingMember"
-                  />
-                </VCol>
-              </VRow>
-            </VCol>
-
-            <!-- Marketing Preferences -->
-            <VCol cols="12" md="6">
-              <h6 class="text-subtitle-1 font-weight-medium mb-4">Marketing Preferences</h6>
-              
-              <VRow>
-                <VCol cols="12">
-                  <VTextField
-                    v-model="newMember.promotion"
-                    label="Promotion Code"
-                    density="comfortable"
-                    variant="outlined"
-                    :disabled="isAddingMember"
-                  />
-                </VCol>
-                
-                <VCol cols="12">
-                  <VSwitch
-                    v-model="newMember.smsMarketing"
-                    label="Receive SMS Marketing"
-                    color="primary"
-                    :disabled="isAddingMember"
-                    hide-details
-                    class="mb-4"
-                  />
-                  
-                  <VSwitch
-                    v-model="newMember.emailMarketing"
-                    label="Receive Email Marketing"
-                    color="primary"
-                    :disabled="isAddingMember"
-                    hide-details
-                  />
-                </VCol>
-              </VRow>
-
-              <h6 class="text-subtitle-1 font-weight-medium mb-4 mt-8">Additional Notes</h6>
-              <VTextarea
-                v-model="newMember.note"
-                label="Notes"
-                :placeholder="$t('Add any additional notes about this member')"
-                density="comfortable"
-                variant="outlined"
-                :disabled="isAddingMember"
-                rows="4"
-              />
-            </VCol>
-          </VRow>
-        </VForm>
-      </VCardText>
-      <VDivider />
-      <VCardActions class="pa-4">
-        <VSpacer />
-        <VBtn
-          variant="tonal"
-          color="secondary"
-          @click="isAddMemberModalOpen = false"
-          :disabled="isAddingMember"
-        >
-          Cancel
-        </VBtn>
-        <VBtn
-          color="primary"
-          @click="handleAddMember"
-          :loading="isAddingMember"
-          :disabled="isAddingMember"
-        >
-          Add Member
-        </VBtn>
-      </VCardActions>
-    </VCard>
-  </VDialog>
+  <!-- Add Member Wizard -->
+  <AddMemberWizard
+    v-model:isOpen="isAddMemberWizardOpen"
+    :event-id="campaignStore.selectedEvent?.eventGuid"
+    @imported="fetchCampaignDetails(campaignGuid)"
+  />
 
   <VDialog
     v-model="deleteDialog"

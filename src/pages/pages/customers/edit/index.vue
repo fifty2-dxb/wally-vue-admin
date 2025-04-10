@@ -21,6 +21,13 @@ const formData = ref({
   smsMarketing: false,
   emailMarketing: false,
   note: '',
+  additionalFields: [] as { key: string; value: string }[],
+  familyMembers: [] as Array<{
+    name: string;
+    relationship: string;
+    emiratesId: string;
+    dateOfBirth: string;
+  }>,
 });
 
 const genderOptions = [
@@ -29,12 +36,75 @@ const genderOptions = [
   { title: 'Other', value: 'Other' },
 ];
 
+const relationshipOptions = [
+  { title: 'Mother', value: 'Mother' },
+  { title: 'Father', value: 'Father' },
+  { title: 'Spouse', value: 'Spouse' },
+  { title: 'Child', value: 'Child' },
+  { title: 'Sibling', value: 'Sibling' },
+  { title: 'Other', value: 'Other' },
+];
+
+const currentStep = ref(1);
+const totalSteps = 3;
+
+const nextStep = () => {
+  if (currentStep.value < totalSteps) {
+    currentStep.value++;
+  }
+};
+
+const prevStep = () => {
+  if (currentStep.value > 1) {
+    currentStep.value--;
+  }
+};
+
 const fetchCustomerDetails = async (customerId: string) => {
   try {
     loading.value = true;
     await customerStore.fetchCustomerById(customerId);
-    // Populate form with customer details
     const details = customerStore.customer.customers_details;
+    
+    // Handle additional data parsing
+    let additionalFields: { key: string; value: string }[] = [];
+    let familyMembers: Array<{
+      name: string;
+      relationship: string;
+      emiratesId: string;
+      dateOfBirth: string;
+    }> = [];
+    
+    if (details.additionalData) {
+      try {
+        const parsedData = typeof details.additionalData === 'string' 
+          ? JSON.parse(details.additionalData)
+          : details.additionalData;
+        
+        // Handle family members if they exist
+        if (parsedData.familyMembers) {
+          familyMembers = parsedData.familyMembers;
+        }
+        
+        // Handle other additional fields
+        const otherFields = { ...parsedData };
+        delete otherFields.familyMembers;
+        
+        additionalFields = Object.entries(otherFields).map(([key, value]) => ({
+          key,
+          value: value as string
+        }));
+      } catch (error) {
+        console.error('Error parsing additional data:', error);
+        // If parsing fails, try to handle it as a string
+        const fallbackData = JSON.parse(JSON.stringify(details.additionalData));
+        additionalFields = Object.entries(fallbackData).map(([key, value]) => ({
+          key,
+          value: value as string
+        }));
+      }
+    }
+
     formData.value = {
       name: details.name,
       surname: details.surname,
@@ -46,6 +116,8 @@ const fetchCustomerDetails = async (customerId: string) => {
       smsMarketing: details.smsMarketing === 0 ? false : true,
       emailMarketing: details.emailMarketing === 0 ? false : true,
       note: details.note || '',
+      additionalFields,
+      familyMembers
     };
   } catch (error) {
     console.error('Error fetching customer:', error);
@@ -60,10 +132,22 @@ const handleSubmit = async () => {
     loading.value = true;
     const customerId = customerStore.customer.customers_details.id;
     
+    // Prepare additional data with both family members and other fields
+    const additionalData = {
+      familyMembers: formData.value.familyMembers,
+      ...formData.value.additionalFields.reduce((acc, field) => {
+        if (field.key && field.value) {
+          acc[field.key] = field.value;
+        }
+        return acc;
+      }, {} as Record<string, string>)
+    };
+    
     const updatedData = {
       ...formData.value,
       smsMarketing: formData.value.smsMarketing ? 1 : 0,
       emailMarketing: formData.value.emailMarketing ? 1 : 0,
+      additionalData: JSON.stringify(additionalData),
     };
     
     await customerStore.updateCustomer(customerId, updatedData);
@@ -75,6 +159,27 @@ const handleSubmit = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const addFamilyMember = () => {
+  formData.value.familyMembers.push({
+    name: '',
+    relationship: '',
+    emiratesId: '',
+    dateOfBirth: '',
+  });
+};
+
+const removeFamilyMember = (index: number) => {
+  formData.value.familyMembers.splice(index, 1);
+};
+
+const addAdditionalField = () => {
+  formData.value.additionalFields.push({ key: '', value: '' });
+};
+
+const removeAdditionalField = (index: number) => {
+  formData.value.additionalFields.splice(index, 1);
 };
 
 onMounted(() => {
@@ -117,13 +222,14 @@ onMounted(() => {
   </div>
 
   <VCard class="modern-card">
-    <div class="pa-6">
-      <VForm @submit.prevent="handleSubmit">
-        <VRow>
-          <!-- Personal Information -->
-          <VCol cols="12" md="6">
-            <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Personal Information') }}</h6>
-            
+    <VStepper
+      v-model="currentStep"
+      :items="['Personal Information', 'Marketing Preferences', 'Family Members']"
+      class="stepper-custom"
+    >
+      <template #item.1>
+        <VCardText class="pa-6">
+          <VForm @submit.prevent="nextStep">
             <VRow>
               <VCol cols="12" md="6">
                 <VTextField
@@ -133,6 +239,7 @@ onMounted(() => {
                   variant="outlined"
                   :disabled="loading"
                   required
+                  class="mb-4"
                 />
               </VCol>
               
@@ -144,10 +251,11 @@ onMounted(() => {
                   variant="outlined"
                   :disabled="loading"
                   required
+                  class="mb-4"
                 />
               </VCol>
               
-              <VCol cols="12">
+              <VCol cols="12" md="6">
                 <VTextField
                   v-model="formData.email"
                   :label="$t('Email')"
@@ -156,10 +264,11 @@ onMounted(() => {
                   variant="outlined"
                   :disabled="loading"
                   required
+                  class="mb-4"
                 />
               </VCol>
               
-              <VCol cols="12">
+              <VCol cols="12" md="6">
                 <VTextField
                   v-model="formData.phonenumber"
                   :label="$t('Phone Number')"
@@ -167,6 +276,7 @@ onMounted(() => {
                   variant="outlined"
                   :disabled="loading"
                   required
+                  class="mb-4"
                 />
               </VCol>
               
@@ -181,6 +291,7 @@ onMounted(() => {
                   variant="outlined"
                   :disabled="loading"
                   clearable
+                  class="mb-4"
                 />
               </VCol>
               
@@ -192,60 +303,236 @@ onMounted(() => {
                   density="comfortable"
                   variant="outlined"
                   :disabled="loading"
+                  class="mb-4"
                 />
               </VCol>
             </VRow>
-          </VCol>
+          </VForm>
+        </VCardText>
+      </template>
 
-          <!-- Marketing Preferences -->
-          <VCol cols="12" md="6">
-            <h6 class="text-h6 font-weight-medium mb-4">{{ $t('Marketing Preferences') }}</h6>
-            
+      <template #item.2>
+        <VCardText class="pa-6">
+          <VForm @submit.prevent="nextStep">
             <VRow>
               <VCol cols="12">
                 <VTextField
                   v-model="formData.promotion"
-                  :label="$t('Promotion')"
+                  :label="$t('Promotion Code')"
+                  density="comfortable"
+                  variant="outlined"
+                  :disabled="loading"
+                  class="mb-4"
+                />
+              </VCol>
+              
+              <VCol cols="12">
+                <div class="marketing-preferences">
+                  <VSwitch
+                    v-model="formData.smsMarketing"
+                    :label="$t('Receive SMS Marketing')"
+                    color="primary"
+                    :disabled="loading"
+                    hide-details
+                    class="mb-4"
+                  />
+                  
+                  <VSwitch
+                    v-model="formData.emailMarketing"
+                    :label="$t('Receive Email Marketing')"
+                    color="primary"
+                    :disabled="loading"
+                    hide-details
+                  />
+                </div>
+              </VCol>
+
+              <VCol cols="12">
+                <VTextarea
+                  v-model="formData.note"
+                  :label="$t('Notes')"
+                  :placeholder="$t('Add any additional notes about this customer')"
+                  density="comfortable"
+                  variant="outlined"
+                  :disabled="loading"
+                  rows="4"
+                  class="mb-4"
+                />
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
+      </template>
+
+      <template #item.3>
+        <VCardText class="pa-6">
+          <VForm @submit.prevent="handleSubmit">
+            <div class="section-header mb-4">
+              <h6 class="text-h6 font-weight-medium mb-0">{{ $t('Family Members') }}</h6>
+              <VBtn
+                color="primary"
+                variant="tonal"
+                size="small"
+                @click="addFamilyMember"
+                :disabled="loading"
+                prepend-icon="tabler-user-plus"
+              >
+                {{ $t('Add Family Member') }}
+              </VBtn>
+            </div>
+
+            <div v-for="(member, index) in formData.familyMembers" :key="index" class="family-member-card mb-4">
+              <div class="d-flex justify-space-between align-center mb-4">
+                <h6 class="text-subtitle-1 font-weight-medium mb-0">{{ $t('Family Member') }} {{ index + 1 }}</h6>
+                <VBtn
+                  icon
+                  variant="text"
+                  color="error"
+                  @click="removeFamilyMember(index)"
+                  :disabled="loading"
+                >
+                  <VIcon icon="tabler-trash" />
+                </VBtn>
+              </div>
+
+              <VRow>
+                <VCol cols="12" md="6">
+                  <VTextField
+                    v-model="member.name"
+                    :label="$t('Name')"
+                    density="comfortable"
+                    variant="outlined"
+                    :disabled="loading"
+                    required
+                    class="mb-4"
+                  />
+                </VCol>
+                
+                <VCol cols="12" md="6">
+                  <VSelect
+                    v-model="member.relationship"
+                    :items="relationshipOptions"
+                    item-title="title"
+                    item-value="value"
+                    :label="$t('Relationship')"
+                    density="comfortable"
+                    variant="outlined"
+                    :disabled="loading"
+                    required
+                    class="mb-4"
+                  />
+                </VCol>
+                
+                <VCol cols="12" md="6">
+                  <VTextField
+                    v-model="member.emiratesId"
+                    :label="$t('Emirates ID')"
+                    density="comfortable"
+                    variant="outlined"
+                    :disabled="loading"
+                    required
+                    class="mb-4"
+                  />
+                </VCol>
+                
+                <VCol cols="12" md="6">
+                  <VTextField
+                    v-model="member.dateOfBirth"
+                    :label="$t('Date of Birth')"
+                    type="date"
+                    density="comfortable"
+                    variant="outlined"
+                    :disabled="loading"
+                    required
+                    class="mb-4"
+                  />
+                </VCol>
+              </VRow>
+            </div>
+
+            <div v-if="formData.familyMembers.length === 0" class="text-center py-4">
+              <VIcon icon="tabler-users" size="24" class="mb-2" />
+              <p class="text-medium-emphasis">{{ $t('No family members added yet') }}</p>
+            </div>
+
+            <div class="section-header mb-4 mt-8">
+              <h6 class="text-h6 font-weight-medium mb-0">{{ $t('Additional Information') }}</h6>
+              <VBtn
+                color="primary"
+                variant="tonal"
+                size="small"
+                @click="addAdditionalField"
+                :disabled="loading"
+                prepend-icon="tabler-plus"
+              >
+                {{ $t('Add Field') }}
+              </VBtn>
+            </div>
+
+            <VRow v-for="(field, index) in formData.additionalFields" :key="index" class="mb-4">
+              <VCol cols="5">
+                <VTextField
+                  v-model="field.key"
+                  :label="$t('Field Name')"
                   density="comfortable"
                   variant="outlined"
                   :disabled="loading"
                 />
               </VCol>
-              
-              <VCol cols="12">
-                <VSwitch
-                  v-model="formData.smsMarketing"
-                  :label="$t('Receive SMS Marketing')"
-                  color="primary"
+              <VCol cols="6">
+                <VTextField
+                  v-model="field.value"
+                  :label="$t('Field Value')"
+                  density="comfortable"
+                  variant="outlined"
                   :disabled="loading"
-                  hide-details
-                  class="mb-4"
                 />
-                
-                <VSwitch
-                  v-model="formData.emailMarketing"
-                  :label="$t('Receive Email Marketing')"
-                  color="primary"
+              </VCol>
+              <VCol cols="1" class="d-flex align-center">
+                <VBtn
+                  icon
+                  variant="text"
+                  color="error"
+                  @click="removeAdditionalField(index)"
                   :disabled="loading"
-                  hide-details
-                />
+                >
+                  <VIcon icon="tabler-trash" />
+                </VBtn>
               </VCol>
             </VRow>
 
-            <h6 class="text-h6 font-weight-medium mb-4 mt-8">{{ $t('Additional Notes') }}</h6>
-            <VTextarea
-              v-model="formData.note"
-              :label="$t('Notes')"
-              :placeholder="$t('Add any additional notes about this customer')"
-              density="comfortable"
-              variant="outlined"
-              :disabled="loading"
-              rows="4"
-            />
-          </VCol>
-        </VRow>
-      </VForm>
-    </div>
+            <div v-if="formData.additionalFields.length === 0" class="text-center py-4">
+              <VIcon icon="tabler-info-circle" size="24" class="mb-2" />
+              <p class="text-medium-emphasis">{{ $t('No additional fields added yet') }}</p>
+            </div>
+          </VForm>
+        </VCardText>
+      </template>
+
+      <template #actions>
+        <VCardActions class="pa-4">
+          <VSpacer />
+          <VBtn
+            v-if="currentStep > 1"
+            variant="tonal"
+            color="secondary"
+            @click="prevStep"
+            :disabled="loading"
+            class="me-2"
+          >
+            {{ $t('Previous') }}
+          </VBtn>
+          <VBtn
+            v-if="currentStep < totalSteps"
+            color="primary"
+            @click="nextStep"
+            :disabled="loading"
+          >
+            {{ $t('Next') }}
+          </VBtn>
+        </VCardActions>
+      </template>
+    </VStepper>
   </VCard>
 </template>
 
@@ -254,6 +541,7 @@ onMounted(() => {
   background: white;
   border-radius: 12px;
   padding: 24px;
+  box-shadow: 0 2px 15px 0 rgba(0, 0, 0, 0.05);
 }
 
 .modern-card {
@@ -282,5 +570,64 @@ onMounted(() => {
 :deep(.v-btn) {
   text-transform: none;
   font-weight: 500;
+}
+
+.stepper-custom {
+  background: transparent !important;
+}
+
+:deep(.v-stepper-header) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(.v-stepper-item__title) {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+:deep(.v-stepper-item--selected .v-stepper-item__title) {
+  color: rgb(var(--v-theme-primary));
+}
+
+.marketing-preferences {
+  background: rgba(var(--v-theme-surface), 0.5);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(var(--v-theme-primary), 0.1);
+}
+
+:deep(.v-switch) {
+  margin-bottom: 8px;
+}
+
+:deep(.v-switch__track) {
+  opacity: 0.2;
+}
+
+:deep(.v-switch--selected .v-switch__track) {
+  opacity: 0.5;
+}
+
+.family-member-card {
+  background: rgba(var(--v-theme-surface), 0.5);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(var(--v-theme-primary), 0.1);
+}
+
+.family-member-card:hover {
+  background: rgba(var(--v-theme-surface), 0.7);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mt-8 {
+  margin-top: 2rem;
 }
 </style>
