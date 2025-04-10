@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { useCustomerStore } from '@/stores/customer';
 import { useSnackbar } from '@/composables/useSnackbar';
 
@@ -46,10 +46,26 @@ const relationshipOptions = [
 ];
 
 const currentStep = ref(1);
-const totalSteps = 3;
+const totalSteps = ref(3);
+
+const showFamilyMembers = computed(() => {
+  if (!customerStore.customer?.customers_details?.additionalData) return false;
+  
+  try {
+    return customerStore.customer.industry === 'healthcare';
+  } catch (error) {
+    console.error('Error parsing additional data:', error);
+    return false;
+  }
+});
+
+// Update total steps based on whether family members should be shown
+watch(showFamilyMembers, (shouldShow) => {
+  totalSteps.value = shouldShow ? 4 : 3; // 4 steps for healthcare (including family members), 3 for others
+}, { immediate: true });
 
 const nextStep = () => {
-  if (currentStep.value < totalSteps) {
+  if (currentStep.value < totalSteps.value) {
     currentStep.value++;
   }
 };
@@ -224,7 +240,7 @@ onMounted(() => {
   <VCard class="modern-card">
     <VStepper
       v-model="currentStep"
-      :items="['Personal Information', 'Marketing Preferences', 'Family Members']"
+      :items="showFamilyMembers ? ['Personal Information', 'Marketing Preferences', 'Family Members', 'Additional Information'] : ['Personal Information', 'Marketing Preferences', 'Additional Information']"
       class="stepper-custom"
     >
       <template #item.1>
@@ -364,9 +380,9 @@ onMounted(() => {
         </VCardText>
       </template>
 
-      <template #item.3>
+      <template #item.3 v-if="showFamilyMembers">
         <VCardText class="pa-6">
-          <VForm @submit.prevent="handleSubmit">
+          <VForm @submit.prevent="nextStep">
             <div class="section-header mb-4">
               <h6 class="text-h6 font-weight-medium mb-0">{{ $t('Family Members') }}</h6>
               <VBtn
@@ -454,8 +470,71 @@ onMounted(() => {
               <VIcon icon="tabler-users" size="24" class="mb-2" />
               <p class="text-medium-emphasis">{{ $t('No family members added yet') }}</p>
             </div>
+          </VForm>
+        </VCardText>
+      </template>
 
-            <div class="section-header mb-4 mt-8">
+      <template #item.3 v-else>
+        <VCardText class="pa-6">
+          <VForm @submit.prevent="handleSubmit">
+            <div class="section-header mb-4">
+              <h6 class="text-h6 font-weight-medium mb-0">{{ $t('Additional Information') }}</h6>
+              <VBtn
+                color="primary"
+                variant="tonal"
+                size="small"
+                @click="addAdditionalField"
+                :disabled="loading"
+                prepend-icon="tabler-plus"
+              >
+                {{ $t('Add Field') }}
+              </VBtn>
+            </div>
+
+            <VRow v-for="(field, index) in formData.additionalFields" :key="index" class="mb-4">
+              <VCol cols="5">
+                <VTextField
+                  v-model="field.key"
+                  :label="$t('Field Name')"
+                  density="comfortable"
+                  variant="outlined"
+                  :disabled="loading"
+                />
+              </VCol>
+              <VCol cols="6">
+                <VTextField
+                  v-model="field.value"
+                  :label="$t('Field Value')"
+                  density="comfortable"
+                  variant="outlined"
+                  :disabled="loading"
+                />
+              </VCol>
+              <VCol cols="1" class="d-flex align-center">
+                <VBtn
+                  icon
+                  variant="text"
+                  color="error"
+                  @click="removeAdditionalField(index)"
+                  :disabled="loading"
+                >
+                  <VIcon icon="tabler-trash" />
+                </VBtn>
+              </VCol>
+            </VRow>
+
+            <div v-if="formData.additionalFields.length === 0" class="text-center py-4">
+              <VIcon icon="tabler-info-circle" size="24" class="mb-2" />
+              <p class="text-medium-emphasis">{{ $t('No additional fields added yet') }}</p>
+            </div>
+          </VForm>
+        </VCardText>
+      </template>
+
+      <template #item.4 v-if="showFamilyMembers">
+        <VCardText class="pa-6">
+          <VForm @submit.prevent="handleSubmit">
+            <div class="section-header mb-4">
               <h6 class="text-h6 font-weight-medium mb-0">{{ $t('Additional Information') }}</h6>
               <VBtn
                 color="primary"
@@ -529,6 +608,15 @@ onMounted(() => {
             :disabled="loading"
           >
             {{ $t('Next') }}
+          </VBtn>
+          <VBtn
+            v-if="currentStep === totalSteps"
+            color="primary"
+            @click="handleSubmit"
+            :loading="loading"
+            :disabled="loading"
+          >
+            {{ $t('Save Changes') }}
           </VBtn>
         </VCardActions>
       </template>

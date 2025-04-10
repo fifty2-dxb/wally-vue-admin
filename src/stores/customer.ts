@@ -34,6 +34,7 @@ interface Customer {
   platform?: string;
   isExpired?: boolean;
   logs?: any[];
+  industry?: string;
 }
 
 interface UpdatePassDetails {
@@ -71,6 +72,7 @@ export const useCustomerStore = defineStore("customer", () => {
     expiresAt: "",
     platform: "",
     isExpired: false,
+    industry: "",
   });
   const serialNumberData = ref<any[]>([]);
   
@@ -113,6 +115,7 @@ export const useCustomerStore = defineStore("customer", () => {
           platform: response.platform,
           expiresAt: response.expiresAt,
           isExpired: response.isExpired,
+          industry: response.industry,
         };
         fetchLogs(id);
       } else {
@@ -132,6 +135,7 @@ export const useCustomerStore = defineStore("customer", () => {
             note: null,
             createdAt: "",
             updatedAt: "",
+            additionalData: "",
           },
           serialNumber: "",
           type: "",
@@ -144,6 +148,7 @@ export const useCustomerStore = defineStore("customer", () => {
           expiresAt: "",
           platform: "",
           isExpired: false,
+          industry: "",
         };
       }
     } catch (error) {
@@ -237,6 +242,7 @@ export const useCustomerStore = defineStore("customer", () => {
         note: null,
         createdAt: "",
         updatedAt: "",
+        additionalData: "",
       },
       serialNumber: "",
       type: "",
@@ -248,6 +254,7 @@ export const useCustomerStore = defineStore("customer", () => {
       requiredStamps: 0,
       expiresAt: "",
       isExpired: false,
+      industry: "",
     };
     serialNumberData.value = [];
   };

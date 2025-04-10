@@ -19,6 +19,13 @@ const isAddingMember = ref(false);
 const customerStore = useCustomerStore();
 const campaignStore = useCampaignStore();
 
+const showFamilyMembers = computed(() => {
+  if (!campaignStore.campaign?.styleSettings?.details?.industry) return false;
+  return campaignStore.campaign?.styleSettings?.details?.industry === 'healthcare';
+});
+
+const totalSteps = computed(() => showFamilyMembers.value ? 4 : 3);
+
 const genderOptions = [
   { title: 'Male', value: 'Male' },
   { title: 'Female', value: 'Female' },
@@ -105,7 +112,7 @@ const nextStep = () => {
   if (currentStep.value === 3 && !validateStep3()) {
     return;
   }
-  if (currentStep.value < 3) {
+  if (currentStep.value < totalSteps.value) {
     currentStep.value++;
   }
 };
@@ -214,9 +221,16 @@ const handleAddMember = async () => {
             />
             <VDivider />
             <VStepperItem
+              v-if="showFamilyMembers"
               :value="3"
-              title="Family & Additional Info"
-              subtitle="Family members and custom fields"
+              title="Family Members"
+              subtitle="Family member details"
+            />
+            <VDivider v-if="showFamilyMembers" />
+            <VStepperItem
+              :value="showFamilyMembers ? 4 : 3"
+              title="Additional Information"
+              subtitle="Custom fields"
             />
           </VStepperHeader>
 
@@ -332,9 +346,8 @@ const handleAddMember = async () => {
               </VRow>
             </VStepperWindowItem>
 
-            <!-- Step 3: Family & Additional Information -->
-            <VStepperWindowItem :value="3">
-              <!-- Family Members Section -->
+            <!-- Step 3: Family Members (only for healthcare) -->
+            <VStepperWindowItem v-if="showFamilyMembers" :value="3">
               <div class="section-header mb-4">
                 <h6 class="text-subtitle-1 font-weight-medium mb-0">Family Members</h6>
                 <VBtn
@@ -415,9 +428,11 @@ const handleAddMember = async () => {
                 <VIcon icon="tabler-users" size="24" class="mb-2" />
                 <p class="text-medium-emphasis">No family members added yet</p>
               </div>
+            </VStepperWindowItem>
 
-              <!-- Additional Fields Section -->
-              <div class="section-header mb-4 mt-8">
+            <!-- Step 3/4: Additional Information -->
+            <VStepperWindowItem :value="showFamilyMembers ? 4 : 3">
+              <div class="section-header mb-4">
                 <h6 class="text-subtitle-1 font-weight-medium mb-0">Additional Information</h6>
                 <VBtn
                   color="primary"
@@ -486,7 +501,7 @@ const handleAddMember = async () => {
           Back
         </VBtn>
         <VBtn
-          v-if="currentStep < 3"
+          v-if="currentStep < totalSteps"
           color="primary"
           @click="nextStep"
           :disabled="isAddingMember"
@@ -494,7 +509,7 @@ const handleAddMember = async () => {
           Next
         </VBtn>
         <VBtn
-          v-if="currentStep === 3"
+          v-if="currentStep === totalSteps"
           color="primary"
           @click="handleAddMember"
           :loading="isAddingMember"
