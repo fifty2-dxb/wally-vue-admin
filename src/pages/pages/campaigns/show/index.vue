@@ -71,6 +71,10 @@ const currentStep = ref(1);
 const totalSteps = 2;
 const isEditingEvent = ref(false);
 
+// Add these refs at the top with other refs
+const isDeleteGuestDialogOpen = ref(false);
+const guestToDelete = ref<any>(null);
+
 // Update the Event interface
 interface Event {
   eventName: string;
@@ -633,6 +637,37 @@ const prevStep = () => {
   }
 };
 
+// Add the delete guest function
+const handleDeleteGuest = (guest: any) => {
+  console.log('Guest to delete:', guest);
+  guestToDelete.value = guest;
+  isDeleteGuestDialogOpen.value = true;
+};
+
+const closeDeleteGuestDialog = () => {
+  isDeleteGuestDialogOpen.value = false;
+  guestToDelete.value = null;
+};
+
+const deleteGuestConfirm = async () => {
+  if (!guestToDelete.value || !campaignStore.selectedEvent) return;
+
+  try {
+    await campaignStore.deleteEventGuest(
+      campaignStore.selectedEvent.eventGuid,
+      guestToDelete.value.id
+    );
+    
+    showSnackbar('Guest deleted successfully', 'success');
+    await fetchEventGuests(campaignStore.selectedEvent.eventGuid);
+  } catch (error) {
+    console.error('Error deleting guest:', error);
+    showSnackbar('Failed to delete guest', 'error');
+  } finally {
+    closeDeleteGuestDialog();
+  }
+};
+
 </script>
 
 <template>
@@ -947,7 +982,7 @@ const prevStep = () => {
               color="error"
               :disabled="!item?.passes?.[0]?.serialNumber"
               @click="item?.passes?.[0]?.serialNumber ? $router.push(`/customer/${item?.passes?.[0]?.serialNumber}`) : $event.preventDefault()"
-              >
+            >
               <VIcon icon="tabler-share" />
             </VBtn>
             <VBtn
@@ -963,6 +998,7 @@ const prevStep = () => {
               variant="text"
               size="small"
               color="error"
+              @click="handleDeleteGuest(item)"
             >
               <VIcon icon="tabler-trash" />
             </VBtn>
@@ -1603,6 +1639,36 @@ const prevStep = () => {
           :disabled="isEditingEvent"
         >
           Update Event
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <!-- Delete Guest Dialog -->
+  <VDialog
+    v-model="isDeleteGuestDialogOpen"
+    max-width="500px"
+  >
+    <VCard title="Delete Guest">
+      <VCardText>
+        Are you sure you want to delete this guest? This action cannot be undone.
+      </VCardText>
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="error"
+          variant="outlined"
+          @click="closeDeleteGuestDialog"
+        >
+          Cancel
+        </VBtn>
+        <VBtn
+          color="error"
+          variant="elevated"
+          @click="deleteGuestConfirm"
+          :loading="isLoading"
+        >
+          Delete
         </VBtn>
       </VCardActions>
     </VCard>

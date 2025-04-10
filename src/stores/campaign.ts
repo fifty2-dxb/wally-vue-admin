@@ -297,6 +297,16 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
+  const deleteEventGuest = async (eventGuid: string, guestGuid: string) => {
+    try {
+      const response = await $wallyApi(`/event-tickets/guest/${eventGuid}/${guestGuid}`, { method: "DELETE" });
+      return response;
+    } catch (error) {
+      console.error("Error deleting event guest:", error);  
+      throw error;
+    }
+  };
+
   return {
     campaigns,
     campaign,
@@ -323,5 +333,6 @@ export const useCampaignStore = defineStore("campaign", () => {
     createGuest,
     fetchDailyLog,
     updateEvent,
+    deleteEventGuest,
   };
 });
