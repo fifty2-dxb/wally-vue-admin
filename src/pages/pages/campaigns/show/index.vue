@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCampaignStore } from '@/stores/campaign';
 import DashboardCard from './DashboardCard.vue'
@@ -56,6 +56,7 @@ const newGuest = ref({
 
 // Add these refs for the modal and form
 const isCreateEventModalOpen = ref(false);
+const isEditEventModalOpen = ref(false);
 const newEvent = ref({
   eventName: '',
   eventDescription: '',
@@ -63,8 +64,79 @@ const newEvent = ref({
   eventBeginDt: new Date().toISOString().slice(0, 10),
   eventEndDt: new Date().toISOString().slice(0, 10)
 });
-const isCreatingEvent = ref(false);
 
+// Add these refs at the top with other refs
+const editingEvent = ref<Event | null>(null);
+const currentStep = ref(1);
+const totalSteps = 2;
+const isEditingEvent = ref(false);
+
+// Update the Event interface
+interface Event {
+  eventName: string;
+  eventDescription: string;
+  capacity: number;
+  eventBeginDt: string;
+  eventEndDt: string;
+  eventGuid: string;
+  additionalData?: string;
+}
+
+// Update the additional fields type to match the required structure
+interface AdditionalInfoField {
+  key: string;
+  label: string;
+  value: string;
+  dataDetectorTypes?: string[];
+}
+
+const additionalFields = ref<AdditionalInfoField[]>([]);
+
+const addAdditionalField = () => {
+  const key = `additionalInfo-${additionalFields.value.length + 1}`;
+  additionalFields.value.push({
+    key,
+    label: '',
+    value: '',
+    dataDetectorTypes: []
+  });
+};
+
+const removeAdditionalField = (index: number) => {
+  additionalFields.value.splice(index, 1);
+};
+
+// Update the handleEditEvent function to parse additionalData correctly
+const handleEditEvent = (event: Event) => {
+  editingEvent.value = {
+    ...event,
+    eventBeginDt: new Date(event.eventBeginDt).toISOString().split('T')[0],
+    eventEndDt: new Date(event.eventEndDt).toISOString().split('T')[0],
+  };
+  
+  // Handle additionalData
+  try {
+    if (typeof event.additionalData === 'string') {
+      // If it's a string, try to parse it
+      const parsedData = event.additionalData ? JSON.parse(event.additionalData) : {};
+      additionalFields.value = parsedData.additionalInfoFields || [];
+    } else if (event.additionalData && typeof event.additionalData === 'object') {
+      // If it's already an object, use it directly
+      additionalFields.value = event.additionalData.additionalInfoFields || [];
+    } else {
+      // If it's neither string nor object, initialize empty array
+      additionalFields.value = [];
+    }
+  } catch (error) {
+    console.error('Error parsing additionalData:', error);
+    additionalFields.value = [];
+  }
+  
+  currentStep.value = 1;
+  isEditEventModalOpen.value = true;
+};
+
+const isCreatingEvent = ref(false);
 const isAddMemberWizardOpen = ref(false);
 
 const genderOptions = [
@@ -429,14 +501,6 @@ const isAddMemberDisabled = computed(() => {
   return campaignType.value === 'event' && !campaignStore.selectedEvent;
 });
 
-const addAdditionalField = () => {
-  newMember.value.additionalFields.push({ key: '', value: '' });
-};
-
-const removeAdditionalField = (index: number) => {
-  newMember.value.additionalFields.splice(index, 1);
-};
-
 const handleAddMember = async () => {
   if (!newMember.value.name || !newMember.value.surname || !newMember.value.email) {
     showSnackbar('Please fill in all required fields', 'error');
@@ -500,6 +564,72 @@ const handleAddMember = async () => {
     showSnackbar('Failed to add member', 'error');
   } finally {
     isAddingMember.value = false;
+  }
+};
+
+const updateEvent = async () => {
+  if (!editingEvent.value) {
+    showSnackbar('No event selected', 'error');
+    return;
+  }
+
+  if (!editingEvent.value.eventName || !editingEvent.value.eventDescription) {
+    showSnackbar('Please fill in all required fields', 'error');
+    return;
+  }
+
+  try {
+    isEditingEvent.value = true;
+    
+    const formattedEvent = {
+      ...editingEvent.value,
+      eventBeginDt: new Date(editingEvent.value.eventBeginDt).toISOString(),
+      eventEndDt: new Date(editingEvent.value.eventEndDt).toISOString(),
+      additionalData: JSON.stringify({
+        additionalInfoFields: additionalFields.value
+      })
+    };
+    
+    await campaignStore.updateEvent(campaignGuid, editingEvent.value.eventGuid, formattedEvent);
+    
+    showSnackbar('Event updated successfully', 'success');
+    closeModal();
+    await fetchEvents();
+  } catch (error) {
+    console.error('Error updating event:', error);
+    showSnackbar('Failed to update event', 'error');
+  } finally {
+    isEditingEvent.value = false;
+  }
+};
+
+// Add a watch to handle modal closing
+watch(isEditEventModalOpen, (newValue) => {
+  if (!newValue) {
+    // Reset states when modal is closed
+    editingEvent.value = null;
+    isEditingEvent.value = false;
+    additionalFields.value = [];
+  }
+});
+
+const closeModal = () => {
+  isEditEventModalOpen.value = false;
+  editingEvent.value = null;
+  isEditingEvent.value = false;
+  additionalFields.value = [];
+};
+
+// Add step management functions
+const nextStep = () => {
+  if (currentStep.value < totalSteps) {
+    currentStep.value++;
+  }
+};
+
+const prevStep = () => {
+  if (currentStep.value > 1) {
+    currentStep.value--;
   }
 };
 
@@ -736,14 +866,25 @@ const handleAddMember = async () => {
         {{ item.eventBeginDt ? new Date(item.eventBeginDt).toLocaleDateString() : 'N/A' }}
       </template>
       <template #item.actions="{ item }">
-        <VBtn
-          size="small"
-          :color="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'primary' : 'grey'"
-          :variant="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'flat' : 'tonal'"
-          @click="handleEventChange(item)"
-        >
-          {{ campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'Selected' : 'Select' }}
-        </VBtn>
+        <div class="d-flex gap-2">
+          <VBtn
+            size="small"
+            :color="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'primary' : 'grey'"
+            :variant="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'flat' : 'tonal'"
+            @click="handleEventChange(item)"
+          >
+            {{ campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'Selected' : 'Select' }}
+          </VBtn>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            color="primary"
+            @click="handleEditEvent(item)"
+          >
+            <VIcon icon="tabler-edit" />
+          </VBtn>
+        </div>
       </template>
       <template #no-data>
         <div class="text-center py-4">
@@ -1233,6 +1374,239 @@ const handleAddMember = async () => {
     :event-id="campaignStore.selectedEvent?.eventGuid"
     @imported="fetchCampaignDetails(campaignGuid)"
   />
+
+  <!-- Edit Event Modal -->
+  <VDialog
+    v-model="isEditEventModalOpen"
+    max-width="800"
+    class="modern-modal"
+    @click:outside="closeModal"
+    persistent
+  >
+    <VCard v-if="editingEvent">
+      <VCardTitle class="modal-header d-flex justify-space-between align-center">
+        <span class="text-h6">Edit Event</span>
+        <VBtn
+          icon
+          variant="text"
+          size="small"
+          @click="closeModal"
+        >
+          <VIcon icon="tabler-x" />
+        </VBtn>
+      </VCardTitle>
+      
+      <VStepper v-model="currentStep" class="stepper-custom">
+        <VStepperHeader>
+          <VStepperItem
+            :value="1"
+            title="Basic Info"
+            subtitle="Event Details"
+          />
+          <VDivider />
+          <VStepperItem
+            :value="2"
+            title="Additional Info"
+            subtitle="Event Information"
+          />
+        </VStepperHeader>
+
+        <VStepperWindow>
+          <VStepperWindowItem :value="1">
+            <VCardText class="modal-body">
+              <VForm>
+                <VRow>
+                  <VCol cols="12">
+                    <VTextField
+                      v-model="editingEvent.eventName"
+                      label="Event Name"
+                      required
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12">
+                    <VTextarea
+                      v-model="editingEvent.eventDescription"
+                      label="Event Description"
+                      rows="3"
+                      required
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="4">
+                    <VTextField
+                      v-model.number="editingEvent.capacity"
+                      label="Capacity"
+                      type="number"
+                      min="1"
+                      required
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="4">
+                    <VTextField
+                      v-model="editingEvent.eventBeginDt"
+                      label="Start Date"
+                      type="date"
+                      required
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="4">
+                    <VTextField
+                      v-model="editingEvent.eventEndDt"
+                      label="End Date"
+                      type="date"
+                      required
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                </VRow>
+              </VForm>
+            </VCardText>
+          </VStepperWindowItem>
+
+          <VStepperWindowItem :value="2">
+            <VCardText class="modal-body">
+              <div class="d-flex justify-space-between align-center mb-6">
+                <div>
+                  <h6 class="text-h6 mb-1">Additional Information</h6>
+                  <p class="text-body-2 text-medium-emphasis">Add custom fields to display in the event pass</p>
+                </div>
+                <VBtn
+                  color="primary"
+                  prepend-icon="tabler-plus"
+                  @click="addAdditionalField"
+                  :disabled="isEditingEvent"
+                >
+                  Add Field
+                </VBtn>
+              </div>
+              
+              <VForm>
+                <div v-if="!additionalFields.length" class="text-center py-8">
+                  <VIcon
+                    icon="tabler-info-circle"
+                    size="48"
+                    color="primary"
+                    class="mb-4"
+                  />
+                  <h6 class="text-h6 mb-2">No Additional Fields</h6>
+                  <p class="text-body-2 text-medium-emphasis mb-4">
+                    Add custom fields to display additional information in the event pass
+                  </p>
+                  <VBtn
+                    color="primary"
+                    variant="tonal"
+                    prepend-icon="tabler-plus"
+                    @click="addAdditionalField"
+                    :disabled="isEditingEvent"
+                  >
+                    Add Your First Field
+                  </VBtn>
+                </div>
+
+                <div v-else>
+                  <div v-for="(field, index) in additionalFields" :key="field.key" class="mb-6">
+                    <VCard class="pa-4" variant="outlined">
+                      <div class="d-flex justify-space-between align-center mb-4">
+                        <div class="d-flex align-center">
+                          <VIcon
+                            icon="tabler-file-text"
+                            color="primary"
+                            class="me-2"
+                          />
+                          <h6 class="text-h6 mb-0">{{ field.label || 'Unnamed Field' }}</h6>
+                        </div>
+                        <VBtn
+                          icon
+                          variant="text"
+                          color="error"
+                          @click="removeAdditionalField(index)"
+                          :disabled="isEditingEvent"
+                        >
+                          <VIcon icon="tabler-trash" />
+                        </VBtn>
+                      </div>
+                      
+                      <VRow>
+                        <VCol cols="12" md="6">
+                          <VTextField
+                            v-model="field.label"
+                            label="Field Label"
+                            placeholder="e.g., Event Details, Dress Code"
+                            :disabled="isEditingEvent"
+                          />
+                        </VCol>
+                        <VCol cols="12">
+                          <VTextarea
+                            v-model="field.value"
+                            label="Field Value"
+                            rows="3"
+                            placeholder="Enter the information to display"
+                            :disabled="isEditingEvent"
+                          />
+                        </VCol>
+                        <VCol cols="12">
+                          <VSelect
+                            v-model="field.dataDetectorTypes"
+                            :items="[
+                              { title: 'Phone Number', value: 'PKDataDetectorTypePhoneNumber' },
+                              { title: 'Link', value: 'PKDataDetectorTypeLink' },
+                              { title: 'Address', value: 'PKDataDetectorTypeAddress' },
+                              { title: 'Calendar Event', value: 'PKDataDetectorTypeCalendarEvent' }
+                            ]"
+                            label="Data Detector Types"
+                            multiple
+                            chips
+                            :disabled="isEditingEvent"
+                            hint="Select data types to enable automatic detection in Apple Wallet"
+                            persistent-hint
+                          />
+                        </VCol>
+                      </VRow>
+                    </VCard>
+                  </div>
+                </div>
+              </VForm>
+            </VCardText>
+          </VStepperWindowItem>
+        </VStepperWindow>
+      </VStepper>
+
+      <VCardActions class="modal-footer">
+        <VSpacer />
+        <VBtn
+          v-if="currentStep > 1"
+          variant="tonal"
+          color="secondary"
+          class="me-3"
+          @click="prevStep"
+          :disabled="isEditingEvent"
+        >
+          Previous
+        </VBtn>
+        <VBtn
+          v-if="currentStep < totalSteps"
+          color="primary"
+          class="me-3"
+          @click="nextStep"
+          :disabled="isEditingEvent"
+        >
+          Next
+        </VBtn>
+        <VBtn
+          v-if="currentStep === totalSteps"
+          color="primary"
+          @click="updateEvent"
+          :loading="isEditingEvent"
+          :disabled="isEditingEvent"
+        >
+          Update Event
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
 </template>
 
 <style scoped>
@@ -1444,15 +1818,25 @@ const handleAddMember = async () => {
 .modal-header {
   padding: 1.5rem;
   background: rgba(var(--v-theme-surface), 0.5);
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .modal-body {
   padding: 2rem;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
 .modal-footer {
   padding: 1.5rem;
   border-top: 1px solid rgba(var(--v-theme-primary), 0.05);
+  position: sticky;
+  bottom: 0;
+  background: rgba(var(--v-theme-surface), 0.95);
+  z-index: 1;
 }
 
 .sticky-card {
@@ -1541,5 +1925,39 @@ const handleAddMember = async () => {
   .modern-card {
     margin-bottom: 1.25rem !important;
   }
+}
+
+.stepper-custom {
+  background: transparent !important;
+  max-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+}
+
+.stepper-custom :deep(.v-stepper-header) {
+  background: transparent !important;
+  box-shadow: none !important;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.stepper-custom :deep(.v-stepper-window) {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.stepper-custom :deep(.v-stepper-item) {
+  padding: 1rem;
+}
+
+.stepper-custom :deep(.v-stepper-item__title) {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.stepper-custom :deep(.v-stepper-item__subtitle) {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 </style>
