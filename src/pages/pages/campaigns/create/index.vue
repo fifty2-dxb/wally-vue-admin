@@ -86,7 +86,7 @@
   teamIdentifier: '772239U7XT',
   sharingProhibited: true,
   nfcEnabled:true,
-  passTypeIdentifier: 'pass.com.wally.loyalty',
+  passTypeIdentifier: 'pass.ae.wally.generic',
   authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
   associatedStoreIdentifiers: []
 });
@@ -105,9 +105,10 @@
     }
     return new Blob([u8arr], { type: mime });
   }
-  const updateAppleSettings = (updatedSettings) => {
-  appleSettings.value = updatedSettings;
-};
+  
+  const updateAppleSettings = (updatedSettings: any) => {
+    appleSettings.value = updatedSettings;
+  };
 
   const saveCampaign = async () => {
     if (!validateForm()) {
@@ -170,11 +171,16 @@
   };
 
   onBeforeMount(() => {
+    console.log("templates", templates);
     templates.value = JSON.parse(JSON.stringify(originalTemplates.value));
+    appleSettings.value = {
+      ...templates.value[0].appleSettings,
+    };
     loyaltyData.value = {
       template: templates.value[0],
     };
     currentStep.value = 0;
+    console.log("appleSettings", appleSettings.value);
   });
 
   const validateForm = () => {

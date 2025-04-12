@@ -68,7 +68,7 @@ const newEvent = ref({
 // Add these refs at the top with other refs
 const editingEvent = ref<Event | null>(null);
 const currentStep = ref(1);
-const totalSteps = 2;
+const totalSteps = 3;
 const isEditingEvent = ref(false);
 
 // Add these refs at the top with other refs
@@ -86,13 +86,50 @@ interface Event {
   additionalData?: string;
 }
 
-// Update the additional fields type to match the required structure
-interface AdditionalInfoField {
-  key: string;
-  label: string;
-  value: string;
-  dataDetectorTypes?: string[];
+// Add interfaces for event semantics
+interface VenueLocation {
+  latitude: number;
+  longitude: number;
 }
+
+interface RelevantDate {
+  startDate: string;
+  endDate: string;
+}
+
+interface EventSemantics {
+  eventLiveMessage: string;
+  eventType: string;
+  eventName: string;
+  entranceDescription: string;
+  venueLocation: VenueLocation;
+  venueName: string;
+  performerNames: string[];
+  eventStartDate: string;
+  eventEndDate: string;
+  directionsInformationURL: string;
+  contactVenueWebsite: string;
+  relevantDates: RelevantDate[];
+}
+
+// Add refs for event semantics
+const eventSemantics = ref<EventSemantics>({
+  eventLiveMessage: '',
+  eventType: 'PKEventTypeLivePerformance',
+  eventName: '',
+  entranceDescription: '',
+  venueLocation: {
+    latitude: 0,
+    longitude: 0
+  },
+  venueName: '',
+  performerNames: [],
+  eventStartDate: '',
+  eventEndDate: '',
+  directionsInformationURL: '',
+  contactVenueWebsite: '',
+  relevantDates: []
+});
 
 const additionalFields = ref<AdditionalInfoField[]>([]);
 
@@ -121,14 +158,17 @@ const handleEditEvent = (event: Event) => {
   // Handle additionalData
   try {
     if (typeof event.additionalData === 'string') {
-      // If it's a string, try to parse it
       const parsedData = event.additionalData ? JSON.parse(event.additionalData) : {};
       additionalFields.value = parsedData.additionalInfoFields || [];
+      if (parsedData.semantics) {
+        eventSemantics.value = parsedData.semantics;
+      }
     } else if (event.additionalData && typeof event.additionalData === 'object') {
-      // If it's already an object, use it directly
       additionalFields.value = event.additionalData.additionalInfoFields || [];
+      if (event.additionalData.semantics) {
+        eventSemantics.value = event.additionalData.semantics;
+      }
     } else {
-      // If it's neither string nor object, initialize empty array
       additionalFields.value = [];
     }
   } catch (error) {
@@ -590,7 +630,8 @@ const updateEvent = async () => {
       eventBeginDt: new Date(editingEvent.value.eventBeginDt).toISOString(),
       eventEndDt: new Date(editingEvent.value.eventEndDt).toISOString(),
       additionalData: JSON.stringify({
-        additionalInfoFields: additionalFields.value
+        additionalInfoFields: additionalFields.value,
+        semantics: eventSemantics.value
       })
     };
     
@@ -980,8 +1021,8 @@ const deleteGuestConfirm = async () => {
               variant="text"
               size="small"
               color="error"
-              :disabled="!item?.passes?.[0]?.serialNumber"
-              @click="item?.passes?.[0]?.serialNumber ? $router.push(`/customer/${item?.passes?.[0]?.serialNumber}`) : $event.preventDefault()"
+              :disabled="!item?.serialNumber"
+              @click="item?.serialNumber ? $router.push(`/customer/${item?.serialNumber}`) : $event.preventDefault()"
             >
               <VIcon icon="tabler-share" />
             </VBtn>
@@ -1445,6 +1486,12 @@ const deleteGuestConfirm = async () => {
             title="Additional Info"
             subtitle="Event Information"
           />
+          <VDivider />
+          <VStepperItem
+            :value="3"
+            title="Event Semantics"
+            subtitle="Event Details"
+          />
         </VStepperHeader>
 
         <VStepperWindow>
@@ -1604,6 +1651,85 @@ const deleteGuestConfirm = async () => {
                     </VCard>
                   </div>
                 </div>
+              </VForm>
+            </VCardText>
+          </VStepperWindowItem>
+
+          <VStepperWindowItem :value="3">
+            <VCardText class="modal-body">
+              <div class="d-flex justify-space-between align-center mb-6">
+                <div>
+                  <h6 class="text-h6 mb-1">Event Semantics</h6>
+                  <p class="text-body-2 text-medium-emphasis">Configure event details for pass display</p>
+                </div>
+              </div>
+              
+              <VForm>
+                <VRow>
+                  <VCol cols="12">
+                    <VTextField
+                      v-model="eventSemantics.eventLiveMessage"
+                      label="Event Live Message"
+                      placeholder="This event is going to start soon!"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="6">
+                    <VTextField
+                      v-model="eventSemantics.venueName"
+                      label="Venue Name"
+                      placeholder="Renaissance Business Bay Hotel"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="6">
+                    <VTextField
+                      v-model="eventSemantics.entranceDescription"
+                      label="Entrance Description"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="6">
+                    <VTextField
+                      v-model.number="eventSemantics.venueLocation.latitude"
+                      label="Venue Latitude"
+                      type="number"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="6">
+                    <VTextField
+                      v-model.number="eventSemantics.venueLocation.longitude"
+                      label="Venue Longitude"
+                      type="number"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="6">
+                    <VTextField
+                      v-model="eventSemantics.directionsInformationURL"
+                      label="Directions URL"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12" md="6">
+                    <VTextField
+                      v-model="eventSemantics.contactVenueWebsite"
+                      label="Venue Website"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12">
+                    <VSelect
+                      v-model="eventSemantics.performerNames"
+                      label="Performers"
+                      multiple
+                      chips
+                      :items="eventSemantics.performerNames"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                </VRow>
               </VForm>
             </VCardText>
           </VStepperWindowItem>

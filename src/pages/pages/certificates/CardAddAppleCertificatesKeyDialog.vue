@@ -6,7 +6,7 @@ import { VBtn, VCard, VCardItem, VCardText, VCardTitle, VCol, VDialog, VForm, VR
 
 const name = ref('');
 const url = ref('Url of the location');
-const basePassTypeId = ref('pass.com.wally.example');
+const basePassTypeId = ref('pass.ae.wally.generic');
 const passTypeCounter = ref(0);
 const passTypeId = ref('');
 const snackbarVisible = ref(false);

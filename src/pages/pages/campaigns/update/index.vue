@@ -54,7 +54,7 @@ const appleSettings = ref({
   webServiceURL: 'https://dev-api.wally.ae/',
   teamIdentifier: '772239U7XT',
   sharingProhibited: true,
-  passTypeIdentifier: 'pass.com.wally.loyalty',
+  passTypeIdentifier: 'pass.ae.wally.generic',
   authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
   associatedStoreIdentifiers: []
 });

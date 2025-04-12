@@ -52,7 +52,7 @@
 
   const fetchPlatformData = async () => {
     try {
-      const response = await $wallyApi(`/campaigns/platform/${route.params.id}`, { method: 'GET' })
+      const response = await $wallyApi(`/campaigns/pass/${route.params.id}`, { method: 'GET' })
       platformData.value = response || {}
     } catch (error) {
       console.error('Error fetching campaigns', error)

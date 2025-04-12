@@ -276,6 +276,7 @@ export const useCampaignStore = defineStore("campaign", () => {
       const response = await $wallyApi(`/events/${eventGuid}/guests`, { method: "GET" });
       console.log('Event guests response:', response);
       eventGuests.value = Array.isArray(response) ? response : [];
+      console.log('Event guests:', eventGuests.value);
       return eventGuests.value;
     } catch (error) {
       console.error('Error fetching event guests:', error);

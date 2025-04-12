@@ -744,7 +744,7 @@ const updateStampImage = function () {
     const query = new URLSearchParams({
       json: JSON.stringify(loopyparams),
     }).toString();
-    console.log(`${baseUrl}?${query}`, "url");
+    
     return `${baseUrl}?${query}`;
   }
 
