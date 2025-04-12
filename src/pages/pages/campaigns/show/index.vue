@@ -1403,7 +1403,7 @@ const deleteGuestConfirm = async () => {
   <!-- Add Member Wizard -->
   <AddMemberWizard
     v-model:isOpen="isAddMemberWizardOpen"
-    :event-id="campaignStore.selectedEvent?.eventGuid"
+    :event-id="campaignStore.events[0]?.eventGuid"
     @imported="fetchCampaignDetails(campaignGuid)"
   />
 
