@@ -189,6 +189,17 @@ const genderOptions = [
   { title: 'Other', value: 'Other' },
 ];
 
+//"PKEventTypeGeneric" | "PKEventTypeMovie" | "PKEventTypeConference" | "PKEventTypeConvention" | "PKEventTypeWorkshop" | "PKEventTypeSocialGathering" | "PKEventTypeSports" | "PKEventTypeLivePerformance";
+const eventType = [
+  { title: 'Generic', value: 'PKEventTypeGeneric' },
+  { title: 'Movie', value: 'PKEventTypeMovie' },
+  { title: 'Conference', value: 'PKEventTypeConference' },
+  { title: 'Convention', value: 'PKEventTypeConvention' },
+  { title: 'Workshop', value: 'PKEventTypeWorkshop' },
+  { title: 'Social Gathering', value: 'PKEventTypeSocialGathering' },
+  { title: 'Live Performance', value: 'PKEventTypeLivePerformance' },
+];
+
 const deleteDialog = ref(false);
 const memberToDelete = ref<any>(null);
 
@@ -365,6 +376,8 @@ const fetchLatestLogs = async () => {
     );
 
     accessLogsData.value = logs.map(log => ({
+      eventName: log.eventName,
+      eventDescription: log.eventDescription,
       name: log.customerName,
       date: new Date(log.createdAt),
       serialNumber: log.serialNumber,
@@ -818,7 +831,7 @@ const deleteGuestConfirm = async () => {
     </VCol>
 
     <!-- Access Logs Section -->
-    <VCol cols="12" md="4" class="ps-md-4">
+    <VCol cols="12" md="4" class="ps-md-4 mb-6">
       <VCard class="modern-card sticky-card">
         <VCardTitle class="pa-4 d-flex align-center">
           <VIcon icon="tabler-history" color="primary" class="me-2" />
@@ -857,6 +870,9 @@ const deleteGuestConfirm = async () => {
             <VListItemTitle class="font-weight-medium">
               {{ log.name }}
             </VListItemTitle>
+            <VListItemSubtitle class="font-weight-emphasis">
+              {{ log.eventDescription }}
+            </VListItemSubtitle>
             <VListItemSubtitle class="text-medium-emphasis">
               {{ new Date(log.date).toLocaleString() }}
             </VListItemSubtitle>
@@ -1716,6 +1732,14 @@ const deleteGuestConfirm = async () => {
                     <VTextField
                       v-model="eventSemantics.contactVenueWebsite"
                       label="Venue Website"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12">
+                    <VSelect
+                      v-model="eventSemantics.eventType"
+                      label="Event Type"
+                      :items="eventType"
                       :disabled="isEditingEvent"
                     />
                   </VCol>

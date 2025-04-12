@@ -45,6 +45,7 @@ const scannerID = ref('');
 const nfcTagId = ref('');
 const showConfetti = ref(false);
 const errorMessage = ref('');
+const eventCustomerName = ref('');
 // Event information based on campaign type
 const eventInfo = ref({
   primary: { label: '', value: '' },
@@ -142,13 +143,23 @@ const receiveNfcData = async (event: any) => {
       response = await $wallyApi('/event-access', {
         method: 'POST',
         body: {
-          serialNumber: eventGuid.value,
+          serialNumber: event,
           campaignGuid,
         },
       });
-      
-      const isAlreadyScanned = response.status === 'already_scanned'
-      scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
+
+      console.log('scan result', response);
+
+      if (response.status === 404) { 
+        //error pass not found
+        scanState.value = 'error'
+        errorMessage.value = response.message
+      } else if (response.status === 403) { 
+        const isAlreadyScanned = response.status === 403
+        eventCustomerName.value = response.customerName;
+        scanState.value = isAlreadyScanned ? 'already_scanned' : 'success'
+      }
+
 
     } else {
       console.error('Invalid campaign type for NFC')
@@ -157,7 +168,7 @@ const receiveNfcData = async (event: any) => {
     }
 
     nfcTagId.value = eventGuid.value
-    scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    scanTime.value = new Date(response.scanTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     scannerID.value = `Scanner-${Math.floor(Math.random() * 1000000)}`
 
     
@@ -247,9 +258,16 @@ onUnmounted(() => {
             />
           </div>
 
-          <h2 class="location-text text-black">
-            {{ campaign?.campaignName || $t('Event Location') }}
-          </h2>
+          <template v-if="campaign?.styleSettings?.type === 'event'">
+
+            <h1 class="welcome-text text-black">
+              {{ $t('Tap to Access') }} {{ campaign?.campaignName || $t('Event Location') }}
+            </h1>
+          <p class="subtitle-text text-primary">
+              {{ $t('Hold your device near the NFC tag') }}
+            </p>
+          </template>
+
 
           <!-- check if campaign type is membership -->
           <template v-if="campaign?.styleSettings?.type === 'membership'">
@@ -261,7 +279,7 @@ onUnmounted(() => {
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('408f2fd7-5071-4628-be76-6b57b180e9e2')">
+          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('987ab727-5e40-49bf-b6f4-0fc6bf14d344')">
             {{ $t('Test NFC') }}
           </VBtn>
         </template>
@@ -364,8 +382,8 @@ onUnmounted(() => {
                 <span class="scan-value">{{ scannerID }}</span>
               </div>
               <div class="scan-row">
-                <span class="scan-label">{{ $t('NFC TAG ID') }}</span>
-                <span class="scan-value">{{ nfcTagId }}</span>
+                <span class="scan-label">{{ $t('Guest Name') }}</span>
+                <span class="scan-value">{{ eventCustomerName }}</span>
               </div>
             </div>
           </template>
