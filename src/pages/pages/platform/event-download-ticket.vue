@@ -11,6 +11,8 @@
 
   const googleLogo = new URL('@images/google-wallet.svg', import.meta.url).href
   const appleLogo = new URL('@images/apple-wallet.svg', import.meta.url).href
+  const wallyDarkLogo = new URL('@images/wally-new-dark.png', import.meta.url).href
+  const wallyWhiteLogo = new URL('@images/wally-white.png', import.meta.url).href
 
   const platformData = ref({})
   const route = useRoute()
@@ -279,6 +281,15 @@
               </div>
             </template>
           </div>
+
+          <div class="wizard-footer">
+            <div class="powered-by">
+              <span class="powered-text">Powered by</span>
+              <a href="https://wally.ae" target="_blank" rel="noopener noreferrer" class="wally-link">
+                <span class="wally-text">Wally: Your Smart Wallet</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -348,6 +359,9 @@
     border-radius: 24px;
     box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 600px;
   }
 
   .wizard-header {
@@ -768,6 +782,56 @@
     pointer-events: none;
   }
 
+  .wizard-footer {
+    padding: 1.5rem;
+    text-align: center;
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.1);
+    margin-top: auto;
+  }
+
+  .powered-by {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 12px;
+  }
+
+  .powered-text {
+    color: rgba(var(--v-theme-on-surface), 0.6);
+  }
+
+  .wally-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .wally-text {
+    color: var(--v-theme-primary);
+    font-weight: 500;
+  }
+
+  .wally-link:hover {
+    opacity: 0.85;
+  }
+
+  .wally-link:hover .wally-text {
+    text-decoration: underline;
+  }
+
+  .wally-link:active {
+    opacity: 0.7;
+  }
+
+  .wally-logo {
+    height: 16px;
+    width: auto;
+    display: block;
+  }
+
   @media (max-width: 600px) {
     .wizard-container {
       border-radius: 16px;
@@ -801,6 +865,18 @@
 
     .wallet-button-wrapper {
       max-width: 280px;
+    }
+
+    .wizard-footer {
+      padding: 1rem;
+    }
+
+    .powered-by {
+      font-size: 11px;
+    }
+
+    .wally-logo {
+      height: 14px;
     }
   }
   </style>
