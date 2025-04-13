@@ -75,16 +75,12 @@ const isEditingEvent = ref(false);
 const isDeleteGuestDialogOpen = ref(false);
 const guestToDelete = ref<any>(null);
 
-// Update the Event interface
-interface Event {
-  eventName: string;
-  eventDescription: string;
-  capacity: number;
-  eventBeginDt: string;
-  eventEndDt: string;
-  eventGuid: string;
-  additionalData?: string;
-}
+// Add these refs at the top with other refs
+const artworkFile = ref<File | null>(null);
+const venueMapFile = ref<File | null>(null);
+const artworkPreview = ref<string | null>(null);
+const venueMapPreview = ref<string | null>(null);
+const isUploading = ref(false);
 
 // Add interfaces for event semantics
 interface VenueLocation {
@@ -173,10 +169,18 @@ const handleEditEvent = (event: Event) => {
       if (parsedData.semantics) {
         eventSemantics.value = parsedData.semantics;
       }
+      if (parsedData.images) {
+        artworkPreview.value = parsedData.images.artworkUrl || null;
+        venueMapPreview.value = parsedData.images.venueMapUrl || null;
+      }
     } else if (event.additionalData && typeof event.additionalData === 'object') {
       additionalFields.value = event.additionalData.additionalInfoFields || [];
       if (event.additionalData.semantics) {
         eventSemantics.value = event.additionalData.semantics;
+      }
+      if (event.additionalData.images) {
+        artworkPreview.value = event.additionalData.images.artworkUrl || null;
+        venueMapPreview.value = event.additionalData.images.venueMapUrl || null;
       }
     } else {
       additionalFields.value = [];
@@ -634,6 +638,49 @@ const handleAddMember = async () => {
   }
 };
 
+const uploadImages = async (): Promise<EventImages> => {
+  const images: EventImages = {};
+  
+  try {
+    isUploading.value = true;
+    
+    // Only upload artwork if a new file was selected
+    if (artworkFile.value) {
+      const formData = new FormData();
+      formData.append('file', artworkFile.value);
+      const response = await $wallyApi('/photo', {
+        method: 'POST',
+        body: formData,
+      });
+      images.artworkUrl = response.url;
+    } else if (artworkPreview.value) {
+      // If no new file but preview exists, use the existing URL
+      images.artworkUrl = artworkPreview.value;
+    }
+
+    // Only upload venue map if a new file was selected
+    if (venueMapFile.value) {
+      const formData = new FormData();
+      formData.append('file', venueMapFile.value);
+      const response = await $wallyApi('/photo', {
+        method: 'POST',
+        body: formData,
+      });
+      images.venueMapUrl = response.url;
+    } else if (venueMapPreview.value) {
+      // If no new file but preview exists, use the existing URL
+      images.venueMapUrl = venueMapPreview.value;
+    }
+  } catch (error) {
+    console.error('Error uploading images:', error);
+    showSnackbar('Failed to upload images', 'error');
+  } finally {
+    isUploading.value = false;
+  }
+
+  return images;
+};
+
 const updateEvent = async () => {
   if (!editingEvent.value) {
     showSnackbar('No event selected', 'error');
@@ -647,6 +694,9 @@ const updateEvent = async () => {
 
   try {
     isEditingEvent.value = true;
+    
+    // Upload images and get URLs (only uploads changed images)
+    const images = await uploadImages();
     
     // Combine date and time for start and end dates
     const startDateTime = new Date(editingEvent.value.eventBeginDt);
@@ -663,7 +713,11 @@ const updateEvent = async () => {
       eventEndDt: endDateTime.toISOString(),
       additionalData: JSON.stringify({
         additionalInfoFields: additionalFields.value,
-        semantics: eventSemantics.value
+        semantics: eventSemantics.value,
+        images: {
+          artworkUrl: images.artworkUrl,
+          venueMapUrl: images.venueMapUrl
+        }
       })
     };
     
@@ -738,6 +792,59 @@ const deleteGuestConfirm = async () => {
     showSnackbar('Failed to delete guest', 'error');
   } finally {
     closeDeleteGuestDialog();
+  }
+};
+
+// Add these functions after other functions
+const handleArtworkDrop = (event: DragEvent) => {
+  event.preventDefault();
+  const file = event.dataTransfer?.files[0];
+  if (file && file.type.startsWith('image/')) {
+    artworkFile.value = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      artworkPreview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const handleVenueMapDrop = (event: DragEvent) => {
+  event.preventDefault();
+  const file = event.dataTransfer?.files[0];
+  if (file && file.type.startsWith('image/')) {
+    venueMapFile.value = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      venueMapPreview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const handleArtworkInput = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file && file.type.startsWith('image/')) {
+    artworkFile.value = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      artworkPreview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const handleVenueMapInput = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file && file.type.startsWith('image/')) {
+    venueMapFile.value = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      venueMapPreview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 };
 
@@ -1551,6 +1658,16 @@ const deleteGuestConfirm = async () => {
                       :disabled="isEditingEvent"
                     />
                   </VCol>
+                  <VCol cols="12" md="4">
+                    <VTextField
+                      v-model.number="editingEvent.capacity"
+                      label="Capacity"
+                      type="number"
+                      min="1"
+                      required
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
                   <VCol cols="12">
                     <div class="d-flex align-center mb-4">
                       <VIcon
@@ -1620,16 +1737,114 @@ const deleteGuestConfirm = async () => {
                         </div>
                       </VCol>
                     </VRow>
-                  </VCol>                  
-                  <VCol cols="12" md="4">
-                    <VTextField
-                      v-model.number="editingEvent.capacity"
-                      label="Capacity"
-                      type="number"
-                      min="1"
-                      required
-                      :disabled="isEditingEvent"
-                    />
+                  </VCol>
+                  <VCol cols="12">
+                    <div class="d-flex align-center mb-4">
+                      <VIcon
+                        icon="tabler-photo"
+                        color="primary"
+                        class="me-2"
+                      />
+                      <h6 class="text-h6 mb-0">Event Images</h6>
+                    </div>
+                    <VRow>
+                      <VCol cols="12" md="6">
+                        <div class="image-upload-container">
+                          <div
+                            class="drop-zone"
+                            @dragover.prevent
+                            @drop="handleArtworkDrop"
+                          >
+                            <input
+                              type="file"
+                              accept="image/*"
+                              class="file-input"
+                              @change="handleArtworkInput"
+                            />
+                            <div class="upload-content">
+                              <VIcon
+                                icon="tabler-upload"
+                                size="32"
+                                color="primary"
+                                class="mb-2"
+                              />
+                              <div class="text-subtitle-2 mb-1">Event Artwork</div>
+                              <div class="text-caption text-medium-emphasis">
+                                Drag & drop or click to upload
+                              </div>
+                            </div>
+                            <div
+                              v-if="artworkPreview"
+                              class="image-preview"
+                            >
+                              <img
+                                :src="artworkPreview"
+                                alt="Event Artwork"
+                                class="preview-image"
+                              />
+                              <VBtn
+                                icon
+                                variant="text"
+                                color="error"
+                                size="small"
+                                class="remove-image"
+                                @click="artworkPreview = null; artworkFile = null"
+                              >
+                                <VIcon icon="tabler-x" />
+                              </VBtn>
+                            </div>
+                          </div>
+                        </div>
+                      </VCol>
+                      <VCol cols="12" md="6">
+                        <div class="image-upload-container">
+                          <div
+                            class="drop-zone"
+                            @dragover.prevent
+                            @drop="handleVenueMapDrop"
+                          >
+                            <input
+                              type="file"
+                              accept="image/*"
+                              class="file-input"
+                              @change="handleVenueMapInput"
+                            />
+                            <div class="upload-content">
+                              <VIcon
+                                icon="tabler-upload"
+                                size="32"
+                                color="primary"
+                                class="mb-2"
+                              />
+                              <div class="text-subtitle-2 mb-1">Venue Map</div>
+                              <div class="text-caption text-medium-emphasis">
+                                Drag & drop or click to upload
+                              </div>
+                            </div>
+                            <div
+                              v-if="venueMapPreview"
+                              class="image-preview"
+                            >
+                              <img
+                                :src="venueMapPreview"
+                                alt="Venue Map"
+                                class="preview-image"
+                              />
+                              <VBtn
+                                icon
+                                variant="text"
+                                color="error"
+                                size="small"
+                                class="remove-image"
+                                @click="venueMapPreview = null; venueMapFile = null"
+                              >
+                                <VIcon icon="tabler-x" />
+                              </VBtn>
+                            </div>
+                          </div>
+                        </div>
+                      </VCol>
+                    </VRow>
                   </VCol>
                 </VRow>
               </VForm>
@@ -2254,5 +2469,68 @@ const deleteGuestConfirm = async () => {
 .stepper-custom :deep(.v-stepper-item__subtitle) {
   font-size: 0.75rem;
   opacity: 0.7;
+}
+
+.image-upload-container {
+  position: relative;
+  width: 100%;
+}
+
+.drop-zone {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border: 2px dashed rgba(var(--v-theme-primary), 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.drop-zone:hover {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  background: rgba(var(--v-theme-primary), 0.02);
+}
+
+.file-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-content {
+  text-align: center;
+  padding: 1rem;
+}
+
+.image-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--v-theme-surface), 0.8);
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(var(--v-theme-surface), 0.9);
+  border-radius: 50%;
 }
 </style>
