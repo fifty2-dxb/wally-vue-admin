@@ -253,47 +253,49 @@ onUnmounted(() => {
 
       <div class="content-container">
         <template v-if="scanState === 'initial'">
-          <div class="icon-container">
-            <VIcon
-              icon="tabler-nfc"
-              color="primary"
-              size="64"
-            />
+          <div class="scan-animation">
+            <div class="nfc-ring"></div>
+            <div class="nfc-icon">
+              <VIcon
+                icon="tabler-nfc"
+                color="primary"
+                size="64"
+              />
+            </div>
           </div>
 
           <template v-if="campaign?.styleSettings?.type === 'event'">
-
             <h1 class="welcome-text text-black">
               {{ $t('Tap to Access') }} {{ campaign?.campaignName || $t('Event Location') }}
             </h1>
-          <p class="subtitle-text text-primary">
+            <p class="subtitle-text text-primary">
               {{ $t('Hold your device near the NFC tag') }}
             </p>
           </template>
 
-
-          <!-- check if campaign type is membership -->
           <template v-if="campaign?.styleSettings?.type === 'membership'">
             <h1 class="welcome-text text-black">
               {{ $t('Tap to Access Membership') }}
             </h1>
-          <p class="subtitle-text text-primary">
+            <p class="subtitle-text text-primary">
               {{ $t('Hold your device near the NFC tag') }}
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('30054091-6324-4a59-a5f5-21f109056c32')">
+          <VBtn color="primary" variant="outlined" class="test-button" @click="receiveNfcData('bd4fda0e-f128-458e-b229-0a2cc553f068')">
             {{ $t('Test NFC') }}
           </VBtn>
         </template>
         
         <template v-else-if="scanState === 'error'">
-          <div class="icon-container">
-            <VIcon
-              icon="tabler-alert-circle"
-              color="white"
-              size="64"
-            />
+          <div class="result-animation error">
+            <div class="result-icon">
+              <VIcon
+                icon="tabler-alert-circle"
+                color="white"
+                size="64"
+              />
+            </div>
           </div>
 
           <h1 class="welcome-text">
@@ -302,23 +304,24 @@ onUnmounted(() => {
             {{ $t('Please try again') }}
           </h1>
 
-          <!-- show error message -->
           <p class="error-message">
             {{ errorMessage }}
           </p>
 
-          <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
+          <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
             {{ $t('Try Again') }}
           </VBtn>
         </template>
 
         <template v-else>
-          <div class="icon-container">
-            <VIcon
-              :icon="scanState === 'already_scanned' ? 'tabler-alert-triangle' : 'tabler-circle-check'"
-              color="white"
-              size="64"
-            />
+          <div class="result-animation" :class="scanState">
+            <div class="result-icon">
+              <VIcon
+                :icon="scanState === 'already_scanned' ? 'tabler-alert-triangle' : 'tabler-circle-check'"
+                color="white"
+                size="64"
+              />
+            </div>
           </div>
 
           <h1 class="welcome-text">
@@ -339,21 +342,20 @@ onUnmounted(() => {
                 class="confetti-container"
               />
               <template v-if="campaign?.styleSettings?.type === 'event'">              
-              
-              <div class="scan-row">
-                <span class="scan-label">{{ $t('Guest Name') }}</span>
-                <span class="scan-value">{{ eventCustomerName }}</span>
-              </div>
-              <div class="scan-row">
-                <span class="scan-label">{{ $t('SCANNED AT') }}</span>
-                <span class="scan-value">{{ scanTime }}</span>
-              </div>
-
-              
-            <div class="message-text">
-              {{ $t('Enjoy the event!') }}
-            </div>
+                <div class="scan-row">
+                  <span class="scan-label">{{ $t('Guest Name') }}</span>
+                  <span class="scan-value">{{ eventCustomerName }}</span>
+                </div>
+                <div class="scan-row">
+                  <span class="scan-label">{{ $t('SCANNED AT') }}</span>
+                  <span class="scan-value">{{ scanTime }}</span>
+                </div>
+                
+                <div class="message-text">
+                  {{ $t('Enjoy the event!') }}
+                </div>
               </template>
+
               <template v-if="campaign?.styleSettings?.type === 'membership'">
                 <div class="info-row">
                   <div class="info-col">
@@ -364,10 +366,9 @@ onUnmounted(() => {
               </template>
             </div>
 
-
-            <VBtn color="white" variant="outlined" class="mt-4" @click="resetScan">
-            {{ $t('Tap Again') }}
-          </VBtn>
+            <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
+              {{ $t('Tap Again') }}
+            </VBtn>
           </template>
 
           <template v-else>
@@ -415,25 +416,26 @@ onUnmounted(() => {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  transition: background-color 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mobile-frame.success {
-  background: #4CAF50;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
 }
 
 .mobile-frame.already_scanned {
-  background: #FF5252;
+  background: linear-gradient(135deg, #FF9800, #F57C00);
 }
 
 .mobile-frame.error {
-  background: #FF5252;
+  background: linear-gradient(135deg, #FF5252, #D32F2F);
 }
 
 .status-bar {
-  padding: 1rem;
+  padding: 1.5rem;
   display: flex;
   align-items: center;
+  z-index: 10;
 }
 
 .content-container {
@@ -443,11 +445,69 @@ onUnmounted(() => {
   align-items: center;
   padding: 2rem 1.5rem;
   text-align: center;
+  position: relative;
 }
 
-.icon-container {
+.scan-animation {
+  position: relative;
+  width: 200px;
+  height: 200px;
   margin-bottom: 2rem;
-  min-height: 64px;
+}
+
+.nfc-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 4px solid var(--v-theme-primary);
+  opacity: 0.2;
+  transform: translate(-50%, -50%);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.nfc-ring::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 4px solid var(--v-theme-primary);
+  opacity: 0.2;
+  animation: pulse 2s ease-in-out infinite 0.5s;
+}
+
+.nfc-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 50%;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.result-animation {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-icon {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  padding: 2rem;
+  animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .welcome-text {
@@ -455,12 +515,7 @@ onUnmounted(() => {
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: white;
-}
-
-.error-message {
-  color: white;
-  font-size: 1.25rem;
-  font-weight: 500;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .welcome-text.text-black {
@@ -471,65 +526,27 @@ onUnmounted(() => {
   font-size: 1.1rem;
   margin-bottom: 2rem;
   font-weight: 500;
+  opacity: 0.8;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
 }
 
 .location-text {
   color: rgba(255, 255, 255, 0.9);
   font-size: 1.25rem;
   font-weight: 400;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
 }
 
-.location-text.text-black {
-  color: #000;
-}
-
-.ticket-info {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+.ticket-info, .scan-info {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
   padding: 1.5rem;
   width: 100%;
   max-width: 300px;
   margin-bottom: 2rem;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.info-col {
-  flex: 1;
-}
-
-.info-label {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
-}
-
-.info-value {
-  color: white;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.message-text {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 500;
-}
-
-.scan-info {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 300px;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
 }
 
 .scan-row {
@@ -537,15 +554,20 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .scan-row:last-child {
   margin-bottom: 0;
+  border-bottom: none;
 }
 
 .scan-label {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .scan-value {
@@ -554,8 +576,77 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-.mt-4 {
+.message-text {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
   margin-top: 1rem;
+  text-align: center;
+}
+
+.error-message {
+  color: white;
+  font-size: 1.1rem;
+  margin: 1rem 0 2rem;
+  opacity: 0.9;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+}
+
+.action-button {
+  min-width: 160px;
+  height: 48px;
+  border: 2px solid white;
+  border-radius: 24px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.4s;
+}
+
+.test-button {
+  min-width: 140px;
+  height: 44px;
+  border-radius: 22px;
+  margin-top: 1rem;
+  font-weight: 500;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 480px) {
@@ -567,6 +658,28 @@ onUnmounted(() => {
     border-radius: 0;
     height: 100vh;
     max-height: 100vh;
+  }
+
+  .scan-animation {
+    width: 180px;
+    height: 180px;
+  }
+
+  .nfc-ring {
+    width: 140px;
+    height: 140px;
+  }
+
+  .welcome-text {
+    font-size: 1.75rem;
+  }
+
+  .subtitle-text {
+    font-size: 1rem;
+  }
+
+  .ticket-info, .scan-info {
+    padding: 1.25rem;
   }
 }
 </style> 
