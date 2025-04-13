@@ -54,6 +54,7 @@
     try {
       const response = await $wallyApi(`/campaigns/pass/${route.params.id}`, { method: 'GET' })
       platformData.value = response || {}
+      console.log(platformData.value);
     } catch (error) {
       console.error('Error fetching campaigns', error)
     }
@@ -142,75 +143,165 @@
   </script>
 
   <template>
-    <div class="d-flex justify-center align-center">
-      <VCard class="modern-card" width="450px" elevation="2">
-        <div class="logo-section">
-          <img :src="platformData.companyLogo" alt="" height="60px">
+    <div class="download-wizard">
+      <div class="wizard-container">
+        <div class="wizard-header">
+          <img 
+            v-if="platformData?.campaign?.styleSettings?.properties?.logo" 
+            :src="platformData.campaign?.styleSettings.properties.logo" 
+            alt="Company Logo" 
+            class="company-logo"
+          >
+          <div v-else class="placeholder-logo">
+            <VIcon icon="tabler-ticket" size="32" />
+          </div>
         </div>
-        <template v-if="currentStep === 0">
-          <VCardText class="text-center">
-            <h1 class="selection-title">Select Your Platform</h1>
-            <p class="selection-description">Choose your device's platform to download the ticket to your wallet</p>
 
-            <div class="platform-container">
-              <div class="platform-option" :class="{ active: selectedPlatform === 0 }" @click="selectPlatform(0)">
-                <VIcon icon="tabler-brand-apple" size="32" class="platform-icon" />
-                <span class="platform-label">Apple</span>
-                <small v-if="userDevice.value === 'ios'" class="device-hint">Recommended for your device</small>
-              </div>
-
-              <div class="platform-option" :class="{ active: selectedPlatform === 1 }" @click="selectPlatform(1)">
-                <VIcon icon="tabler-brand-android" size="32" class="platform-icon" />
-                <span class="platform-label">Google</span>
-                <small v-if="userDevice.value === 'android'" class="device-hint">Recommended for your device</small>
-              </div>
-            </div>
-          </VCardText>
-        </template>
-
-        <template v-else>
-          <VCardText class="text-center px-15 py-40">
-            <VBtn icon variant="text" size="small" class="back-button" @click="goBack">
-              <VIcon icon="tabler-arrow-left" />
-              <span class="ml-2">Back</span>
-            </VBtn>
-
-            <h1 class="card-title">{{ wallets[selectedPlatform].cardTitle }}</h1>
-            <p class="card-description">{{ wallets[selectedPlatform].cardDescription }}</p>
-
-            <VBtn v-if="selectedPlatform === 1" :loading="googleLoading" block
-              class="wallet-btn d-flex justify-center align-center btn-lg" @click="downloadGoogleCard">
-              <img :src="wallets[selectedPlatform].logo" alt="wallet logo" class="mr-2"
-                style="width: 46px; height: 18px;" />
-              <span class="divider mx-2">|</span>
-              <p class="mb-0 text-14">{{ wallets[selectedPlatform].buttonText }}</p>
-            </VBtn>
-
-            <div v-else>
-              <img v-if="!appleLoading" :src="wallets[selectedPlatform].logo" alt="wallet logo" class="asset-apple mt-40"
-                @click="downloadAppleCard" />
-              <VBtn v-if="appleLoading" :loading variant="text" color="primary" />
-            </div>
-
-            <p class="text-primary cursor-pointer mt-4 mb-0 text-16" role="button" @click="toggleHelp">
-              Don't know how to install the card?
+        <div class="event-details">
+          <div class="event-info">
+            <p v-if="platformData.eventName" class="event-description">
+              <b>{{ platformData.eventName }}</b>
             </p>
-          </VCardText>
-        </template>
+            <p v-if="platformData.eventDescription" class="event-description">
+              {{ platformData.eventDescription }}
+            </p>
+            <p v-else class="event-description no-description">
+              No event description available
+            </p>
+          </div>
+        </div>
 
-        <Teleport to="body" v-if="helpDialogOpen">
-          <div class="help-dialog" @click="helpDialogOpen = false">
-            <div class="help-dialog-content" @click.stop>
-              <div class="help-header">
-                <h3>Installation Help</h3>
-                <VBtn icon variant="text" size="small" class="close-x" @click="helpDialogOpen = false">
-                  <VIcon icon="tabler-x" />
-                </VBtn>
+        <div class="wizard-content">
+          <div class="wizard-progress" v-if="currentStep > 0">
+            <div class="progress-steps">
+              <div class="step" :class="{ active: currentStep >= 1 }">
+                <div class="step-number">1</div>
+                <div class="step-label">Select Platform</div>
               </div>
+              <div class="step-divider"></div>
+              <div class="step" :class="{ active: currentStep >= 2 }">
+                <div class="step-number">2</div>
+                <div class="step-label">Download</div>
+              </div>
+            </div>
+          </div>
 
+          <div class="wizard-body">
+            <template v-if="currentStep === 0">
+              <h1 class="wizard-title">Add to Wallet</h1>
+              <p class="wizard-description">Choose your device to add this ticket to your digital wallet</p>
+
+              <div class="platform-options">
+                <div 
+                  class="platform-option" 
+                  :class="{ active: selectedPlatform === 0 }" 
+                  @click="selectPlatform(0)"
+                >
+                  <div class="platform-icon">
+                    <VIcon icon="tabler-brand-apple" size="32" />
+                  </div>
+                  <div class="platform-info">
+                    <span class="platform-name">Apple Wallet</span>
+                    <span v-if="userDevice === 'ios'" class="platform-hint">Recommended for your device</span>
+                  </div>
+                  <div class="platform-arrow">
+                    <VIcon icon="tabler-chevron-right" size="20" />
+                  </div>
+                </div>
+
+                <div 
+                  class="platform-option" 
+                  :class="{ active: selectedPlatform === 1 }" 
+                  @click="selectPlatform(1)"
+                >
+                  <div class="platform-icon">
+                    <VIcon icon="tabler-brand-android" size="32" />
+                  </div>
+                  <div class="platform-info">
+                    <span class="platform-name">Google Wallet</span>
+                    <span v-if="userDevice === 'android'" class="platform-hint">Recommended for your device</span>
+                  </div>
+                  <div class="platform-arrow">
+                    <VIcon icon="tabler-chevron-right" size="20" />
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="download-step">
+                <div class="back-button" @click="goBack">
+                  <VIcon icon="tabler-arrow-left" size="20" />
+                  <span>Back</span>
+                </div>
+
+                <div class="download-content">
+                  <h2 class="download-title">{{ wallets[selectedPlatform].cardTitle }}</h2>
+                  <p class="download-description">{{ wallets[selectedPlatform].cardDescription }}</p>
+
+                  <div class="download-button-container">
+                    <VBtn
+                      v-if="selectedPlatform === 1"
+                      :loading="googleLoading"
+                      class="download-button"
+                      block
+                      @click="downloadGoogleCard"
+                    >
+                      <div class="button-content">
+                        <img :src="wallets[selectedPlatform].logo" alt="Google Wallet" class="wallet-logo" />
+                        <span class="button-text">{{ wallets[selectedPlatform].buttonText }}</span>
+                      </div>
+                    </VBtn>
+
+                    <div v-else class="apple-button-container">
+                      <img
+                        v-if="!appleLoading"
+                        :src="wallets[selectedPlatform].logo"
+                        alt="Apple Wallet"
+                        class="apple-button"
+                        @click="downloadAppleCard"
+                      />
+                      <VBtn v-if="appleLoading" :loading variant="text" color="primary" />
+                    </div>
+                  </div>
+
+                  <div class="help-section">
+                    <VBtn
+                      variant="text"
+                      class="help-button"
+                      @click="toggleHelp"
+                    >
+                      <VIcon icon="tabler-help" size="18" class="me-2" />
+                      Need help?
+                    </VBtn>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <Teleport to="body" v-if="helpDialogOpen">
+        <div class="help-dialog" @click="helpDialogOpen = false">
+          <div class="help-dialog-content" @click.stop>
+            <div class="help-header">
+              <h3>Installation Guide</h3>
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                class="close-button"
+                @click="helpDialogOpen = false"
+              >
+                <VIcon icon="tabler-x" />
+              </VBtn>
+            </div>
+
+            <div class="help-steps">
               <template v-if="selectedPlatform === 0">
                 <ol>
-                  <li>Tap the "Add to Apple Wallet" button above</li>
+                  <li>Tap the "Add to Apple Wallet" button</li>
                   <li>Your iOS device will display a preview of the pass</li>
                   <li>Tap "Add" in the top-right corner</li>
                   <li>Your ticket will be saved to Apple Wallet</li>
@@ -218,165 +309,315 @@
               </template>
               <template v-else>
                 <ol>
-                  <li>Tap the "Add to Google Wallet" button above</li>
+                  <li>Tap the "Add to Google Wallet" button</li>
                   <li>Sign in to your Google account if prompted</li>
                   <li>Review the pass details</li>
                   <li>Tap "Save" to add it to Google Wallet</li>
                 </ol>
               </template>
-
-              <VBtn color="primary" block class="close-dialog" @click="helpDialogOpen = false">
-                Close
-              </VBtn>
             </div>
+
+            <VBtn
+              block
+              color="primary"
+              class="close-dialog-btn"
+              @click="helpDialogOpen = false"
+            >
+              Got it, thanks!
+            </VBtn>
           </div>
-        </Teleport>
-      </VCard>
+        </div>
+      </Teleport>
     </div>
   </template>
 
   <style scoped>
-  .d-flex {
-    height: 100vh;
+  .download-wizard {
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(145deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(var(--v-theme-surface), 0.8), rgba(var(--v-theme-background), 0.8));
   }
 
-  .modern-card {
-    border-radius: 16px !important;
-    box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.3s ease;
+  .wizard-container {
+    width: 100%;
+    max-width: 480px;
     background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
     overflow: hidden;
   }
 
-  .modern-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.08) !important;
-  }
-
-  .logo-section {
-    text-align: center;
+  .wizard-header {
     padding: 2rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+    text-align: center;
+    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.1);
   }
 
-  .selection-title {
+  .company-logo {
+    max-height: 48px;
+    width: auto;
+  }
+
+  .placeholder-logo {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--v-theme-primary), 0.1);
+    border-radius: 12px;
+    color: var(--v-theme-primary);
+  }
+
+  .wizard-content {
+    padding: 2rem;
+  }
+
+  .wizard-progress {
+    margin-bottom: 2rem;
+  }
+
+  .progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(var(--v-theme-surface), 1);
+    border: 2px solid rgba(var(--v-theme-primary), 0.3);
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .step.active .step-number {
+    background: var(--v-theme-primary);
+    color: white;
+    border: none;
+  }
+
+  .step-label {
+    font-size: 12px;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+  }
+
+  .step-divider {
+    width: 40px;
+    height: 2px;
+    background: rgba(var(--v-theme-on-surface), 0.1);
+  }
+
+  .wizard-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .wizard-description {
+    font-size: 14px;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .platform-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .platform-option {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-radius: 16px;
+    background: white;
+    border: 1px solid rgba(var(--v-theme-primary), 0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .platform-option:hover {
+    transform: translateY(-2px);
+    background: rgba(var(--v-theme-primary), 0.02);
+    border-color: rgba(var(--v-theme-primary), 0.3);
+    box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.1);
+  }
+
+  .platform-option.active {
+    background: rgba(var(--v-theme-primary), 0.04);
+    border-color: rgba(var(--v-theme-primary), 0.4);
+    box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.12);
+  }
+
+  .platform-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--v-theme-primary), 0.08);
+    color: var(--v-theme-primary);
+    margin-right: 1rem;
+    font-size: 28px;
+    transition: all 0.3s ease;
+  }
+
+  .platform-option:hover .platform-icon {
+    background: rgba(var(--v-theme-primary), 0.12);
+    transform: scale(1.05);
+  }
+
+  .platform-option.active .platform-icon {
+    background: rgba(var(--v-theme-primary), 0.15);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.2);
+  }
+
+  .platform-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .platform-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+  }
+
+  .platform-hint {
+    font-size: 12px;
+    color: var(--v-theme-primary);
+    font-weight: 500;
+  }
+
+  .platform-arrow {
+    color: rgba(var(--v-theme-on-surface), 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .platform-option:hover .platform-arrow {
+    color: var(--v-theme-primary);
+    transform: translateX(4px);
+  }
+
+  .platform-option.active .platform-arrow {
+    color: var(--v-theme-primary);
+    transform: translateX(4px);
+  }
+
+  .back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+  }
+
+  .download-content {
+    text-align: center;
+  }
+
+  .download-title {
     font-size: 24px;
     font-weight: 600;
     color: rgba(var(--v-theme-on-surface), 0.87);
     margin-bottom: 0.5rem;
   }
 
-  .selection-description {
+  .download-description {
     font-size: 14px;
     color: rgba(var(--v-theme-on-surface), 0.6);
     margin-bottom: 2rem;
-    padding: 0 1rem;
   }
 
-.platform-container {
-  display: flex;
-  flex-direction: column; 
-  gap: 16px;
-  padding: 1rem;
-  align-items: center; 
-  margin-top: 1rem;
-}
-
-.platform-option {
-  width: 100%;
-  max-width: 220px; 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem;
-  background: rgba(var(--v-theme-surface), 0.5);
-  border: 1px solid rgba(var(--v-theme-primary), 0.1);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-  .platform-option:hover {
-    transform: translateY(-2px);
-    background: rgba(var(--v-theme-primary), 0.05);
-    border-color: rgba(var(--v-theme-primary), 0.2);
-    box-shadow: 0 4px 20px rgba(var(--v-theme-primary), 0.1);
+  .download-button-container {
+    margin: 2rem auto;
+    max-width: 320px;
+    width: 100%;
   }
 
-  .platform-option.active {
-    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.1), rgba(var(--v-theme-primary), 0.05));
-    border-color: rgba(var(--v-theme-primary), 0.3);
-    box-shadow: 0 4px 20px rgba(var(--v-theme-primary), 0.15);
+  .download-button {
+    width: 100%;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
   }
 
-  .platform-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-    color: rgba(var(--v-theme-on-surface), 0.87);
+  .button-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 280px;
   }
 
-  .platform-label {
+  .wallet-logo {
+    height: 24px;
+    width: auto;
+  }
+
+  .button-text {
+    color: white;
     font-size: 16px;
     font-weight: 500;
-    color: rgba(var(--v-theme-on-surface), 0.87);
-    margin-bottom: 4px;
+    white-space: nowrap;
   }
 
-  .device-hint {
-    font-size: 11px;
-    color: var(--v-theme-primary);
-    text-align: center;
-    margin-top: 8px;
+  .apple-button-container {
+    display: flex;
+    justify-content: center;
   }
 
-  .wallet-btn {
-    height: 48px;
-    font-size: 14px;
-    padding: 13px 24px;
-    margin-top: 24px;
-    background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
-    border-radius: 12px;
-    transition: all 0.3s ease;
-  }
-
-  .wallet-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(var(--v-theme-primary), 0.3);
-  }
-
-  .card-title {
-    font-size: 22px;
-    margin: 30px 0 20px;
-    font-weight: 600;
-    color: rgba(var(--v-theme-on-surface), 0.87);
-  }
-
-  .card-description {
-    font-size: 14px;
-    margin: 0;
-    color: rgba(var(--v-theme-on-surface), 0.6);
-  }
-
-  .divider {
-    font-size: 18px;
-    color: rgba(var(--v-theme-on-surface), 0.3);
-  }
-
-  .asset-apple {
-    width: 170px;
+  .apple-button {
     height: 52px;
-    margin-top: 24px;
     cursor: pointer;
     transition: transform 0.3s ease;
   }
 
-  .asset-apple:hover {
+  .apple-button:hover {
     transform: scale(1.05);
+  }
+
+  .help-section {
+    margin-top: 1.5rem;
+  }
+
+  .help-button {
+    color: var(--v-theme-primary);
+    font-size: 14px;
   }
 
   .help-dialog {
@@ -396,14 +637,11 @@
 
   .help-dialog-content {
     background: white;
-    color: rgba(var(--v-theme-on-surface), 0.87);
-    border-radius: 16px;
-    padding: 2.5rem;
+    border-radius: 24px;
+    padding: 2rem;
     max-width: 420px;
     width: 100%;
-    text-align: left;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    position: relative;
   }
 
   .help-header {
@@ -413,76 +651,156 @@
     margin-bottom: 1.5rem;
   }
 
-  .help-dialog-content h3 {
-    font-size: 1.4rem;
+  .help-header h3 {
+    font-size: 20px;
     font-weight: 600;
-    margin: 0;
     color: rgba(var(--v-theme-on-surface), 0.87);
-  }
-
-  .close-x {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    line-height: 1;
-    cursor: pointer;
-    color: rgba(var(--v-theme-on-surface), 0.6);
-    padding: 0;
     margin: 0;
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s ease;
   }
 
-  .close-x:hover {
-    background-color: rgba(var(--v-theme-surface), 0.1);
+  .close-button {
+    color: rgba(var(--v-theme-on-surface), 0.6);
   }
 
-  .help-dialog-content ol {
-    padding-left: 1.8rem;
+  .help-steps {
     margin-bottom: 2rem;
   }
 
-  .help-dialog-content li {
-    margin-bottom: 0.8rem;
-    line-height: 1.5;
-    color: rgba(var(--v-theme-on-surface), 0.6);
+  .help-steps ol {
+    padding-left: 1.5rem;
+    margin: 0;
   }
 
-  .close-dialog {
-    border-radius: 10px;
-    padding: 0.9rem 1.5rem;
-    font-size: 1.1rem;
+  .help-steps li {
+    margin-bottom: 1rem;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    line-height: 1.5;
+  }
+
+  .close-dialog-btn {
+    border-radius: 12px;
+    height: 48px;
     font-weight: 500;
-    cursor: pointer;
+  }
+
+  .event-details {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.1);
+    background: rgba(var(--v-theme-primary), 0.03);
+  }
+
+  .event-info {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .event-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+
+  .event-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    margin: 0;
+    text-align: center;
+    white-space: pre-line;
+  }
+
+  .no-description {
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    font-style: italic;
+  }
+
+  .wallet-buttons {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .wallet-button-wrapper {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .wallet-button {
     width: 100%;
     transition: all 0.3s ease;
-    background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
-    color: white;
   }
 
-  .close-dialog:hover {
+  .apple-button {
+    height: 48px;
+    cursor: pointer;
+    opacity: 0.9;
+  }
+
+  .apple-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    opacity: 1;
   }
 
-  .back-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    text-transform: none;
-    color: rgba(var(--v-theme-on-surface), 0.6);
-    font-size: 14px;
+  .google-button {
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--v-theme-primary), rgba(var(--v-theme-primary), 0.8));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0 2rem;
+    opacity: 0.9;
   }
 
-  .back-button:hover {
-    color: var(--v-theme-primary);
+  .google-button:hover {
+    transform: translateY(-2px);
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.2);
+  }
+
+  .button-loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @media (max-width: 600px) {
+    .wizard-container {
+      border-radius: 16px;
+    }
+
+    .wizard-content {
+      padding: 1.5rem;
+    }
+
+    .wizard-title,
+    .download-title {
+      font-size: 20px;
+    }
+
+    .help-dialog-content {
+      margin: 1rem;
+      padding: 1.5rem;
+    }
+
+    .event-details {
+      padding: 1.25rem;
+    }
+
+    .event-title {
+      font-size: 15px;
+    }
+
+    .event-description {
+      font-size: 13px;
+    }
+
+    .wallet-button-wrapper {
+      max-width: 280px;
+    }
   }
   </style>
