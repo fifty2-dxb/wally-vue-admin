@@ -150,7 +150,10 @@ const receiveNfcData = async (event: any) => {
 
       console.log('scan result', response);
 
-      if (response.status === 404) { 
+      if (response.status === 200) {
+        scanState.value = 'success';
+        eventCustomerName.value = response.customerName;
+      } else if (response.status === 404) { 
         //error pass not found
         scanState.value = 'error'
         errorMessage.value = response.message
@@ -279,7 +282,7 @@ onUnmounted(() => {
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('987ab727-5e40-49bf-b6f4-0fc6bf14d344')">
+          <VBtn color="primary" variant="outlined" class="mt-4" @click="receiveNfcData('30054091-6324-4a59-a5f5-21f109056c32')">
             {{ $t('Test NFC') }}
           </VBtn>
         </template>
@@ -335,22 +338,18 @@ onUnmounted(() => {
                 :force="0.8"
                 class="confetti-container"
               />
-              <template v-if="campaign?.styleSettings?.type === 'event'">
-                <div class="info-row">
-                  <div class="info-col">
-                    <div class="info-label">{{ eventInfo.primary.label }}</div>
-                  <div class="info-value">{{ eventInfo.primary.value }}</div>
-                </div>
-                <div class="info-col">
-                  <div class="info-label">{{ eventInfo.secondary.label }}</div>
-                  <div class="info-value">{{ eventInfo.secondary.value }}</div>
-                </div>
-                <div class="info-col">
-                  <div class="info-label">{{ eventInfo.tertiary.label }}</div>
-                  <div class="info-value">{{ eventInfo.tertiary.value }}</div>
-                </div>
-              </div>  
+              <template v-if="campaign?.styleSettings?.type === 'event'">              
+              
+              <div class="scan-row">
+                <span class="scan-label">{{ $t('Guest Name') }}</span>
+                <span class="scan-value">{{ eventCustomerName }}</span>
+              </div>
+              <div class="scan-row">
+                <span class="scan-label">{{ $t('SCANNED AT') }}</span>
+                <span class="scan-value">{{ scanTime }}</span>
+              </div>
 
+              
             <div class="message-text">
               {{ $t('Enjoy the event!') }}
             </div>
