@@ -62,14 +62,17 @@
   const downloadGoogleCard = async () => {
     try {
       googleLoading.value = true
-      const response = await $wallyApi(`v1/passes/google/${route.params.id}/membership`, { method: 'GET' })
-      const googleWalletUrl = response
+      const response = await $wallyApi(`event-tickets?walletType=google&serialNumber=${route.params.id}`, { method: 'POST' })
+      console.log(response);
+      const googleWalletUrl = response.saveUrl
 
       if (googleWalletUrl) {
         window.location.href = googleWalletUrl
       } else {
         console.error('Google Wallet URL not found in the response')
       }
+
+
     } catch (error) {
       console.error('Error fetching Google Wallet link', error)
     } finally {

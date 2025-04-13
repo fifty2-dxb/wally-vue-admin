@@ -102,6 +102,7 @@ interface EventSemantics {
   eventType: string;
   eventName: string;
   entranceDescription: string;
+  eventAddress: string;
   venueLocation: VenueLocation;
   venueName: string;
   performerNames: string[];
@@ -117,6 +118,7 @@ const eventSemantics = ref<EventSemantics>({
   eventLiveMessage: '',
   eventType: 'PKEventTypeLivePerformance',
   eventName: '',
+  eventAddress: '',
   entranceDescription: '',
   venueLocation: {
     latitude: 0,
@@ -147,13 +149,21 @@ const removeAdditionalField = (index: number) => {
   additionalFields.value.splice(index, 1);
 };
 
-// Update the handleEditEvent function to parse additionalData correctly
+// Add refs for time fields
+const eventBeginTime = ref('');
+const eventEndTime = ref('');
+
+// Update handleEditEvent to handle time fields
 const handleEditEvent = (event: Event) => {
   editingEvent.value = {
     ...event,
     eventBeginDt: new Date(event.eventBeginDt).toISOString().split('T')[0],
     eventEndDt: new Date(event.eventEndDt).toISOString().split('T')[0],
   };
+  
+  // Set time fields
+  eventBeginTime.value = new Date(event.eventBeginDt).toTimeString().slice(0, 5);
+  eventEndTime.value = new Date(event.eventEndDt).toTimeString().slice(0, 5);
   
   // Handle additionalData
   try {
@@ -638,10 +648,19 @@ const updateEvent = async () => {
   try {
     isEditingEvent.value = true;
     
+    // Combine date and time for start and end dates
+    const startDateTime = new Date(editingEvent.value.eventBeginDt);
+    const [startHours, startMinutes] = eventBeginTime.value.split(':');
+    startDateTime.setHours(parseInt(startHours), parseInt(startMinutes));
+    
+    const endDateTime = new Date(editingEvent.value.eventEndDt);
+    const [endHours, endMinutes] = eventEndTime.value.split(':');
+    endDateTime.setHours(parseInt(endHours), parseInt(endMinutes));
+    
     const formattedEvent = {
       ...editingEvent.value,
-      eventBeginDt: new Date(editingEvent.value.eventBeginDt).toISOString(),
-      eventEndDt: new Date(editingEvent.value.eventEndDt).toISOString(),
+      eventBeginDt: startDateTime.toISOString(),
+      eventEndDt: endDateTime.toISOString(),
       additionalData: JSON.stringify({
         additionalInfoFields: additionalFields.value,
         semantics: eventSemantics.value
@@ -1532,30 +1551,82 @@ const deleteGuestConfirm = async () => {
                       :disabled="isEditingEvent"
                     />
                   </VCol>
+                  <VCol cols="12">
+                    <div class="d-flex align-center mb-4">
+                      <VIcon
+                        icon="tabler-calendar-time"
+                        color="primary"
+                        class="me-2"
+                      />
+                      <h6 class="text-h6 mb-0">Event Schedule</h6>
+                    </div>
+                    <VRow>
+                      <VCol cols="12" md="6">
+                        <div class="mb-4">
+                          <div class="text-subtitle-2 mb-2">Start</div>
+                          <VRow>
+                            <VCol cols="12" md="6">
+                              <VTextField
+                                v-model="editingEvent.eventBeginDt"
+                                label="Date"
+                                type="date"
+                                required
+                                :disabled="isEditingEvent"
+                                variant="outlined"
+                                density="comfortable"
+                              />
+                            </VCol>
+                            <VCol cols="12" md="6">
+                              <VTextField
+                                v-model="eventBeginTime"
+                                label="Time"
+                                type="time"
+                                required
+                                :disabled="isEditingEvent"
+                                variant="outlined"
+                                density="comfortable"
+                              />
+                            </VCol>
+                          </VRow>
+                        </div>
+                      </VCol>
+                      <VCol cols="12" md="6">
+                        <div class="mb-4">
+                          <div class="text-subtitle-2 mb-2">End</div>
+                          <VRow>
+                            <VCol cols="12" md="6">
+                              <VTextField
+                                v-model="editingEvent.eventEndDt"
+                                label="Date"
+                                type="date"
+                                required
+                                :disabled="isEditingEvent"
+                                variant="outlined"
+                                density="comfortable"
+                              />
+                            </VCol>
+                            <VCol cols="12" md="6">
+                              <VTextField
+                                v-model="eventEndTime"
+                                label="Time"
+                                type="time"
+                                required
+                                :disabled="isEditingEvent"
+                                variant="outlined"
+                                density="comfortable"
+                              />
+                            </VCol>
+                          </VRow>
+                        </div>
+                      </VCol>
+                    </VRow>
+                  </VCol>                  
                   <VCol cols="12" md="4">
                     <VTextField
                       v-model.number="editingEvent.capacity"
                       label="Capacity"
                       type="number"
                       min="1"
-                      required
-                      :disabled="isEditingEvent"
-                    />
-                  </VCol>
-                  <VCol cols="12" md="4">
-                    <VTextField
-                      v-model="editingEvent.eventBeginDt"
-                      label="Start Date"
-                      type="date"
-                      required
-                      :disabled="isEditingEvent"
-                    />
-                  </VCol>
-                  <VCol cols="12" md="4">
-                    <VTextField
-                      v-model="editingEvent.eventEndDt"
-                      label="End Date"
-                      type="date"
                       required
                       :disabled="isEditingEvent"
                     />
@@ -1687,6 +1758,14 @@ const deleteGuestConfirm = async () => {
                       v-model="eventSemantics.eventLiveMessage"
                       label="Event Live Message"
                       placeholder="This event is going to start soon!"
+                      :disabled="isEditingEvent"
+                    />
+                  </VCol>
+                  <VCol cols="12">
+                    <VTextField
+                      v-model="eventSemantics.eventAddress"
+                      label="Event Address"
+                      placeholder="123 Main St, Anytown, USA"
                       :disabled="isEditingEvent"
                     />
                   </VCol>
