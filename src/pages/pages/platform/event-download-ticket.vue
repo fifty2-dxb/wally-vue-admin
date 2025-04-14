@@ -355,9 +355,9 @@
   .wizard-container {
     width: 100%;
     max-width: 480px;
-    background: white;
+    background: rgb(var(--v-theme-surface));
     border-radius: 24px;
-    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 25px rgba(var(--v-theme-on-background), 0.1);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -466,11 +466,11 @@
     align-items: center;
     padding: 1.25rem;
     border-radius: 16px;
-    background: white;
+    background: rgb(var(--v-theme-surface));
     border: 1px solid rgba(var(--v-theme-primary), 0.15);
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(var(--v-theme-on-background), 0.05);
   }
 
   .platform-option:hover {
@@ -640,7 +640,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(var(--v-theme-on-background), 0.75);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -650,12 +650,12 @@
   }
 
   .help-dialog-content {
-    background: white;
+    background: rgb(var(--v-theme-surface));
     border-radius: 24px;
     padding: 2rem;
     max-width: 420px;
     width: 100%;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 40px rgba(var(--v-theme-on-background), 0.3);
   }
 
   .help-header {
@@ -787,6 +787,7 @@
     text-align: center;
     border-top: 1px solid rgba(var(--v-theme-on-surface), 0.1);
     margin-top: auto;
+    background: rgb(var(--v-theme-surface));
   }
 
   .powered-by {
