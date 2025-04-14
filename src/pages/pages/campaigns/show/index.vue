@@ -944,6 +944,21 @@ const updateGuest = async () => {
   }
 };
 
+const handleSendEmail = async (guest: any) => {
+  if (!campaignStore.selectedEvent) {
+    showSnackbar('No event selected', 'error');
+    return;
+  }
+
+  try {
+    await campaignStore.sendGuestEmail(campaignStore.selectedEvent.eventGuid, guest.id);
+    showSnackbar('Email sent successfully', 'success');
+  } catch (error) {
+    console.error('Error sending email:', error);
+    showSnackbar('Failed to send email', 'error');
+  }
+};
+
 </script>
 
 <template>
@@ -964,7 +979,7 @@ const updateGuest = async () => {
                 :to="{ name: 'pages-campaign-update', params: { id: campaignGuid } }"
                 class="action-btn"
               >
-                {{ $t('Edit Campaign') }}
+                {{ $t('Edit Digital Card') }}
               </VBtn>
               <VBtn
                 icon
@@ -1252,7 +1267,7 @@ const updateGuest = async () => {
               size="small"
               color="primary"
             >
-              <VIcon icon="tabler-mail" />
+              <VIcon icon="tabler-mail" @click="handleSendEmail(item)" />
             </VBtn>
             <VBtn
               icon

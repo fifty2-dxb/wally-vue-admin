@@ -322,6 +322,18 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
+  const sendGuestEmail = async (eventGuid: string, guestGuid: string) => {
+    try {
+      const response = await $wallyApi(`/event-tickets/send-email/${eventGuid}/${guestGuid}`, {
+        method: 'POST',
+      });
+      return response;
+    } catch (error) {
+      console.error('Error sending guest email:', error);
+      throw error;
+    }
+  };
+
   return {
     campaigns,
     campaign,
@@ -350,5 +362,6 @@ export const useCampaignStore = defineStore("campaign", () => {
     updateEvent,
     deleteEventGuest,
     updateEventGuest,
+    sendGuestEmail,
   };
 });
