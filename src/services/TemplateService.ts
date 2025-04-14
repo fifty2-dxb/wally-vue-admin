@@ -232,7 +232,7 @@ const templates = [
     name: "Event Template",
     key: "wally-event",
     description: "Wally Event",
-    image: "/images/loyalty/templates/barbershop-prw.png",
+    image: "/images/loyalty/templates/events-prw.png",
     type: "event",
     properties: {
       icon: "",

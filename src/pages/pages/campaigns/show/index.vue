@@ -1198,7 +1198,7 @@ const handleVenueMapInput = (event: Event) => {
   </VCard>
 
   <!-- Stats and Charts Section -->
-  <VRow class="mb-5" v-if="campaignType === 'event' && campaignStore.selectedEvent">
+  <VRow class="mb-5" v-if="campaignType === 'event' || campaignType === 'membership'">
     <VCol cols="12">
       <VCard class="modern-card">
         <VCardText>
