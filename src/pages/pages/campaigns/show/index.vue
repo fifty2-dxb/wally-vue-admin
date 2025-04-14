@@ -849,6 +849,101 @@ const handleVenueMapInput = (event: Event) => {
   }
 };
 
+// Add these refs at the top with other refs
+const isEditGuestModalOpen = ref(false);
+const editingGuest = ref<Guest | null>(null);
+const isEditingGuest = ref(false);
+
+const additionalInfoFields = ref<{ key: string; value: string }[]>([]);
+
+const addAdditionalInfoField = () => {
+  additionalInfoFields.value.push({ key: '', value: '' });
+};
+
+const removeAdditionalInfoField = (index: number) => {
+  additionalInfoFields.value.splice(index, 1);
+};
+
+const handleEditGuest = (guest: any) => {
+  editingGuest.value = {
+    ...guest,
+    phonenumber: guest.phone || '',
+    ticketType: guest.ticketType || '',
+    ticketNumber: guest.ticketNumber || '',
+    seatInfo: guest.seatInfo || '',
+  };
+
+  // Parse and set additional info fields
+  try {
+    const additionalInfo = typeof guest.additionalInfo === 'string' 
+      ? JSON.parse(guest.additionalInfo)
+      : guest.additionalInfo || {};
+    
+    // Convert the additionalInfo object to array of key-value pairs
+    additionalInfoFields.value = Object.entries(additionalInfo).map(([key, value]) => ({
+      key,
+      value: String(value)
+    }));
+  } catch (error) {
+    console.error('Error parsing additionalInfo:', error);
+    additionalInfoFields.value = [];
+  }
+
+  isEditGuestModalOpen.value = true;
+};
+
+const closeEditGuestModal = () => {
+  isEditGuestModalOpen.value = false;
+  editingGuest.value = null;
+  isEditingGuest.value = false;
+  additionalInfoFields.value = [];
+};
+
+const updateGuest = async () => {
+  if (!editingGuest.value || !campaignStore.selectedEvent) {
+    showSnackbar('No guest or event selected', 'error');
+    return;
+  }
+
+  try {
+    isEditingGuest.value = true;
+    
+    // Convert additional info fields to object
+    const additionalInfo = additionalInfoFields.value.reduce((acc, field) => {
+      if (field.key && field.value) {
+        acc[field.key] = field.value;
+      }
+      return acc;
+    }, {} as Record<string, string>);
+    
+    const guestData = {
+      ...editingGuest.value,
+      phone: editingGuest.value.phonenumber,
+      eventGuid: campaignStore.selectedEvent.eventGuid,
+      additionalInfo
+    };
+    
+    await campaignStore.updateEventGuest(
+      campaignStore.selectedEvent.eventGuid,
+      editingGuest.value.id,
+      guestData
+    );
+    
+    showSnackbar('Guest updated successfully', 'success');
+    await fetchEventGuests(campaignStore.selectedEvent.eventGuid);
+    
+    // Reset state after successful update
+    editingGuest.value = null;
+    isEditGuestModalOpen.value = false;
+    isEditingGuest.value = false;
+  } catch (error) {
+    console.error('Error updating guest:', error);
+    showSnackbar('Failed to update guest', 'error');
+  } finally {
+    isEditingGuest.value = false;
+  }
+};
+
 </script>
 
 <template>
@@ -1174,6 +1269,7 @@ const handleVenueMapInput = (event: Event) => {
               variant="text"
               size="small"
               color="primary"
+              @click="handleEditGuest(item)"
             >
               <VIcon icon="tabler-edit" />
             </VBtn>
@@ -2118,6 +2214,205 @@ const handleVenueMapInput = (event: Event) => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <VDialog
+    v-model="isEditGuestModalOpen"
+    max-width="800px"
+    persistent
+    class="modern-modal"
+  >
+    <VCard v-if="editingGuest" class="guest-edit-modal">
+      <VCardTitle class="d-flex justify-space-between align-center pa-4">
+        <div class="d-flex align-center">
+          <VIcon icon="tabler-user-edit" color="primary" class="me-2" />
+          <span class="text-h6">Edit Guest</span>
+        </div>
+        <VBtn
+          icon
+          variant="text"
+          size="small"
+          @click="closeEditGuestModal"
+        >
+          <VIcon icon="tabler-x" />
+        </VBtn>
+      </VCardTitle>
+      <VDivider />
+      <VCardText class="pa-4">
+        <VForm @submit.prevent="updateGuest">
+          <VRow>
+            <VCol cols="12" md="6">
+              <VTextField
+                v-model="editingGuest.name"
+                label="Name"
+                required
+                :disabled="isEditingGuest"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon="tabler-user"
+              />
+            </VCol>
+            <VCol cols="12" md="6">
+              <VTextField
+                v-model="editingGuest.surname"
+                label="Surname"
+                required
+                :disabled="isEditingGuest"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon="tabler-user"
+              />
+            </VCol>
+            <VCol cols="12" md="6">
+              <VTextField
+                v-model="editingGuest.email"
+                label="Email"
+                type="email"
+                required
+                :disabled="isEditingGuest"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon="tabler-mail"
+              />
+            </VCol>
+            <VCol cols="12" md="6">
+              <VTextField
+                v-model="editingGuest.phonenumber"
+                label="Phone Number"
+                :disabled="isEditingGuest"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon="tabler-phone"
+              />
+            </VCol>
+            
+            <!-- Ticket Information Section -->
+            <VCol cols="12">
+              <div class="section-header d-flex align-center mb-4">
+                <VIcon icon="tabler-ticket" color="primary" class="me-2" />
+                <h6 class="text-h6 mb-0">Ticket Information</h6>
+              </div>
+            </VCol>
+            <VCol cols="12" md="4">
+              <VTextField
+                v-model="editingGuest.ticketType"
+                label="Ticket Type"
+                :disabled="isEditingGuest"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon="tabler-ticket"
+              />
+            </VCol>
+            <VCol cols="12" md="4">
+              <VTextField
+                v-model="editingGuest.ticketNumber"
+                label="Ticket Number"
+                :disabled="isEditingGuest"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon="tabler-hash"
+              />
+            </VCol>
+            <VCol cols="12" md="4">
+              <VTextField
+                v-model="editingGuest.seatInfo"
+                label="Seat Information"
+                :disabled="isEditingGuest"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon="tabler-chair-director"
+              />
+            </VCol>
+
+            <!-- Additional Information Section -->
+            <VCol cols="12">
+              <div class="section-header d-flex justify-space-between align-center mb-4">
+                <div class="d-flex align-center">
+                  <VIcon icon="tabler-info-circle" color="primary" class="me-2" />
+                  <h6 class="text-h6 mb-0">Additional Information</h6>
+                </div>
+                <VBtn
+                  color="primary"
+                  variant="tonal"
+                  prepend-icon="tabler-plus"
+                  @click="addAdditionalInfoField"
+                  :disabled="isEditingGuest"
+                >
+                  Add Field
+                </VBtn>
+              </div>
+            </VCol>
+
+            <!-- Additional Info Fields -->
+            <VCol cols="12">
+              <VCard
+                v-for="(field, index) in additionalInfoFields"
+                :key="index"
+                class="mb-4"
+                variant="outlined"
+              >
+                <VCardText class="pa-4">
+                  <VRow>
+                    <VCol cols="12" md="5">
+                      <VTextField
+                        v-model="field.key"
+                        label="Field Name"
+                        :disabled="isEditingGuest"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-icon="tabler-key"
+                      />
+                    </VCol>
+                    <VCol cols="12" md="6">
+                      <VTextField
+                        v-model="field.value"
+                        label="Field Value"
+                        :disabled="isEditingGuest"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-icon="tabler-text"
+                      />
+                    </VCol>
+                    <VCol cols="12" md="1" class="d-flex align-center">
+                      <VBtn
+                        icon
+                        variant="text"
+                        color="error"
+                        @click="removeAdditionalInfoField(index)"
+                        :disabled="isEditingGuest"
+                      >
+                        <VIcon icon="tabler-trash" />
+                      </VBtn>
+                    </VCol>
+                  </VRow>
+                </VCardText>
+              </VCard>
+            </VCol>
+
+            <VCol cols="12">
+              <div class="d-flex justify-end gap-4 mt-4">
+                <VBtn
+                  color="error"
+                  variant="text"
+                  @click="closeEditGuestModal"
+                  :disabled="isEditingGuest"
+                >
+                  Cancel
+                </VBtn>
+                <VBtn
+                  color="primary"
+                  type="submit"
+                  :loading="isEditingGuest"
+                  prepend-icon="tabler-check"
+                >
+                  Save Changes
+                </VBtn>
+              </div>
+            </VCol>
+          </VRow>
+        </VForm>
+      </VCardText>
+    </VCard>
+  </VDialog>
 </template>
 
 <style scoped>
@@ -2533,5 +2828,45 @@ const handleVenueMapInput = (event: Event) => {
   right: 8px;
   background: rgba(var(--v-theme-surface), 0.9);
   border-radius: 50%;
+}
+
+.guest-edit-modal {
+  border-radius: 12px;
+}
+
+.section-header {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(var(--v-border-color), 0.12);
+  margin-bottom: 16px;
+}
+
+:deep(.v-field__prepend-inner) {
+  padding-right: 8px;
+}
+
+:deep(.v-field__input) {
+  padding-left: 8px;
+}
+
+:deep(.v-field--variant-outlined) {
+  background: rgba(var(--v-theme-surface), 0.5);
+}
+
+:deep(.v-field--variant-outlined:hover) {
+  background: rgba(var(--v-theme-surface), 0.8);
+}
+
+:deep(.v-field--variant-outlined:focus-within) {
+  background: rgba(var(--v-theme-surface), 1);
+}
+
+:deep(.v-card--variant-outlined) {
+  border-color: rgba(var(--v-border-color), 0.12);
+  transition: all 0.3s ease;
+}
+
+:deep(.v-card--variant-outlined:hover) {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  box-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.1);
 }
 </style>

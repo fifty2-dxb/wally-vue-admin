@@ -309,6 +309,19 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
+  const updateEventGuest = async (eventGuid: string, guestGuid: string, guestData: any) => {
+    try {
+      const response = await $wallyApi(`/event-tickets/guest/${eventGuid}/${guestGuid}`, {
+        method: "PATCH",
+        body: guestData,
+      });
+      return response;
+    } catch (error) {
+      console.error("Error updating event guest:", error);
+      throw error;
+    }
+  };
+
   return {
     campaigns,
     campaign,
@@ -336,5 +349,6 @@ export const useCampaignStore = defineStore("campaign", () => {
     fetchDailyLog,
     updateEvent,
     deleteEventGuest,
+    updateEventGuest,
   };
 });
