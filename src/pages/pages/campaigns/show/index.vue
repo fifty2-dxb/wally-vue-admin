@@ -290,6 +290,7 @@ const applyFilters = async () => {
   try {
     isLoading.value = true;
     await campaignStore.fetchCampaignStatistics(
+      campaignStore.selectedEvent.eventGuid,
       campaignGuid,
       startDate.value,
       endDate.value
@@ -1197,7 +1198,7 @@ const handleVenueMapInput = (event: Event) => {
   </VCard>
 
   <!-- Stats and Charts Section -->
-  <VRow class="mb-5">
+  <VRow class="mb-5" v-if="campaignType === 'event' && campaignStore.selectedEvent">
     <VCol cols="12">
       <VCard class="modern-card">
         <VCardText>
@@ -1291,7 +1292,7 @@ const handleVenueMapInput = (event: Event) => {
     </VCol>
   </VRow>
 
-  <VCard v-if="campaignType === 'event'" class="modern-card mb-5">
+  <VCard v-if="campaignType === 'membership'" class="modern-card mb-5">
     <VCardTitle class="pa-6">
       <div class="d-flex flex-wrap justify-space-between align-center gap-y-4">
         <h6 class="text-h6 mb-0">Members</h6>
