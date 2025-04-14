@@ -35,6 +35,7 @@ export const useCampaignStore = defineStore("campaign", () => {
   };
 
   const fetchCampaignStatistics = async (
+    eventGuid: string,
     campaignGuid: string,
     startDate?: string,
     endDate?: string
@@ -44,7 +45,7 @@ export const useCampaignStore = defineStore("campaign", () => {
       if (startDate) queryParams.append("startDate", startDate);
       if (endDate) queryParams.append("endDate", endDate);
   
-      const url = `/v1/statistics/${campaignGuid}?${queryParams.toString()}`;
+      const url = `/v1/statistics/event/${eventGuid}/campaign/${campaignGuid}?${queryParams.toString()}`;
       const response = await $wallyApi(url, { method: "GET" });
       statistics.value = response?.data || {};
     } catch (error) {
