@@ -130,6 +130,7 @@ export const routes: RouteRecordRaw[] = [
     component: showEventComponent,
     props: true,
     meta: {
+      layout: 'blank',
       requiresAuth: false,
     },
   },

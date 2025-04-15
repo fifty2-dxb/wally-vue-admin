@@ -3,6 +3,12 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCampaignStore } from '@/stores/campaign';
 
+definePage({
+  meta: {
+    layout: 'blank',
+  },
+});
+
 interface Event {
   eventGuid: string;
   eventName: string;
