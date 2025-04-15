@@ -150,6 +150,7 @@ declare module 'vue-router/auto-routes' {
     'pages-customers-show': RouteRecordInfo<'pages-customers-show', '/pages/customers/show', Record<never, never>, Record<never, never>>,
     'pages-customers-show-mobile': RouteRecordInfo<'pages-customers-show-mobile', '/pages/customers/showMobile', Record<never, never>, Record<never, never>>,
     'pages-dialog-examples': RouteRecordInfo<'pages-dialog-examples', '/pages/dialog-examples', Record<never, never>, Record<never, never>>,
+    'pages-events-show': RouteRecordInfo<'pages-events-show', '/pages/events/show', Record<never, never>, Record<never, never>>,
     'pages-faq': RouteRecordInfo<'pages-faq', '/pages/faq', Record<never, never>, Record<never, never>>,
     'pages-icons': RouteRecordInfo<'pages-icons', '/pages/icons', Record<never, never>, Record<never, never>>,
     'pages-marketing-apple': RouteRecordInfo<'pages-marketing-apple', '/pages/marketing/apple', Record<never, never>, Record<never, never>>,

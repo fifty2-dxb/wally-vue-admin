@@ -1229,6 +1229,15 @@ const filteredGuests = computed(() => {
           >
             <VIcon icon="tabler-edit" />
           </VBtn>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            color="secondary"
+            :to="{ name: 'pages-events-show', params: { id: item.eventGuid }}"
+          >
+            <VIcon icon="tabler-eye" />
+          </VBtn>
         </div>
       </template>
       <template #no-data>
@@ -1304,7 +1313,7 @@ const filteredGuests = computed(() => {
               color="success"
               :disabled="!item?.serialNumber"
               @click="item?.serialNumber ? $router.push(`/customer/${item?.serialNumber}`) : $event.preventDefault()"
-            >
+              >
               <VIcon icon="tabler-share" />
             </VBtn>
             <VBtn
@@ -1758,7 +1767,7 @@ const filteredGuests = computed(() => {
             title="Basic Info"
             subtitle="Event Details"
           />
-          <VDivider />
+      <VDivider />
           <VStepperItem
             :value="2"
             title="Additional Info"
@@ -1776,35 +1785,35 @@ const filteredGuests = computed(() => {
           <VStepperWindowItem :value="1">
             <VCardText class="modal-body">
               <VForm>
-                <VRow>
+              <VRow>
                   <VCol cols="12">
-                    <VTextField
+                  <VTextField
                       v-model="editingEvent.eventName"
                       label="Event Name"
-                      required
+                    required
                       :disabled="isEditingEvent"
-                    />
-                  </VCol>
+                  />
+                </VCol>
                   <VCol cols="12">
                     <VTextarea
                       v-model="editingEvent.eventDescription"
                       label="Event Description"
                       rows="3"
-                      required
+                    required
                       :disabled="isEditingEvent"
-                    />
-                  </VCol>
+                  />
+                </VCol>
                   <VCol cols="12" md="4">
-                    <VTextField
+                  <VTextField
                       v-model.number="editingEvent.capacity"
                       label="Capacity"
                       type="number"
                       min="1"
-                      required
+                    required
                       :disabled="isEditingEvent"
-                    />
-                  </VCol>
-                  <VCol cols="12">
+                  />
+                </VCol>
+                <VCol cols="12">
                     <div class="d-flex align-center mb-4">
                       <VIcon
                         icon="tabler-calendar-time"
@@ -1819,27 +1828,27 @@ const filteredGuests = computed(() => {
                           <div class="text-subtitle-2 mb-2">Start</div>
                           <VRow>
                             <VCol cols="12" md="6">
-                              <VTextField
+                  <VTextField
                                 v-model="editingEvent.eventBeginDt"
                                 label="Date"
                                 type="date"
                                 required
                                 :disabled="isEditingEvent"
-                                variant="outlined"
+                    variant="outlined"
                                 density="comfortable"
-                              />
-                            </VCol>
-                            <VCol cols="12" md="6">
+                  />
+                </VCol>
+                <VCol cols="12" md="6">
                               <VTextField
                                 v-model="eventBeginTime"
                                 label="Time"
                                 type="time"
                                 required
                                 :disabled="isEditingEvent"
-                                variant="outlined"
+                    variant="outlined"
                                 density="comfortable"
-                              />
-                            </VCol>
+                  />
+                </VCol>
                           </VRow>
                         </div>
                       </VCol>
@@ -1847,15 +1856,15 @@ const filteredGuests = computed(() => {
                         <div class="mb-4">
                           <div class="text-subtitle-2 mb-2">End</div>
                           <VRow>
-                            <VCol cols="12" md="6">
-                              <VTextField
+                <VCol cols="12" md="6">
+                  <VTextField
                                 v-model="editingEvent.eventEndDt"
                                 label="Date"
-                                type="date"
+                    type="date"
                                 required
                                 :disabled="isEditingEvent"
                                 variant="outlined"
-                                density="comfortable"
+                    density="comfortable"
                               />
                             </VCol>
                             <VCol cols="12" md="6">
@@ -1865,16 +1874,16 @@ const filteredGuests = computed(() => {
                                 type="time"
                                 required
                                 :disabled="isEditingEvent"
-                                variant="outlined"
+                    variant="outlined"
                                 density="comfortable"
-                              />
-                            </VCol>
-                          </VRow>
+                  />
+                </VCol>
+              </VRow>
                         </div>
-                      </VCol>
+            </VCol>
                     </VRow>
                   </VCol>
-                  <VCol cols="12">
+                <VCol cols="12">
                     <div class="d-flex align-center mb-4">
                       <VIcon
                         icon="tabler-photo"
@@ -1931,7 +1940,7 @@ const filteredGuests = computed(() => {
                             </div>
                           </div>
                         </div>
-                      </VCol>
+                </VCol>
                       <VCol cols="12" md="6">
                         <div class="image-upload-container">
                           <div
@@ -1995,7 +2004,7 @@ const filteredGuests = computed(() => {
                   <p class="text-body-2 text-medium-emphasis">Add custom fields to display in the event pass</p>
                 </div>
                 <VBtn
-                  color="primary"
+                    color="primary"
                   prepend-icon="tabler-plus"
                   @click="addAdditionalField"
                   :disabled="isEditingEvent"
@@ -2034,7 +2043,7 @@ const filteredGuests = computed(() => {
                         <div class="d-flex align-center">
                           <VIcon
                             icon="tabler-file-text"
-                            color="primary"
+                    color="primary"
                             class="me-2"
                           />
                           <h6 class="text-h6 mb-0">{{ field.label || 'Unnamed Field' }}</h6>
@@ -2083,9 +2092,9 @@ const filteredGuests = computed(() => {
                             :disabled="isEditingEvent"
                             hint="Select data types to enable automatic detection in Apple Wallet"
                             persistent-hint
-                          />
-                        </VCol>
-                      </VRow>
+                  />
+                </VCol>
+              </VRow>
                     </VCard>
                   </div>
                 </div>
@@ -2181,11 +2190,11 @@ const filteredGuests = computed(() => {
                       chips
                       :items="eventSemantics.performerNames"
                       :disabled="isEditingEvent"
-                    />
-                  </VCol>
-                </VRow>
-              </VForm>
-            </VCardText>
+              />
+            </VCol>
+          </VRow>
+        </VForm>
+      </VCardText>
           </VStepperWindowItem>
         </VStepperWindow>
       </VStepper>

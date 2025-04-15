@@ -12,6 +12,21 @@ interface Event {
   createdAt?: string;
   updatedAt?: string;
   campaign?: any;
+  additionalData?: {
+    images?: {
+      artworkUrl?: string;
+    };
+    semantics?: {
+      venueName?: string;
+      eventAddress?: string;
+      directionsInformationURL?: string;
+    };
+    additionalInfoFields?: Array<{
+      key: string;
+      label: string;
+      value: string;
+    }>;
+  };
 }
 
 export const useCampaignStore = defineStore("campaign", () => {
@@ -216,6 +231,49 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
+  const fetchEventByGuid = async (eventGuid: string) => {
+    try {
+      console.log('Fetching event by GUID:', eventGuid);
+      const response = await $wallyApi(`/events/${eventGuid}`, { method: "GET" });
+      console.log('Raw event response:', response);
+
+      if (!response || response.status !== 'success') {
+        console.error('Invalid response received from API:', response);
+        selectedEvent.value = null;
+        return null;
+      }
+
+      // Extract event data from the nested structure
+      const eventData = response.events;
+      if (!eventData || !eventData.eventGuid || !eventData.eventName) {
+        console.error('Invalid event data structure:', eventData);
+        selectedEvent.value = null;
+        return null;
+      }
+
+      // Transform the response to match our Event interface
+      const event: Event = {
+        eventGuid: eventData.eventGuid,
+        eventName: eventData.eventName,
+        eventDescription: eventData.eventDescription || '',
+        capacity: eventData.capacity,
+        eventBeginDt: eventData.eventBeginDt,
+        eventEndDt: eventData.eventEndDt,
+        createdAt: eventData.createdAt,
+        updatedAt: eventData.updatedAt,
+        campaign: eventData.campaign,
+        additionalData: eventData.additionalData || {},
+      };
+
+      selectedEvent.value = event;
+      return event;
+    } catch (error) {
+      console.error("Error fetching event by GUID:", error);
+      selectedEvent.value = null;
+      throw error;
+    }
+  };
+
   const setSelectedEvent = (event: Event | null) => {
     selectedEvent.value = event;
   };
@@ -363,5 +421,6 @@ export const useCampaignStore = defineStore("campaign", () => {
     deleteEventGuest,
     updateEventGuest,
     sendGuestEmail,
+    fetchEventByGuid,
   };
 });

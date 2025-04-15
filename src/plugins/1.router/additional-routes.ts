@@ -2,6 +2,7 @@ import type { RouteRecordRaw } from 'vue-router/auto'
 
 const emailRouteComponent = () => import('@/pages/apps/email/index.vue')
 const showRouteComponent = () => import('@/pages/pages/campaigns/show/index.vue')
+const showEventComponent = () => import('@/pages/pages/events/show/index.vue')
 const showMobileCampaignComponent = () => import('@/pages/pages/customers/showMobile/index.vue')
 const showTopUpBalanceComponent = () => import('@/pages/pages/campaigns/topup/index.vue')
 const showThankYouBalanceComponent = () => import('@/pages/pages/campaigns/topup/ThankYouPaymentCard.vue')
@@ -121,6 +122,15 @@ export const routes: RouteRecordRaw[] = [
     meta: {
       navActiveLink: 'apps-email',
       layoutWrapperClasses: 'layout-content-height-fixed',
+    },
+  },
+  {
+    path: '/pages/events/show/:id',
+    name: 'pages-events-show',
+    component: showEventComponent,
+    props: true,
+    meta: {
+      requiresAuth: false,
     },
   },
   {
