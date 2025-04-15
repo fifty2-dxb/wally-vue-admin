@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import ConfettiExplosion from 'vue-confetti-explosion';
 import { useCampaignStore } from '@/stores/campaign';
 import { useCustomerStore } from '@/stores/customer';
+import { QrcodeStream } from 'vue-qrcode-reader';
 
 declare global {
   class NDEFReader {
@@ -53,6 +54,10 @@ const eventInfo = ref({
   tertiary: { label: '', value: '' }
 });
 
+const scanMode = ref<'nfc' | 'qr'>('nfc');
+const qrCamera = ref('auto');
+const isPaused = ref(false);
+
 const updateEventInfo = (campaign: Campaign | null) => {
   if (!campaign) return;
   
@@ -80,7 +85,6 @@ const resetScan = () => {
   nfcTagId.value = ''
 }
 
-// ... existing code ...
 const receiveNfcData = async (event: any) => {
   try {
     if (!eventGuid.value) {
@@ -180,7 +184,30 @@ const receiveNfcData = async (event: any) => {
     scanState.value = 'error'
   }
 }
-// ... existing code ...
+
+const toggleScanMode = () => {
+  scanMode.value = scanMode.value === 'nfc' ? 'qr' : 'nfc';
+  resetScan();
+};
+
+const onDecode = (decodedCodes: any) => {
+  console.log('QR Code detected:', decodedCodes);
+  const scannedCode = decodedCodes.map((code: any) => code.rawValue).join(', ');
+  isPaused.value = true;
+  receiveNfcData(scannedCode);
+};
+
+const onQrDecode = async (result: string) => {
+  console.log('QR Code detected:', result);
+  isPaused.value = true;
+  await receiveNfcData(result);
+};
+
+const onQrError = (error: Error) => {
+  console.error('QR Scanner error:', error);
+  errorMessage.value = 'Unable to access camera. Please check permissions.';
+  scanState.value = 'error';
+};
 
 const setupNFC = async () => {
   try {
@@ -253,7 +280,8 @@ onUnmounted(() => {
 
       <div class="content-container">
         <template v-if="scanState === 'initial'">
-          <div class="scan-animation">
+          <!-- NFC Scanning UI -->
+          <div v-if="scanMode === 'nfc'" class="scan-animation">
             <div class="nfc-ring"></div>
             <div class="nfc-icon">
               <VIcon
@@ -264,12 +292,21 @@ onUnmounted(() => {
             </div>
           </div>
 
+          <!-- QR Code Scanning UI -->
+          <div v-else class="qr-container">
+            <qrcode-stream @detect="onDecode" @error="onQrError">
+        </qrcode-stream>
+          </div>
+
           <template v-if="campaign?.styleSettings?.type === 'event'">
             <h1 class="welcome-text text-black">
               {{ $t('Tap to Access') }} {{ campaign?.campaignName || $t('Event Location') }}
             </h1>
             <p class="subtitle-text text-primary">
-              {{ $t('Hold your device near the NFC tag') }}
+              {{ scanMode === 'nfc' 
+                ? $t('Hold your device near the NFC tag') 
+                : $t('Scan the QR code on your ticket') 
+              }}
             </p>
           </template>
 
@@ -278,12 +315,22 @@ onUnmounted(() => {
               {{ $t('Tap to Access Membership') }}
             </h1>
             <p class="subtitle-text text-primary">
-              {{ $t('Hold your device near the NFC tag') }}
+              {{ scanMode === 'nfc' 
+                ? $t('Hold your device near the NFC tag') 
+                : $t('Scan the QR code on your membership card') 
+              }}
             </p>
           </template>
 
-          <VBtn color="primary" variant="outlined" class="test-button" @click="receiveNfcData('bd4fda0e-f128-458e-b229-0a2cc553f068')">
-            {{ $t('Test NFC') }}
+          <!-- Toggle Button -->
+          <VBtn
+            color="primary"
+            variant="tonal"
+            class="toggle-button"
+            @click="toggleScanMode"
+            prepend-icon="tabler-refresh"
+          >
+            {{ scanMode === 'nfc' ? $t('Switch to QR Code') : $t('Switch to NFC') }}
           </VBtn>
         </template>
         
@@ -386,6 +433,10 @@ onUnmounted(() => {
                 <span class="scan-value">{{ eventCustomerName }}</span>
               </div>
             </div>
+
+            <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
+              {{ $t('Tap Again') }}
+            </VBtn>
           </template>
         </template>
       </div>
@@ -649,6 +700,57 @@ onUnmounted(() => {
   }
 }
 
+.qr-container {
+  width: 280px;
+  height: 280px;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #000;
+}
+
+.qr-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.qr-frame {
+  width: 200px;
+  height: 200px;
+  border: 2px solid var(--v-theme-primary);
+  border-radius: 12px;
+  position: relative;
+}
+
+.qr-frame::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px solid rgba(var(--v-theme-primary), 0.3);
+  border-radius: 12px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.toggle-button {
+  margin-bottom: 1rem;
+  border-radius: 20px;
+  height: 44px;
+  min-width: 180px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
 @media (max-width: 480px) {
   .page-container {
     padding: 0;
@@ -680,6 +782,16 @@ onUnmounted(() => {
 
   .ticket-info, .scan-info {
     padding: 1.25rem;
+  }
+
+  .qr-container {
+    width: 260px;
+    height: 260px;
+  }
+
+  .qr-frame {
+    width: 180px;
+    height: 180px;
   }
 }
 </style> 
