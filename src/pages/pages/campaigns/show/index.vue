@@ -959,6 +959,22 @@ const handleSendEmail = async (guest: any) => {
   }
 };
 
+const searchQuery = ref('');
+
+// Add this computed property to filter guests
+const filteredGuests = computed(() => {
+  if (!searchQuery.value) return campaignStore.eventGuests;
+  
+  const query = searchQuery.value.toLowerCase();
+  return campaignStore.eventGuests.filter(guest => {
+    return (
+      guest.name?.toLowerCase().includes(query) ||
+      guest.surname?.toLowerCase().includes(query) ||
+      guest.email?.toLowerCase().includes(query)
+    );
+  });
+});
+
 </script>
 
 <template>
@@ -1244,6 +1260,17 @@ const handleSendEmail = async (guest: any) => {
         </VBtn>
       </div>
 
+      <!-- Add search field -->
+      <VTextField
+        v-model="searchQuery"
+        prepend-inner-icon="tabler-search"
+        placeholder="Search by name, surname, or email"
+        class="mb-4"
+        density="compact"
+        clearable
+        hide-details
+      />
+
       <VDataTable
         :headers="[
           { title: 'NAME', key: 'name' },
@@ -1254,31 +1281,13 @@ const handleSendEmail = async (guest: any) => {
           { title: 'SEAT INFO', key: 'seatInfo' },
           { title: 'ACTIONS', key: 'actions', sortable: false }
         ]"
-        :items="campaignStore.eventGuests"
+        :items="filteredGuests"
         :loading="campaignStore.isLoadingGuests"
         density="compact"
         :items-per-page="10"
       >
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <VBtn
-              icon
-              variant="text"
-              size="small"
-              color="primary"
-            >
-              <VIcon icon="tabler-mail" @click="handleSendEmail(item)" />
-            </VBtn>
-            <VBtn
-              icon
-              variant="text"
-              size="small"
-              color="error"
-              :disabled="!item?.serialNumber"
-              @click="item?.serialNumber ? $router.push(`/customer/${item?.serialNumber}`) : $event.preventDefault()"
-            >
-              <VIcon icon="tabler-share" />
-            </VBtn>
             <VBtn
               icon
               variant="text"
@@ -1292,16 +1301,31 @@ const handleSendEmail = async (guest: any) => {
               icon
               variant="text"
               size="small"
+              color="success"
+              :disabled="!item?.serialNumber"
+              @click="item?.serialNumber ? $router.push(`/customer/${item?.serialNumber}`) : $event.preventDefault()"
+            >
+              <VIcon icon="tabler-share" />
+            </VBtn>
+            <VBtn
+              icon
+              variant="text"
+              size="small"
+              color="success"
+              :disabled="!item.email"
+              @click="handleSendEmail(item)"
+            >
+              <VIcon icon="tabler-mail" />
+            </VBtn>
+            <VBtn
+              icon
+              variant="text"
+              size="small"
               color="error"
               @click="handleDeleteGuest(item)"
             >
               <VIcon icon="tabler-trash" />
             </VBtn>
-          </div>
-        </template>
-        <template #no-data>
-          <div class="text-center py-4">
-            No guests found for this event
           </div>
         </template>
       </VDataTable>
