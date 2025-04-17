@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router';
 import ConfettiExplosion from 'vue-confetti-explosion';
 import { useCampaignStore } from '@/stores/campaign';
 import { useCustomerStore } from '@/stores/customer';
-import { QrcodeStream } from 'vue-qrcode-reader';
 
 declare global {
   class NDEFReader {
@@ -55,8 +54,8 @@ const eventInfo = ref({
 });
 
 const scanMode = ref<'nfc' | 'qr'>('nfc');
-const qrCamera = ref('auto');
-const isPaused = ref(false);
+const qrCodeInput = ref('');
+const qrInputRef = ref<HTMLInputElement | null>(null);
 
 const updateEventInfo = (campaign: Campaign | null) => {
   if (!campaign) return;
@@ -188,25 +187,18 @@ const receiveNfcData = async (event: any) => {
 const toggleScanMode = () => {
   scanMode.value = scanMode.value === 'nfc' ? 'qr' : 'nfc';
   resetScan();
+  if (scanMode.value === 'qr') {
+    // Focus the input field on next tick after the element is rendered
+    setTimeout(() => {
+      qrInputRef.value?.focus();
+    }, 0);
+  }
 };
 
-const onDecode = (decodedCodes: any) => {
-  console.log('QR Code detected:', decodedCodes);
-  const scannedCode = decodedCodes.map((code: any) => code.rawValue).join(', ');
-  isPaused.value = true;
-  receiveNfcData(scannedCode);
-};
-
-const onQrDecode = async (result: string) => {
-  console.log('QR Code detected:', result);
-  isPaused.value = true;
-  await receiveNfcData(result);
-};
-
-const onQrError = (error: Error) => {
-  console.error('QR Scanner error:', error);
-  errorMessage.value = 'Unable to access camera. Please check permissions.';
-  scanState.value = 'error';
+const handleQrSubmit = async () => {
+  if (!qrCodeInput.value.trim()) return;
+  await receiveNfcData(qrCodeInput.value.trim());
+  qrCodeInput.value = ''; // Clear the input after submission
 };
 
 const setupNFC = async () => {
@@ -294,8 +286,12 @@ onUnmounted(() => {
 
           <!-- QR Code Scanning UI -->
           <div v-else class="qr-container">
-            <qrcode-stream @detect="onDecode" @error="onQrError">
-        </qrcode-stream>
+            <input
+              ref="qrInputRef"
+              v-model="qrCodeInput"
+              @keyup.enter="handleQrSubmit"
+              placeholder="Enter QR Code"
+            />
           </div>
 
           <template v-if="campaign?.styleSettings?.type === 'event'">
@@ -451,20 +447,15 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
   background: #f5f5f5;
 }
 
 .mobile-frame {
   width: 100%;
-  max-width: 390px;
-  height: 844px;
-  max-height: 90vh;
+  height: 100vh;
   background: white;
-  border-radius: 40px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -483,7 +474,7 @@ onUnmounted(() => {
 }
 
 .status-bar {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
   z-index: 10;
@@ -494,42 +485,29 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 1.5rem 2rem;
+  padding: 0 1rem 1.5rem;
   text-align: center;
   position: relative;
 }
 
 .scan-animation {
   position: relative;
-  width: 200px;
-  height: 200px;
-  margin: 2rem 0;
+  width: 180px;
+  height: 180px;
+  margin: 1.5rem 0;
 }
 
 .nfc-ring {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   border: 4px solid var(--v-theme-primary);
   opacity: 0.2;
   transform: translate(-50%, -50%);
   animation: pulse 2s ease-in-out infinite;
-}
-
-.nfc-ring::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  border-radius: 50%;
-  border: 4px solid var(--v-theme-primary);
-  opacity: 0.2;
-  animation: pulse 2s ease-in-out infinite 0.5s;
 }
 
 .nfc-icon {
@@ -544,25 +522,38 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-.result-animation {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.qr-container {
+  width: 100%;
+  max-width: 280px;
+  margin: 1.5rem 0;
+  padding: 0 1rem;
 }
 
-.result-icon {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  padding: 2rem;
-  animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+.qr-container input {
+  width: 100%;
+  height: 48px;
+  background: white;
+  border: 2px solid var(--v-theme-primary);
+  border-radius: 24px;
+  padding: 0 1.25rem;
+  font-size: 1rem;
+  color: #333;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.qr-container input:focus {
+  border-color: var(--v-theme-primary-darken-1);
+  box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.2);
+}
+
+.qr-container input::placeholder {
+  color: #999;
 }
 
 .welcome-text {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: white;
@@ -574,7 +565,7 @@ onUnmounted(() => {
 }
 
 .subtitle-text {
-  font-size: 1.1rem;
+  font-size: 1rem;
   margin-bottom: 2rem;
   font-weight: 500;
   opacity: 0.8;
@@ -700,48 +691,6 @@ onUnmounted(() => {
   }
 }
 
-.qr-container {
-  width: 280px;
-  height: 280px;
-  margin: 2rem 0;
-  position: relative;
-  overflow: hidden;
-  border-radius: 20px;
-  background: #000;
-}
-
-.qr-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.qr-frame {
-  width: 200px;
-  height: 200px;
-  border: 2px solid var(--v-theme-primary);
-  border-radius: 12px;
-  position: relative;
-}
-
-.qr-frame::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border: 2px solid rgba(var(--v-theme-primary), 0.3);
-  border-radius: 12px;
-  animation: pulse 2s ease-in-out infinite;
-}
-
 .toggle-button {
   margin-bottom: 1rem;
   border-radius: 20px;
@@ -749,61 +698,5 @@ onUnmounted(() => {
   min-width: 180px;
   font-weight: 500;
   letter-spacing: 0.5px;
-}
-
-@media (max-width: 480px) {
-  .status-bar {
-    padding: 0.5rem 1rem;
-  }
-
-  .content-container {
-    padding: 0 1rem 1.5rem;
-  }
-
-  .scan-animation {
-    margin: 1.5rem 0;
-  }
-
-  .qr-container {
-    margin: 1.5rem 0;
-  }
-
-  .mobile-frame {
-    border-radius: 0;
-    height: 100vh;
-    max-height: 100vh;
-  }
-
-  .scan-animation {
-    width: 180px;
-    height: 180px;
-  }
-
-  .nfc-ring {
-    width: 140px;
-    height: 140px;
-  }
-
-  .welcome-text {
-    font-size: 1.75rem;
-  }
-
-  .subtitle-text {
-    font-size: 1rem;
-  }
-
-  .ticket-info, .scan-info {
-    padding: 1.25rem;
-  }
-
-  .qr-container {
-    width: 260px;
-    height: 260px;
-  }
-
-  .qr-frame {
-    width: 180px;
-    height: 180px;
-  }
 }
 </style> 
