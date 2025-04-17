@@ -286,12 +286,16 @@ onUnmounted(() => {
 
           <!-- QR Code Scanning UI -->
           <div v-else class="qr-container">
-            <input
-              ref="qrInputRef"
-              v-model="qrCodeInput"
-              @keyup.enter="handleQrSubmit"
-              placeholder="Enter QR Code"
-            />
+            <form @submit.prevent="handleQrSubmit">
+              <input
+                ref="qrInputRef"
+                v-model="qrCodeInput"
+                type="text"
+                inputmode="numeric"
+                placeholder="Scan QR Code"
+                enterkeyhint="go"
+              />
+            </form>
           </div>
 
           <template v-if="campaign?.styleSettings?.type === 'event'">
