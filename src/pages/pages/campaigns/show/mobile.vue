@@ -483,7 +483,7 @@ onUnmounted(() => {
 }
 
 .status-bar {
-  padding: 1.5rem;
+  padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
   z-index: 10;
@@ -494,7 +494,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 1.5rem;
+  padding: 0 1.5rem 2rem;
   text-align: center;
   position: relative;
 }
@@ -503,7 +503,7 @@ onUnmounted(() => {
   position: relative;
   width: 200px;
   height: 200px;
-  margin-bottom: 2rem;
+  margin: 2rem 0;
 }
 
 .nfc-ring {
@@ -703,7 +703,7 @@ onUnmounted(() => {
 .qr-container {
   width: 280px;
   height: 280px;
-  margin-bottom: 2rem;
+  margin: 2rem 0;
   position: relative;
   overflow: hidden;
   border-radius: 20px;
@@ -752,8 +752,20 @@ onUnmounted(() => {
 }
 
 @media (max-width: 480px) {
-  .page-container {
-    padding: 0;
+  .status-bar {
+    padding: 0.5rem 1rem;
+  }
+
+  .content-container {
+    padding: 0 1rem 1.5rem;
+  }
+
+  .scan-animation {
+    margin: 1.5rem 0;
+  }
+
+  .qr-container {
+    margin: 1.5rem 0;
   }
 
   .mobile-frame {
