@@ -249,6 +249,7 @@ const handleEventChange = (event: any) => {
   if (event) {
     campaignStore.setSelectedEvent(event);
     // Fetch guests for the selected event
+    fetchLatestLogs();
     fetchEventGuests(event.eventGuid);
   } else {
     campaignStore.setSelectedEvent(null);
@@ -385,6 +386,7 @@ const fetchLatestLogs = async () => {
 
     const logs = await campaignStore.fetchDailyLog(
       campaignGuid,
+      campaignStore.selectedEvent.eventGuid,
       'access',
       startDate,
       endDate
@@ -409,7 +411,6 @@ onMounted(() => {
   fetchCampaignDetails(campaignGuid);
   fetchStatistics();
   fetchEvents();
-  fetchLatestLogs();
 });
 
 const handleMonthSelected = ({ startDate, endDate }) => {

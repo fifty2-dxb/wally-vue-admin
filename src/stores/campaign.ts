@@ -346,9 +346,9 @@ export const useCampaignStore = defineStore("campaign", () => {
     }
   };
 
-  const fetchDailyLog = async (campaignGuid: string, type: string, startDate: string, endDate: string) => {
+  const fetchDailyLog = async (campaignGuid: string, eventGuid: string, type: string, startDate: string, endDate: string) => {
     try {
-      const response = await $wallyApi(`/pass-value/campaigId/${campaignGuid}?type=${type}&startDate=${startDate}&endDate=${endDate}`, { method: "GET" });
+      const response = await $wallyApi(`/pass-value/campaignId/${campaignGuid}/eventId/${eventGuid}?type=${type}&startDate=${startDate}&endDate=${endDate}`, { method: "GET" });
       console.log('Daily log response:', response);
       return response;
     } catch (error) {

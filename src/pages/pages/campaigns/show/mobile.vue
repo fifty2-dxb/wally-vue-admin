@@ -33,6 +33,15 @@ interface CampaignResponse {
   };
 }
 
+interface WallyEvent {
+  eventGuid: string;
+  eventName: string;
+  eventDescription: string;
+  eventBeginDt?: string;
+  eventEndDt?: string;
+  capacity?: number;
+}
+
 const route = useRoute();
 const campaignGuid = route.params.id as string;
 const campaignStore = useCampaignStore();
@@ -46,8 +55,9 @@ const nfcTagId = ref('');
 const showConfetti = ref(false);
 const errorMessage = ref('');
 const eventCustomerName = ref('');
-const events = ref<Event[]>([]);
+const events = ref<WallyEvent[]>([]);
 const selectedEventGuid = ref('');
+const showMenu = ref(false);
 
 // --- Offline Sync State ---
 const localSerialNumbers = ref<Set<string>>(new Set());
@@ -374,44 +384,58 @@ onUnmounted(() => {
         </VChip>
       </div>
 
-      <!-- Add Events Dropdown below sync status -->
-      <div class="event-selector-container" v-if="events.length > 0">
-        <VSelect
-          v-model="selectedEventGuid"
-          :items="events"
-          item-title="eventName"
-          item-value="eventGuid"
-          label="Select Event"
-          variant="outlined"
-          density="comfortable"
-          :bg-color="scanState === 'initial' ? 'surface' : 'rgba(255, 255, 255, 0.1)'"
-          :color="scanState === 'initial' ? 'primary' : 'white'"
-          :theme="scanState === 'initial' ? 'light' : 'dark'"
-          class="event-select"
-          hide-details
-          @update:model-value="handleEventChange"
+      <!-- Minimalistic Event Selector -->
+      <div v-if="events.length > 0" class="event-selector">
+        <div 
+          class="event-button" 
+          @click="showMenu = !showMenu"
         >
-          <template #selection="{ item }">
-            <div class="event-select-item">
-              <span class="event-name">{{ item.raw.eventName }}</span>
-              <span v-if="item.raw.eventBeginDt" class="event-date">
-                {{ new Date(item.raw.eventBeginDt).toLocaleDateString() }}
-              </span>
-            </div>
-          </template>
-          <template #item="{ item, props }">
-            <VListItem v-bind="props">
-              <template #title>
-                <div class="event-select-item">
-                  <span class="event-name">{{ item.raw.eventName }}</span>
-                  <span v-if="item.raw.eventBeginDt" class="event-date">
-                    {{ new Date(item.raw.eventBeginDt).toLocaleDateString() }}
-                  </span>
-                </div>
-              </template>
-            </VListItem>
-          </template>
-        </VSelect>
+          <div class="event-button-content">
+            <span class="current-event">{{ events.find(e => e.eventGuid === selectedEventGuid)?.eventName || 'Select Event' }}</span>
+            <VIcon 
+              :icon="showMenu ? 'tabler-chevron-up' : 'tabler-chevron-down'"
+              :color="scanState === 'initial' ? 'primary' : 'white'"
+              size="20"
+            />
+          </div>
+        </div>
+
+        <VMenu
+          v-model="showMenu"
+          :close-on-content-click="true"
+          location="bottom"
+          :offset="4"
+        >
+          <VCard class="event-menu-card" elevation="4">
+            <VList class="event-list" bg-color="white">
+              <VListItem
+                v-for="event in events"
+                :key="event.eventGuid"
+                :active="selectedEventGuid === event.eventGuid"
+                @click="() => {
+                  selectedEventGuid = event.eventGuid;
+                  handleEventChange();
+                  showMenu = false;
+                }"
+                :class="{ 'v-list-item--active': selectedEventGuid === event.eventGuid }"
+                hover
+              >
+                <template #prepend>
+                  <div class="event-indicator" :class="{ 'selected': selectedEventGuid === event.eventGuid }" />
+                </template>
+                
+                <VListItemTitle>
+                  <div class="event-item-content">
+                    <span class="event-name">{{ event.eventName }}</span>
+                    <span v-if="event.eventBeginDt" class="event-date">
+                      {{ new Date(event.eventBeginDt).toLocaleDateString() }}
+                    </span>
+                  </div>
+                </VListItemTitle>
+              </VListItem>
+            </VList>
+          </VCard>
+        </VMenu>
       </div>
 
       <div class="content-container">
@@ -646,7 +670,7 @@ onUnmounted(() => {
   padding: 0 1rem 1.5rem;
   text-align: center;
   position: relative;
-  padding-top: 60px;
+  padding-top: 120px;
   z-index: 1;
   pointer-events: auto;
 }
@@ -885,35 +909,101 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-.event-selector-container {
+.event-selector {
   position: absolute;
-  top: 60px;
-  right: 1rem;
-  width: 300px;
-  z-index: 10;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  pointer-events: auto;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: auto;
+  min-width: 200px;
+  max-width: 90%;
 }
 
-.event-select {
+.event-button {
+  background: v-bind('scanState === "initial" ? "white" : "rgba(255, 255, 255, 0.15)"');
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  border: 1px solid v-bind('scanState === "initial" ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.2)"');
+  transition: all 0.2s ease;
+}
+
+.event-button:hover {
+  background: v-bind('scanState === "initial" ? "rgba(var(--v-theme-primary), 0.05)" : "rgba(255, 255, 255, 0.2)"');
+}
+
+.event-button-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.current-event {
   font-size: 0.875rem;
+  font-weight: 500;
+  color: v-bind('scanState === "initial" ? "rgba(0, 0, 0, 0.87)" : "white"');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.event-select-item {
+.event-menu-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  min-width: 240px;
+  max-width: 90vw;
+}
+
+.event-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.event-item-content {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 2px;
+  padding: 4px 0;
 }
 
 .event-name {
+  font-size: 0.875rem;
   font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
 }
 
 .event-date {
   font-size: 0.75rem;
-  opacity: 0.7;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.event-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  margin-right: 8px;
+}
+
+.event-indicator.selected {
+  background: var(--v-theme-primary);
+}
+
+/* Remove old styles */
+.event-selector-container,
+.event-select,
+.event-select-item {
+  display: none;
+}
+
+/* Ensure content doesn't overlap */
+.content-container {
+  padding-top: 120px;
 }
 </style> 
