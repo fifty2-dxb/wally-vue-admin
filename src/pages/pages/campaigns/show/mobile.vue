@@ -635,6 +635,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   z-index: 10;
+  position: relative;
 }
 
 .content-container {
@@ -645,6 +646,9 @@ onUnmounted(() => {
   padding: 0 1rem 1.5rem;
   text-align: center;
   position: relative;
+  padding-top: 60px;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 .scan-animation {
@@ -652,6 +656,7 @@ onUnmounted(() => {
   width: 180px;
   height: 180px;
   margin: 1.5rem 0;
+  z-index: 1;
 }
 
 .nfc-ring {
@@ -882,14 +887,15 @@ onUnmounted(() => {
 
 .event-selector-container {
   position: absolute;
-  top: 60px; /* Increased from 48px to move it lower */
+  top: 60px;
   right: 1rem;
   width: 300px;
-  z-index: 1; /* Reduced z-index so it doesn't overlap main content */
+  z-index: 10;
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
 }
 
 .event-select {
@@ -909,18 +915,5 @@ onUnmounted(() => {
 .event-date {
   font-size: 0.75rem;
   opacity: 0.7;
-}
-
-.content-container {
-  padding-top: 60px; /* Add padding to push content down */
-  z-index: 2; /* Ensure content stays above the event selector */
-}
-
-.scan-animation {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  margin: 1.5rem 0;
-  z-index: 2; /* Ensure NFC logo stays above the event selector */
 }
 </style> 
