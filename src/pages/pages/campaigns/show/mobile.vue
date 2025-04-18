@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import ConfettiExplosion from 'vue-confetti-explosion';
 import { useCampaignStore } from '@/stores/campaign';
@@ -33,38 +33,30 @@ interface CampaignResponse {
   };
 }
 
-interface SelectableEvent {
-  eventGuid: string;
-  eventName: string;
-}
-
 const route = useRoute();
+const campaignGuid = route.params.id as string;
 const campaignStore = useCampaignStore();
-
-// --- Component State ---
-const campaignGuid = ref(route.params.id as string || ''); // Initial guid from route
-const selectedEventGuid = ref(route.params.id as string || ''); // Currently selected event
 const campaign = ref<Campaign | null>(null);
-const eventGuid = ref(''); // Tracks the *loaded* event guid
-const availableEvents = ref<SelectableEvent[]>([]);
-const isLoading = ref(false); // Loading state for event data/serials
-const isEventListLoading = ref(false); // Loading state for the event dropdown list
+const eventGuid = ref('');
+const isLoading = ref(true);
 const scanState = ref('initial'); // 'initial', 'success', 'already_scanned', 'error'
 const scanTime = ref('');
-const nfcTagId = ref(''); // Can potentially remove if not used elsewhere
+const scannerID = ref('');
+const nfcTagId = ref('');
 const showConfetti = ref(false);
 const errorMessage = ref('');
-const eventCustomerName = ref(''); // Still might not be reliably available offline
+const eventCustomerName = ref('');
 
 // --- Offline Sync State ---
 const localSerialNumbers = ref<Set<string>>(new Set());
-const scannedOffline = ref<Set<string>>(new Set());
-const isSyncing = ref(false);
+const scannedOffline = ref<Set<string>>(new Set()); // Stores serials scanned locally but not yet synced
+const isSyncing = ref(false); // Indicates if fetching serials or uploading scans
 const lastSyncTime = ref<Date | null>(null);
 let syncIntervalId: number | null = null;
 let uploadIntervalId: number | null = null;
 const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const UPLOAD_INTERVAL = 1 * 60 * 1000; // 1 minute
+// --- End Offline Sync State ---
 
 // Event information based on campaign type
 const eventInfo = ref({
@@ -100,108 +92,17 @@ const updateEventInfo = (campaign: Campaign | null) => {
 const resetScan = () => {
   scanState.value = 'initial'
   scanTime.value = ''
+  // scannerID.value = '' // Keep scanner ID potentially?
+  // nfcTagId.value = '' // Keep tag ID?
   errorMessage.value = ''
-  eventCustomerName.value = ''
+  eventCustomerName.value = '' // Reset customer name
 }
-
-// --- Data Loading Functions ---
-
-// Fetches details and serials for a SPECIFIC event GUID
-const loadEventData = async (guidToLoad: string) => {
-  if (!guidToLoad) return;
-  console.log(`Loading data for event: ${guidToLoad}`);
-  isLoading.value = true;
-  errorMessage.value = '';
-  scanState.value = 'initial'; // Reset scan state when loading new event
-  localSerialNumbers.value.clear(); // Clear old serials
-  scannedOffline.value.clear(); // Clear offline scans for old event
-  lastSyncTime.value = null; // Reset sync time
-  campaign.value = null; // Clear old campaign details
-  eventGuid.value = ''; // Clear loaded event guid
-
-  // Clear existing intervals before loading new data
-  clearSyncIntervals();
-
-  try {
-    // Fetch campaign details using the specific GUID
-    // Assuming fetchCampaignByCampaignGuid works with eventGuid as well, or use a different store method if needed
-    const response = await campaignStore.fetchCampaignByCampaignGuid(guidToLoad);
-    console.log('Event details response:', response);
-
-    if (!response || !response.campaign || !response.event || response.event.eventGuid !== guidToLoad) {
-      console.error('Invalid event response structure or mismatched GUID:', response);
-      errorMessage.value = 'Failed to load event details.';
-      scanState.value = 'error';
-      return;
-    }
-
-    // Set the currently loaded event details
-    campaign.value = response.campaign;
-    eventGuid.value = response.event.eventGuid; // Confirm the loaded GUID
-    updateEventInfo(campaign.value);
-
-    // Fetch initial serial numbers for the *loaded* event
-    await fetchAndStoreSerialNumbers(); // This now uses eventGuid.value set above
-
-    // Start sync intervals *after* successfully loading event data
-    startSyncIntervals();
-
-  } catch (error) {
-    console.error(`Error fetching event details for ${guidToLoad}:`, error);
-    errorMessage.value = 'Failed to load event details.';
-    scanState.value = 'error';
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Fetches the list of events for the dropdown
-const loadAvailableEvents = async () => {
-  isEventListLoading.value = true;
-  try {
-    let events = campaignStore.events;
-
-    // If events array is empty, fetch them first
-    if (!events || !Array.isArray(events) || events.length === 0) {
-      console.log('No events in store, fetching events...');
-      await campaignStore.fetchEvents(campaignGuid.value);
-      events = campaignStore.events; // Get the updated events after fetching
-    }
-
-    if (events && Array.isArray(events) && events.length > 0) {
-      availableEvents.value = events.map((event: any) => ({ 
-        eventGuid: event.eventGuid,
-        eventName: event.eventName
-      }));
-      console.log('Loaded available events:', availableEvents.value);
-
-      // If a pre-selected GUID exists (from route) and is valid, load its data
-      const initialEventExists = availableEvents.value.some(e => e.eventGuid === selectedEventGuid.value);
-      if (selectedEventGuid.value && initialEventExists) {
-        await loadEventData(selectedEventGuid.value);
-      } else {
-        console.log('Please select an event from the dropdown.');
-      }
-    } else {
-      console.error('No events available after fetching');
-      errorMessage.value = 'No events available.';
-      scanState.value = 'error';
-    }
-  } catch (error) {
-    console.error('Error loading events:', error);
-    errorMessage.value = 'Could not load event list.';
-    scanState.value = 'error';
-  } finally {
-    isEventListLoading.value = false;
-  }
-};
 
 // --- Sync Functions ---
 const fetchAndStoreSerialNumbers = async () => {
-  // Use the currently loaded eventGuid
   if (!eventGuid.value || isSyncing.value) return;
 
-  console.log(`Syncing serials for event ${eventGuid.value}...`);
+  console.log('Syncing local serial numbers...');
   isSyncing.value = true;
   try {
     const response = await $wallyApi(`/v1/passes/event/${eventGuid.value}/all`);
@@ -209,128 +110,95 @@ const fetchAndStoreSerialNumbers = async () => {
       const newSerialNumbers = new Set(response.map((pass: any) => pass.serialNumber));
       localSerialNumbers.value = newSerialNumbers;
       lastSyncTime.value = new Date();
-      console.log(`Synced ${localSerialNumbers.value.size} serials for ${eventGuid.value}.`);
+      console.log(`Successfully synced ${localSerialNumbers.value.size} serial numbers.`);
     } else {
-      console.error('Failed to fetch/parse serials:', response);
+      console.error('Failed to fetch or parse serial numbers:', response);
+      // Optionally handle error state in UI
     }
   } catch (error) {
-    console.error(`Error fetching serials for ${eventGuid.value}:`, error);
+    console.error('Error fetching serial numbers:', error);
+    // Optionally handle error state in UI
   } finally {
     isSyncing.value = false;
   }
 };
 
 const syncScannedData = async () => {
-  // Use the currently loaded eventGuid and campaign details
-  if (!eventGuid.value || !campaign.value || scannedOffline.value.size === 0 || isSyncing.value) return;
+  if (scannedOffline.value.size === 0 || isSyncing.value) return;
 
-  console.log(`Uploading ${scannedOffline.value.size} scans for ${eventGuid.value}...`);
+  console.log(`Attempting to upload ${scannedOffline.value.size} offline scans...`);
   isSyncing.value = true;
   const successfullySynced = new Set<string>();
+
+  // Use existing validation endpoints iteratively (Not ideal for batch, but works for now)
   const campaignType = campaign.value?.styleSettings?.type;
-  const currentCampaignGuid = campaign.value?.campaignGuid; // Need campaignGuid for event type
-
-  if (campaignType === 'event' && !currentCampaignGuid) {
-      console.error('Cannot sync event scans: Missing campaignGuid.');
-      isSyncing.value = false;
-      return;
-  }
-
   const uploadPromises = [];
 
   for (const serialNumber of scannedOffline.value) {
     let uploadPromise;
     if (campaignType === 'membership') {
-      // Membership uses eventGuid
-      uploadPromise = $wallyApi('/pass-value', { /* ... body with eventGuid.value ... */ });
+      uploadPromise = $wallyApi('/pass-value', {
+        method: 'POST',
+        body: {
+          serialNumber: serialNumber,
+          value: "1", // Assuming '1' means scanned/accessed
+          type: "access",
+          eventGuid: eventGuid.value,
+        },
+      }).then(response => ({ serialNumber, response }));
     } else if (campaignType === 'event') {
-      // Event access uses campaignGuid
-      uploadPromise = $wallyApi('/event-access', { 
-           method: 'POST',
-           body: {
-               serialNumber: serialNumber,
-               campaignGuid: currentCampaignGuid, // Use the campaignGuid associated with the loaded event
-           },
-        }).then(response => ({ serialNumber, response }));
+      uploadPromise = $wallyApi('/event-access', {
+        method: 'POST',
+        body: {
+          serialNumber: serialNumber,
+          campaignGuid, // campaignGuid is already available in component scope
+        },
+      }).then(response => ({ serialNumber, response }));
     } else {
       console.warn(`Cannot sync scan for unknown campaign type: ${campaignType}`);
-      continue;
+      continue; // Skip if campaign type is unknown
     }
     uploadPromises.push(uploadPromise);
   }
 
-  // ... (rest of Promise.allSettled logic remains the same, checking response status) ...
   try {
     const results = await Promise.allSettled(uploadPromises);
 
     results.forEach(result => {
       if (result.status === 'fulfilled') {
         const { serialNumber, response } = result.value;
+        // Check response status to confirm successful upload
+        // Assuming 200 or similar indicates success, even if it was 'already scanned' previously
         if (response.status === 200 || response.status === 403) { 
           successfullySynced.add(serialNumber);
-          console.log(`Uploaded scan for: ${serialNumber}`);
+          console.log(`Successfully uploaded scan for: ${serialNumber}`);
         } else {
-          console.error(`Failed upload for ${serialNumber}:`, response.message || response.status);
+          console.error(`Failed to upload scan for ${serialNumber}:`, response.message || response.status);
         }
       } else {
-        console.error('Error in batch upload promise:', result.reason);
+        console.error('Error during batch scan upload promise:', result.reason);
       }
     });
 
+    // Remove successfully synced items from the offline set
     if (successfullySynced.size > 0) {
       const updatedScannedOffline = new Set(scannedOffline.value);
       successfullySynced.forEach(sn => updatedScannedOffline.delete(sn));
       scannedOffline.value = updatedScannedOffline;
-      console.log(`${successfullySynced.size} scans removed from queue.`);
+      console.log(`${successfullySynced.size} scans removed from offline queue.`);
     }
 
   } catch (error) {
-      console.error('Error processing batch upload:', error);
+      console.error('Error processing batch scan upload results:', error);
   } finally {
       isSyncing.value = false;
-      console.log(`${scannedOffline.value.size} scans remain in queue for ${eventGuid.value}.`);
+      console.log(`${scannedOffline.value.size} scans remaining in offline queue.`);
   }
 };
 // --- End Sync Functions ---
 
-// --- Interval Management ---
-const startSyncIntervals = () => {
-  // Clear any existing intervals first
-  clearSyncIntervals();
-  
-  if (eventGuid.value) { // Only start if an event is loaded
-    console.log(`Starting sync intervals for ${eventGuid.value}`);
-    syncIntervalId = window.setInterval(fetchAndStoreSerialNumbers, SYNC_INTERVAL);
-    uploadIntervalId = window.setInterval(syncScannedData, UPLOAD_INTERVAL);
-  } else {
-    console.warn('Cannot start sync intervals: No event loaded.');
-  }
-};
-
-const clearSyncIntervals = () => {
-  if (syncIntervalId) {
-    clearInterval(syncIntervalId);
-    syncIntervalId = null;
-    console.log('Cleared serial sync interval.');
-  }
-  if (uploadIntervalId) {
-    clearInterval(uploadIntervalId);
-    uploadIntervalId = null;
-    console.log('Cleared scan upload interval.');
-  }
-};
-// --- End Interval Management ---
-
 // Updated Scanning Logic (receiveNfcData)
 const receiveNfcData = async (scannedData: string) => {
-  // Ensure an event is loaded and we have serials
-  if (!eventGuid.value || localSerialNumbers.value.size === 0) {
-      errorMessage.value = 'Event not loaded or no tickets available.';
-      scanState.value = 'error';
-      console.warn('Scan attempt failed: Event/serials not loaded.');
-      return;
-  }
-
   const serialNumber = scannedData.trim();
   if (!serialNumber) {
     errorMessage.value = 'Invalid scan data.';
@@ -340,25 +208,38 @@ const receiveNfcData = async (scannedData: string) => {
 
   console.log(`Scanned: ${serialNumber}`);
 
+  // 1. Check against local list
   if (localSerialNumbers.value.has(serialNumber)) {
+    // 2. Check if already scanned locally (since last sync)
     if (scannedOffline.value.has(serialNumber)) {
       console.log(`Serial ${serialNumber} already scanned locally.`);
       scanState.value = 'already_scanned';
+      // You might want to fetch customer name if needed, maybe store it locally too?
+      // eventCustomerName.value = getLocalCustomerName(serialNumber); 
       scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
       console.log(`Serial ${serialNumber} validated locally. Adding to offline queue.`);
       scanState.value = 'success';
-      scannedOffline.value.add(serialNumber); 
-      showConfetti.value = true;
-      setTimeout(() => showConfetti.value = false, 3000); 
+      scannedOffline.value.add(serialNumber); // Add to queue for upload
+      showConfetti.value = true; // Trigger confetti on local success
+      setTimeout(() => showConfetti.value = false, 3000); // Hide confetti after 3s
+      // You might want to fetch customer name if needed
+      // eventCustomerName.value = getLocalCustomerName(serialNumber);
       scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Attempt an immediate upload after a successful scan
+      // Use a timeout to avoid blocking the UI thread immediately
       setTimeout(syncScannedData, 100);
     }
   } else {
-    console.log(`Serial ${serialNumber} not found in local list for ${eventGuid.value}.`);
+    // 3. Serial not found in local list
+    console.log(`Serial ${serialNumber} not found in local list.`);
     errorMessage.value = 'Invalid or inactive ticket.';
     scanState.value = 'error';
   }
+
+  // We no longer need isLoading here as validation is local and fast
+  // isLoading.value = false;
 }
 
 const toggleScanMode = () => {
@@ -393,21 +274,47 @@ const setupNFC = async () => {
   }
 }
 
-// --- Watcher for Selected Event ---
-watch(selectedEventGuid, (newGuid, oldGuid) => {
-  if (newGuid && newGuid !== eventGuid.value) { // Only load if different from currently loaded
-    console.log(`Selected event changed to: ${newGuid}`);
-    loadEventData(newGuid);
-  }
-});
+const fetchCampaignDetails = async () => {
+  isLoading.value = true; // Start loading
+  try {
+    const response = await campaignStore.fetchCampaignByCampaignGuid(campaignGuid)
+    console.log('Campaign details response:', response)
 
-// --- Lifecycle Hooks ---
+    if (!response || !response.campaign || !response.event) {
+      console.error('Invalid campaign response structure:', response)
+      errorMessage.value = 'Failed to load event details.';
+      scanState.value = 'error'; // Use scanState to show error on the main screen
+      return;
+    }
+
+    campaign.value = response.campaign
+    eventGuid.value = response.event.eventGuid
+    updateEventInfo(campaign.value)
+
+    // *** Fetch initial serial numbers after getting eventGuid ***
+    await fetchAndStoreSerialNumbers();
+
+  } catch (error) {
+    console.error('Error fetching campaign details:', error)
+    errorMessage.value = 'Failed to load event details.';
+    scanState.value = 'error';
+  } finally {
+    isLoading.value = false; // Stop loading
+  }
+}
+
 onMounted(async () => {
   (window as any).receiveNfcData = receiveNfcData; // Keep for potential external calls?
-  await loadAvailableEvents(); // Load event list first
-  // loadEventData is now called by loadAvailableEvents or the watcher
+  await fetchCampaignDetails(); // This now fetches serials too
   await setupNFC();
-  // Intervals are now started by loadEventData
+
+  // Start periodic sync and upload
+  if (eventGuid.value) {
+    // Sync serial list every 5 minutes
+    syncIntervalId = window.setInterval(fetchAndStoreSerialNumbers, SYNC_INTERVAL);
+    // Attempt to upload pending scans every 1 minute
+    uploadIntervalId = window.setInterval(syncScannedData, UPLOAD_INTERVAL);
+  }
 })
 
 onUnmounted(() => {
@@ -421,14 +328,20 @@ onUnmounted(() => {
     }
   }
   // Clear intervals
-  clearSyncIntervals();
+  if (syncIntervalId) {
+    clearInterval(syncIntervalId);
+  }
+   if (uploadIntervalId) {
+    clearInterval(uploadIntervalId);
+  }
 })
 </script>
 
 <template>
   <div class="page-container">
+    <!-- Add a syncing indicator -->
     <VProgressLinear
-      v-if="isSyncing || isLoading || isEventListLoading" 
+      v-if="isSyncing"
       indeterminate
       color="primary"
       absolute
@@ -436,62 +349,41 @@ onUnmounted(() => {
     />
     <div class="mobile-frame" :class="scanState">
       <div class="status-bar">
-        <VBtn 
-          icon 
-          variant="text" 
-          :color="scanState === 'initial' && !isLoading ? 'black' : 'white'" 
-          @click="$router.back()"
-          :disabled="isLoading || isEventListLoading"
-        >
+        <VBtn icon variant="text" :color="scanState === 'initial' ? 'black' : 'white'" @click="$router.back()">
           <VIcon icon="tabler-arrow-left" />
         </VBtn>
+        <!-- Display Sync Status -->
         <VSpacer />
-        <!-- Event Selector Dropdown -->
-        <VSelect
-          v-if="availableEvents.length > 0"
-          v-model="selectedEventGuid"
-          :items="availableEvents"
-          item-title="eventName"
-          item-value="eventGuid"
-          density="compact"
-          variant="solo-filled"
-          hide-details
-          :disabled="isLoading || isEventListLoading || isSyncing"
-          class="event-selector mx-2"
-          style="max-width: 180px;"
-        />
-
-        <!-- Sync Status Chip -->
         <VChip
           v-if="lastSyncTime"
           size="small"
-          :color="scannedOffline.size > 0 ? 'warning' : (isSyncing ? 'blue' : 'success')"
+          :color="scannedOffline.size > 0 ? 'warning' : 'success'"
           variant="flat"
           label
-          class="sync-chip"
         >
-          <VIcon start :icon="isSyncing ? 'tabler-refresh-alert' : (scannedOffline.size > 0 ? 'tabler-cloud-upload' : 'tabler-cloud-check')" />
+          <VIcon start :icon="isSyncing ? 'tabler-refresh-alert' : 'tabler-cloud-check'" />
           {{ isSyncing ? 'Syncing...' : (scannedOffline.size > 0 ? `${scannedOffline.size} Pending` : 'Synced') }}
            @ {{ lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
         </VChip>
          <VChip
-          v-else-if="isLoading || isEventListLoading"
+          v-else-if="isLoading"
           size="small"
           color="grey"
           variant="flat"
           label
         >
            <VIcon start icon="tabler-loader" />
-           {{ isEventListLoading ? 'Loading Events...' : 'Loading Data...' }}
+           Loading...
          </VChip>
       </div>
 
       <div class="content-container">
-         <template v-if="isLoading || isEventListLoading">
+         <template v-if="isLoading">
+           <!-- Optional: Dedicated Loading Spinner -->
            <VProgressCircular indeterminate color="primary" size="64" />
-           <p class="mt-4">{{ isEventListLoading ? 'Loading available events...' : 'Loading event data...' }}</p>
+           <p class="mt-4">Loading event data...</p>
          </template>
-        <template v-else-if="scanState === 'initial' && eventGuid"> 
+        <template v-else-if="scanState === 'initial'">
           <!-- NFC Scanning UI -->
           <div v-if="scanMode === 'nfc'" class="scan-animation">
             <div class="nfc-ring"></div>
@@ -520,7 +412,7 @@ onUnmounted(() => {
 
           <template v-if="campaign?.styleSettings?.type === 'event'">
             <h1 class="welcome-text text-black">
-              {{ $t('Tap to Access') }} {{ campaign?.campaignName || 'Event' }}
+              {{ $t('Tap to Access') }} {{ campaign?.campaignName || $t('Event Location') }}
             </h1>
             <p class="subtitle-text text-primary">
               {{ scanMode === 'nfc' 
@@ -549,18 +441,36 @@ onUnmounted(() => {
             class="toggle-button"
             @click="toggleScanMode"
             prepend-icon="tabler-refresh"
-            :disabled="!eventGuid" 
           >
             {{ scanMode === 'nfc' ? $t('Switch to QR Code') : $t('Switch to NFC') }}
           </VBtn>
         </template>
-         <template v-else-if="!eventGuid && !isLoading && !isEventListLoading && availableEvents.length > 0">
-            <!-- Prompt to select an event if none is loaded -->
-             <VIcon icon="tabler-calendar-event" size="64" color="grey-darken-1" class="mb-4" />
-             <h1 class="welcome-text text-black">Select an Event</h1>
-             <p class="subtitle-text text-primary">Choose an event from the dropdown above to start scanning.</p>
-         </template>
-        <template v-else-if="scanState === 'success'">
+        
+        <template v-else-if="scanState === 'error'">
+          <div class="result-animation error">
+            <div class="result-icon">
+              <VIcon
+                icon="tabler-alert-circle"
+                color="white"
+                size="64"
+              />
+            </div>
+          </div>
+
+          <h1 class="welcome-text">
+            {{ errorMessage.includes('Failed to load') ? $t('Error') : $t('Access Denied') }}
+          </h1>
+
+          <p class="error-message subtitle-text">
+            {{ errorMessage || $t('Please try again or contact support.') }}
+          </p>
+
+          <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
+            {{ $t('Try Again') }}
+          </VBtn>
+        </template>
+
+        <template v-else>
           <div class="result-animation" :class="scanState">
             <div class="result-icon">
               <VIcon
@@ -576,94 +486,74 @@ onUnmounted(() => {
           </h1>
           
           <h2 class="location-text">
-            {{ campaign?.campaignName || 'Event Location' }}
+            {{ campaign?.campaignName || $t('Event Location') }}
           </h2>
 
-          <div class="ticket-info">
-            <ConfettiExplosion 
-              v-if="showConfetti"
-              :particleCount="200"
-              :particleSize="12"
-              :force="0.8"
-              class="confetti-container"
-            />
-            <template v-if="campaign?.styleSettings?.type === 'event'">              
+          <template v-if="scanState === 'success'">
+            <div class="ticket-info">
+              <ConfettiExplosion 
+                v-if="showConfetti"
+                :particleCount="200"
+                :particleSize="12"
+                :force="0.8"
+                class="confetti-container"
+              />
+              <template v-if="campaign?.styleSettings?.type === 'event'">              
+                <div class="scan-row">
+                  <span class="scan-label">{{ $t('SCANNED AT') }}</span>
+                  <span class="scan-value">{{ scanTime }}</span>
+                </div>
+                
+                <div class="message-text">
+                  {{ $t('Enjoy the event!') }}
+                </div>
+              </template>
+
+              <template v-if="campaign?.styleSettings?.type === 'membership'">
+                <div class="info-row">
+                  <div class="info-col">
+                    <div class="info-label">MEMBER</div>
+                    <div class="info-value">{{ eventCustomerName || 'Membership Validated' }}</div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
+              {{ $t('Scan Next') }}
+            </VBtn>
+          </template>
+
+          <template v-else-if="scanState === 'already_scanned'">
+             <div class="result-animation already_scanned">
+               <div class="result-icon">
+                 <VIcon
+                   icon="tabler-alert-triangle"
+                   color="white"
+                   size="64"
+                 />
+               </div>
+             </div>
+
+             <h1 class="welcome-text">
+               {{ $t('Ticket Already Scanned!') }}
+             </h1>
+             
+             <h2 class="location-text">
+               {{ campaign?.campaignName || $t('Event Location') }}
+             </h2>
+
+            <div class="scan-info">
               <div class="scan-row">
                 <span class="scan-label">{{ $t('SCANNED AT') }}</span>
                 <span class="scan-value">{{ scanTime }}</span>
               </div>
-              
-              <div class="message-text">
-                {{ $t('Enjoy the event!') }}
-              </div>
-            </template>
-
-            <template v-if="campaign?.styleSettings?.type === 'membership'">
-              <div class="info-row">
-                <div class="info-col">
-                  <div class="info-label">MEMBER</div>
-                  <div class="info-value">{{ eventCustomerName || 'Membership Validated' }}</div>
-                </div>
-              </div>
-            </template>
-          </div>
-
-          <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
-            {{ $t('Scan Next') }}
-          </VBtn>
-        </template>
-        <template v-else-if="scanState === 'already_scanned'">
-           <div class="result-animation already_scanned">
-             <div class="result-icon">
-               <VIcon
-                 icon="tabler-alert-triangle"
-                 color="white"
-                 size="64"
-               />
-             </div>
-           </div>
-
-           <h1 class="welcome-text">
-             {{ $t('Ticket Already Scanned!') }}
-           </h1>
-           
-           <h2 class="location-text">
-             {{ campaign?.campaignName || 'Event Location' }}
-           </h2>
-
-          <div class="scan-info">
-            <div class="scan-row">
-              <span class="scan-label">{{ $t('SCANNED AT') }}</span>
-              <span class="scan-value">{{ scanTime }}</span>
             </div>
-          </div>
 
-          <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
-            {{ $t('Scan Next') }}
-          </VBtn>
-        </template>
-        <template v-else-if="scanState === 'error'">
-          <div class="result-animation error">
-            <div class="result-icon">
-              <VIcon
-                icon="tabler-alert-circle"
-                color="white"
-                size="64"
-              />
-            </div>
-          </div>
-
-          <h1 class="welcome-text">
-            {{ errorMessage.includes('load') || errorMessage.includes('No accessible events') ? $t('Error') : $t('Access Denied') }}
-          </h1>
-
-          <p class="error-message subtitle-text">
-            {{ errorMessage || $t('Please try again or contact support.') }}
-          </p>
-
-          <VBtn color="white" variant="outlined" class="action-button" @click="scanState === 'initial' ? loadAvailableEvents() : resetScan">
-            {{ scanState === 'initial' && errorMessage.includes('load') ? $t('Reload Events') : $t('Try Again') }}
-          </VBtn>
+            <VBtn color="white" variant="outlined" class="action-button" @click="resetScan">
+              {{ $t('Scan Next') }}
+            </VBtn>
+          </template>
         </template>
       </div>
     </div>
@@ -951,20 +841,5 @@ onUnmounted(() => {
   margin-bottom: 2rem;
   font-weight: 500;
   opacity: 1;
-}
-
-.event-selector {
-  flex-grow: 0;
-  flex-shrink: 1;
-}
-
-.sync-chip {
-  flex-shrink: 0;
-}
-
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem; /* Add some gap */
 }
 </style> 
