@@ -882,10 +882,10 @@ onUnmounted(() => {
 
 .event-selector-container {
   position: absolute;
-  top: 48px; /* Adjust based on your status bar height */
+  top: 60px; /* Increased from 48px to move it lower */
   right: 1rem;
   width: 300px;
-  z-index: 10;
+  z-index: 1; /* Reduced z-index so it doesn't overlap main content */
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
@@ -909,5 +909,18 @@ onUnmounted(() => {
 .event-date {
   font-size: 0.75rem;
   opacity: 0.7;
+}
+
+.content-container {
+  padding-top: 60px; /* Add padding to push content down */
+  z-index: 2; /* Ensure content stays above the event selector */
+}
+
+.scan-animation {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 1.5rem 0;
+  z-index: 2; /* Ensure NFC logo stays above the event selector */
 }
 </style> 
