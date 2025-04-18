@@ -46,6 +46,8 @@ const nfcTagId = ref('');
 const showConfetti = ref(false);
 const errorMessage = ref('');
 const eventCustomerName = ref('');
+const events = ref<Event[]>([]);
+const selectedEventGuid = ref('');
 
 // --- Offline Sync State ---
 const localSerialNumbers = ref<Set<string>>(new Set());
@@ -274,48 +276,53 @@ const setupNFC = async () => {
   }
 }
 
-const fetchCampaignDetails = async () => {
-  isLoading.value = true; // Start loading
+const handleEventChange = async () => {
+  if (!selectedEventGuid.value) return;
+  
+  eventGuid.value = selectedEventGuid.value;
+  // Reset states
+  resetScan();
+  // Fetch new serial numbers for selected event
+  await fetchAndStoreSerialNumbers();
+};
+
+const fetchInitialData = async () => {
+  isLoading.value = true;
   try {
-    const response = await campaignStore.fetchCampaignByCampaignGuid(campaignGuid)
-    console.log('Campaign details response:', response)
-
-    if (!response || !response.campaign || !response.event) {
-      console.error('Invalid campaign response structure:', response)
-      errorMessage.value = 'Failed to load event details.';
-      scanState.value = 'error'; // Use scanState to show error on the main screen
-      return;
+    // Fetch campaign and events
+    await campaignStore.fetchEvents(campaignGuid);
+    events.value = campaignStore.events;
+    
+    // If we have events, select the first one by default
+    if (events.value.length > 0) {
+      selectedEventGuid.value = events.value[0].eventGuid;
+      eventGuid.value = selectedEventGuid.value;
+      await fetchAndStoreSerialNumbers();
     }
-
-    campaign.value = response.campaign
-    eventGuid.value = response.event.eventGuid
-    updateEventInfo(campaign.value)
-
-    // *** Fetch initial serial numbers after getting eventGuid ***
-    await fetchAndStoreSerialNumbers();
-
+    
+    const response = await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
+    campaign.value = response.campaign;
+    updateEventInfo(campaign.value);
   } catch (error) {
-    console.error('Error fetching campaign details:', error)
+    console.error('Error fetching initial data:', error);
     errorMessage.value = 'Failed to load event details.';
     scanState.value = 'error';
   } finally {
-    isLoading.value = false; // Stop loading
+    isLoading.value = false;
   }
-}
+};
 
 onMounted(async () => {
-  (window as any).receiveNfcData = receiveNfcData; // Keep for potential external calls?
-  await fetchCampaignDetails(); // This now fetches serials too
+  (window as any).receiveNfcData = receiveNfcData;
+  await fetchInitialData();
   await setupNFC();
 
   // Start periodic sync and upload
   if (eventGuid.value) {
-    // Sync serial list every 5 minutes
     syncIntervalId = window.setInterval(fetchAndStoreSerialNumbers, SYNC_INTERVAL);
-    // Attempt to upload pending scans every 1 minute
     uploadIntervalId = window.setInterval(syncScannedData, UPLOAD_INTERVAL);
   }
-})
+});
 
 onUnmounted(() => {
   // Clean up NFC listener
@@ -352,8 +359,8 @@ onUnmounted(() => {
         <VBtn icon variant="text" :color="scanState === 'initial' ? 'black' : 'white'" @click="$router.back()">
           <VIcon icon="tabler-arrow-left" />
         </VBtn>
-        <!-- Display Sync Status -->
         <VSpacer />
+        <!-- Display Sync Status -->
         <VChip
           v-if="lastSyncTime"
           size="small"
@@ -365,16 +372,46 @@ onUnmounted(() => {
           {{ isSyncing ? 'Syncing...' : (scannedOffline.size > 0 ? `${scannedOffline.size} Pending` : 'Synced') }}
            @ {{ lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
         </VChip>
-         <VChip
-          v-else-if="isLoading"
-          size="small"
-          color="grey"
-          variant="flat"
-          label
+      </div>
+
+      <!-- Add Events Dropdown below sync status -->
+      <div class="event-selector-container" v-if="events.length > 0">
+        <VSelect
+          v-model="selectedEventGuid"
+          :items="events"
+          item-title="eventName"
+          item-value="eventGuid"
+          label="Select Event"
+          variant="outlined"
+          density="comfortable"
+          :bg-color="scanState === 'initial' ? 'surface' : 'rgba(255, 255, 255, 0.1)'"
+          :color="scanState === 'initial' ? 'primary' : 'white'"
+          :theme="scanState === 'initial' ? 'light' : 'dark'"
+          class="event-select"
+          hide-details
+          @update:model-value="handleEventChange"
         >
-           <VIcon start icon="tabler-loader" />
-           Loading...
-         </VChip>
+          <template #selection="{ item }">
+            <div class="event-select-item">
+              <span class="event-name">{{ item.raw.eventName }}</span>
+              <span v-if="item.raw.eventBeginDt" class="event-date">
+                {{ new Date(item.raw.eventBeginDt).toLocaleDateString() }}
+              </span>
+            </div>
+          </template>
+          <template #item="{ item, props }">
+            <VListItem v-bind="props">
+              <template #title>
+                <div class="event-select-item">
+                  <span class="event-name">{{ item.raw.eventName }}</span>
+                  <span v-if="item.raw.eventBeginDt" class="event-date">
+                    {{ new Date(item.raw.eventBeginDt).toLocaleDateString() }}
+                  </span>
+                </div>
+              </template>
+            </VListItem>
+          </template>
+        </VSelect>
       </div>
 
       <div class="content-container">
@@ -841,5 +878,36 @@ onUnmounted(() => {
   margin-bottom: 2rem;
   font-weight: 500;
   opacity: 1;
+}
+
+.event-selector-container {
+  position: absolute;
+  top: 48px; /* Adjust based on your status bar height */
+  right: 1rem;
+  width: 300px;
+  z-index: 10;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.event-select {
+  font-size: 0.875rem;
+}
+
+.event-select-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.event-name {
+  font-weight: 500;
+}
+
+.event-date {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 </style> 
