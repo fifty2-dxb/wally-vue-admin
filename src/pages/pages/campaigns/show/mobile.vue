@@ -68,6 +68,14 @@ let syncIntervalId: number | null = null;
 let uploadIntervalId: number | null = null;
 const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const UPLOAD_INTERVAL = 1 * 60 * 1000; // 1 minute
+
+// --- Access Logs Sync State ---
+const localAccessLogs = ref<Set<string>>(new Set());
+const isLogsSyncing = ref(false);
+const lastLogsSyncTime = ref<Date | null>(null);
+let logsSyncIntervalId: number | null = null;
+const LOGS_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
 // --- End Offline Sync State ---
 
 // Event information based on campaign type
@@ -209,7 +217,52 @@ const syncScannedData = async () => {
 };
 // --- End Sync Functions ---
 
-// Updated Scanning Logic (receiveNfcData)
+// Add access logs sync function
+const syncAccessLogs = async () => {
+  if (!eventGuid.value || isLogsSyncing.value) return;
+
+  console.log('Syncing access logs...');
+  isLogsSyncing.value = true;
+  try {
+    const logs = await campaignStore.fetchDailyLog(
+      campaignGuid,
+      eventGuid.value,
+      'access',
+      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Last 7 days
+      new Date().toISOString()
+    );
+    
+    const newAccessLogs = new Set<string>(logs.map((log: { serialNumber: string }) => log.serialNumber));
+    localAccessLogs.value = newAccessLogs;
+    lastLogsSyncTime.value = new Date();
+    console.log(`Successfully synced ${localAccessLogs.value.size} access logs.`);
+  } catch (error) {
+    console.error('Error syncing access logs:', error);
+  } finally {
+    isLogsSyncing.value = false;
+  }
+};
+
+// Update the checkAccessLogs function to use local data
+const checkAccessLogs = (serialNumber: string) => {
+  return localAccessLogs.value.has(serialNumber);
+};
+
+// Update handleEventChange to sync access logs
+const handleEventChange = async () => {
+  if (!selectedEventGuid.value) return;
+  
+  eventGuid.value = selectedEventGuid.value;
+  // Reset states
+  resetScan();
+  // Fetch new serial numbers and access logs for selected event
+  await Promise.all([
+    fetchAndStoreSerialNumbers(),
+    syncAccessLogs()
+  ]);
+};
+
+// Update the receiveNfcData function
 const receiveNfcData = async (scannedData: string) => {
   const serialNumber = scannedData.trim();
   if (!serialNumber) {
@@ -226,33 +279,33 @@ const receiveNfcData = async (scannedData: string) => {
     if (scannedOffline.value.has(serialNumber)) {
       console.log(`Serial ${serialNumber} already scanned locally.`);
       scanState.value = 'already_scanned';
-      // You might want to fetch customer name if needed, maybe store it locally too?
-      // eventCustomerName.value = getLocalCustomerName(serialNumber); 
       scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
-      console.log(`Serial ${serialNumber} validated locally. Adding to offline queue.`);
-      scanState.value = 'success';
-      scannedOffline.value.add(serialNumber); // Add to queue for upload
-      showConfetti.value = true; // Trigger confetti on local success
-      setTimeout(() => showConfetti.value = false, 3000); // Hide confetti after 3s
-      // You might want to fetch customer name if needed
-      // eventCustomerName.value = getLocalCustomerName(serialNumber);
-      scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      // 3. Check access logs for previous scans
+      const wasPreviouslyScanned = await checkAccessLogs(serialNumber);
+      if (wasPreviouslyScanned) {
+        console.log(`Serial ${serialNumber} was previously scanned.`);
+        scanState.value = 'already_scanned';
+        scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else {
+        console.log(`Serial ${serialNumber} validated locally. Adding to offline queue.`);
+        scanState.value = 'success';
+        scannedOffline.value.add(serialNumber); // Add to queue for upload
+        showConfetti.value = true; // Trigger confetti on local success
+        setTimeout(() => showConfetti.value = false, 3000); // Hide confetti after 3s
+        scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      // Attempt an immediate upload after a successful scan
-      // Use a timeout to avoid blocking the UI thread immediately
-      setTimeout(syncScannedData, 100);
+        // Attempt an immediate upload after a successful scan
+        setTimeout(syncScannedData, 100);
+      }
     }
   } else {
-    // 3. Serial not found in local list
+    // 4. Serial not found in local list
     console.log(`Serial ${serialNumber} not found in local list.`);
     errorMessage.value = 'Invalid or inactive ticket.';
     scanState.value = 'error';
   }
-
-  // We no longer need isLoading here as validation is local and fast
-  // isLoading.value = false;
-}
+};
 
 const toggleScanMode = () => {
   scanMode.value = scanMode.value === 'nfc' ? 'qr' : 'nfc';
@@ -285,16 +338,6 @@ const setupNFC = async () => {
     console.error('Error setting up NFC:', error)
   }
 }
-
-const handleEventChange = async () => {
-  if (!selectedEventGuid.value) return;
-  
-  eventGuid.value = selectedEventGuid.value;
-  // Reset states
-  resetScan();
-  // Fetch new serial numbers for selected event
-  await fetchAndStoreSerialNumbers();
-};
 
 const fetchInitialData = async () => {
   isLoading.value = true;
@@ -331,6 +374,7 @@ onMounted(async () => {
   if (eventGuid.value) {
     syncIntervalId = window.setInterval(fetchAndStoreSerialNumbers, SYNC_INTERVAL);
     uploadIntervalId = window.setInterval(syncScannedData, UPLOAD_INTERVAL);
+    logsSyncIntervalId = window.setInterval(syncAccessLogs, LOGS_SYNC_INTERVAL);
   }
 });
 
@@ -348,8 +392,11 @@ onUnmounted(() => {
   if (syncIntervalId) {
     clearInterval(syncIntervalId);
   }
-   if (uploadIntervalId) {
+  if (uploadIntervalId) {
     clearInterval(uploadIntervalId);
+  }
+  if (logsSyncIntervalId) {
+    clearInterval(logsSyncIntervalId);
   }
 })
 </script>
