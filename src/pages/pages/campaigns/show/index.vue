@@ -6,6 +6,7 @@ import DashboardCard from './DashboardCard.vue'
 import DonutChart from './DonutChart.vue'
 import BarChart from './BarChart.vue'
 import AccessLogsTable from './AccessLogsTable.vue'
+import EventAnalytics from './EventAnalytics.vue'
 import { useCustomerStore } from '@/stores/customer';
 import ImportMembersWizard from '@/components/campaign/ImportMembersWizard.vue';
 import AddMemberWizard from '@/components/campaign/AddMemberWizard.vue';
@@ -290,6 +291,9 @@ const applyFilters = async () => {
 
   try {
     isLoading.value = true;
+    //also load the access logs
+    await fetchLatestLogs();
+
     await campaignStore.fetchCampaignStatistics(
       campaignStore.selectedEvent.eventGuid,
       campaignGuid,
@@ -363,6 +367,7 @@ const fetchStatistics = async () => {
   try {
     isLoading.value = true;
     await campaignStore.fetchCampaignStatisticsMonthly(
+      campaignStore.selectedEvent.eventGuid,
       campaignGuid,
       startDateMonthly.value,
       endDateMonthly.value
@@ -377,19 +382,13 @@ const fetchStatistics = async () => {
 
 const fetchLatestLogs = async () => {
   try {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const startDate = today.toISOString().split('T')[0];
-    const endDate = tomorrow.toISOString().split('T')[0];
 
     const logs = await campaignStore.fetchDailyLog(
       campaignGuid,
       campaignStore.selectedEvent.eventGuid,
       'access',
-      startDate,
-      endDate
+      startDate.value,
+      endDate.value
     );
 
     accessLogsData.value = logs.map(log => ({
@@ -403,13 +402,13 @@ const fetchLatestLogs = async () => {
 
   } catch (error) {
     console.error('Error fetching daily logs:', error);
-    showSnackbar('Failed to fetch access logs', 'error');
+    showSnackbar('Failed to fetch access logs, event not selected', 'error');
   }
 };
 
 onMounted(() => {
   fetchCampaignDetails(campaignGuid);
-  fetchStatistics();
+  //fetchStatistics();
   fetchEvents();
 });
 
@@ -976,6 +975,11 @@ const filteredGuests = computed(() => {
   });
 });
 
+// Add this computed property to check if analytics should be shown
+const showAnalytics = computed(() => {
+  return campaignStore.selectedEvent && startDate.value && endDate.value && accessLogsData.value.length > 0;
+});
+
 </script>
 
 <template>
@@ -1084,75 +1088,6 @@ const filteredGuests = computed(() => {
       </VCard>
     </VCol>
 
-    <!-- Access Logs Section -->
-    <VCol cols="12" md="4" class="ps-md-4 mb-6">
-      <VCard class="modern-card sticky-card">
-        <VCardTitle class="pa-4 d-flex align-center">
-          <VIcon icon="tabler-history" color="primary" class="me-2" />
-          <span>Latest Activity</span>
-          <VSpacer />
-          <VBtn
-            icon
-            variant="text"
-            size="small"
-            @click="fetchLatestLogs"
-          >
-            <VIcon icon="tabler-refresh" />
-          </VBtn>
-        </VCardTitle>
-        <VDivider />
-        <VList class="pa-0">
-          <VListItem
-            v-for="log in accessLogsData"
-            :key="log.id"
-            class="px-4 py-3"
-          >
-            <template #prepend>
-              <VAvatar
-                :color="log.passValue === 1 ? 'success' : 'error'"
-                variant="tonal"
-                size="40"
-                class="me-4"
-              >
-                <VIcon
-                  :icon="log.passValue === 1 ? 'tabler-check' : 'tabler-x'"
-                  size="24"
-                  color="black"
-                />
-              </VAvatar>
-            </template>
-            <VListItemTitle class="font-weight-medium">
-              {{ log.name }}
-            </VListItemTitle>
-            <VListItemSubtitle class="font-weight-emphasis">
-              {{ log.eventDescription }}
-            </VListItemSubtitle>
-            <VListItemSubtitle class="text-medium-emphasis">
-              {{ new Date(log.date).toLocaleString() }}
-            </VListItemSubtitle>
-            <template #append>
-              <VChip
-                size="small"
-                :color="log.passValue === 1 ? 'success' : 'error'"
-                variant="tonal"
-                class="ml-2"
-              >
-                {{ log.passValue === 1 ? 'Access Granted' : 'Access Denied' }}
-              </VChip>
-            </template>
-          </VListItem>
-        </VList>
-        <VDivider />
-        <div class="d-flex justify-center pa-2">
-          <VPagination
-            v-model="currentPage"
-            :length="totalPages"
-            :total-visible="5"
-            density="comfortable"
-          />
-        </div>
-      </VCard>
-    </VCol>
   </VRow>
 
   <!-- Event Selection (if campaign type is event) -->
@@ -1213,14 +1148,14 @@ const filteredGuests = computed(() => {
       </template>
       <template #item.actions="{ item }">
         <div class="d-flex gap-2">
-          <VBtn
-            size="small"
-            :color="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'primary' : 'grey'"
-            :variant="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'flat' : 'tonal'"
-            @click="handleEventChange(item)"
-          >
-            {{ campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'Selected' : 'Select' }}
-          </VBtn>
+        <VBtn
+          size="small"
+          :color="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'primary' : 'grey'"
+          :variant="campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'flat' : 'tonal'"
+          @click="handleEventChange(item)"
+        >
+          {{ campaignStore.selectedEvent?.eventGuid === item.eventGuid ? 'Selected' : 'Select' }}
+        </VBtn>
           <VBtn
             icon
             variant="text"
@@ -2462,6 +2397,21 @@ const filteredGuests = computed(() => {
       </VCardText>
     </VCard>
   </VDialog>
+
+  <VCard v-if="showAnalytics" class="mt-4">
+    <VCardTitle class="d-flex align-center">
+      <VIcon icon="tabler-chart-bar" color="primary" class="me-2" />
+      Event Analytics
+    </VCardTitle>
+    <VCardText>
+      <EventAnalytics
+        :access-logs-data="accessLogsData"
+        :event-guests="campaignStore.eventGuests"
+        :start-date="startDate"
+        :end-date="endDate"
+      />
+    </VCardText>
+  </VCard>
 </template>
 
 <style scoped>
