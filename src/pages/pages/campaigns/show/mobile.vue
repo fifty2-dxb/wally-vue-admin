@@ -89,6 +89,21 @@ const scanMode = ref<'nfc' | 'qr'>('nfc');
 const qrCodeInput = ref('');
 const qrInputRef = ref<HTMLInputElement | null>(null);
 
+// Add this near the top of the script section with other refs
+const scannedTickets = ref<Set<string>>(new Set());
+
+// Add this function to handle local storage
+const loadScannedTickets = () => {
+  const stored = localStorage.getItem(`scanned_tickets_${eventGuid.value}`);
+  if (stored) {
+    scannedTickets.value = new Set(JSON.parse(stored));
+  }
+};
+
+const saveScannedTickets = () => {
+  localStorage.setItem(`scanned_tickets_${eventGuid.value}`, JSON.stringify([...scannedTickets.value]));
+};
+
 const updateEventInfo = (campaign: Campaign | null) => {
   if (!campaign) return;
   
@@ -248,13 +263,15 @@ const checkAccessLogs = (serialNumber: string) => {
   return localAccessLogs.value.has(serialNumber);
 };
 
-// Update handleEventChange to sync access logs
+// Modify the handleEventChange function to load scanned tickets
 const handleEventChange = async () => {
   if (!selectedEventGuid.value) return;
   
   eventGuid.value = selectedEventGuid.value;
   // Reset states
   resetScan();
+  // Load scanned tickets for the new event
+  loadScannedTickets();
   // Fetch new serial numbers and access logs for selected event
   await Promise.all([
     fetchAndStoreSerialNumbers(),
@@ -262,7 +279,7 @@ const handleEventChange = async () => {
   ]);
 };
 
-// Update the receiveNfcData function
+// Modify the receiveNfcData function
 const receiveNfcData = async (scannedData: string) => {
   const serialNumber = scannedData.trim();
   if (!serialNumber) {
@@ -275,32 +292,41 @@ const receiveNfcData = async (scannedData: string) => {
 
   // 1. Check against local list
   if (localSerialNumbers.value.has(serialNumber)) {
-    // 2. Check if already scanned locally (since last sync)
-    if (scannedOffline.value.has(serialNumber)) {
+    // 2. Check if already scanned locally
+    if (scannedTickets.value.has(serialNumber) || scannedOffline.value.has(serialNumber)) {
       console.log(`Serial ${serialNumber} already scanned locally.`);
       scanState.value = 'already_scanned';
       scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else {
-      // 3. Check access logs for previous scans
-      const wasPreviouslyScanned = await checkAccessLogs(serialNumber);
-      if (wasPreviouslyScanned) {
-        console.log(`Serial ${serialNumber} was previously scanned.`);
-        scanState.value = 'already_scanned';
-        scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      } else {
-        console.log(`Serial ${serialNumber} validated locally. Adding to offline queue.`);
-        scanState.value = 'success';
-        scannedOffline.value.add(serialNumber); // Add to queue for upload
-        showConfetti.value = true; // Trigger confetti on local success
-        setTimeout(() => showConfetti.value = false, 3000); // Hide confetti after 3s
-        scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        // Attempt an immediate upload after a successful scan
-        setTimeout(syncScannedData, 100);
-      }
+      return;
     }
+
+    // 3. Check access logs for previous scans
+    const wasPreviouslyScanned = localAccessLogs.value.has(serialNumber);
+    if (wasPreviouslyScanned) {
+      console.log(`Serial ${serialNumber} was previously scanned according to access logs.`);
+      scanState.value = 'already_scanned';
+      scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return;
+    }
+
+    // 4. New valid scan
+    console.log(`Serial ${serialNumber} validated locally. Adding to offline queue.`);
+    scanState.value = 'success';
+    scannedOffline.value.add(serialNumber); // Add to queue for upload
+    scannedTickets.value.add(serialNumber); // Add to local storage tracking
+    saveScannedTickets(); // Save to local storage
+    showConfetti.value = true; // Trigger confetti on local success
+    setTimeout(() => showConfetti.value = false, 3000); // Hide confetti after 3s
+    scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Attempt an immediate upload after a successful scan
+    setTimeout(async () => {
+      await syncScannedData();
+      // Sync access logs after successful scan upload
+      await syncAccessLogs();
+    }, 100);
   } else {
-    // 4. Serial not found in local list
+    // 5. Serial not found in local list
     console.log(`Serial ${serialNumber} not found in local list.`);
     errorMessage.value = 'Invalid or inactive ticket.';
     scanState.value = 'error';
@@ -350,7 +376,10 @@ const fetchInitialData = async () => {
     if (events.value.length > 0) {
       selectedEventGuid.value = events.value[0].eventGuid;
       eventGuid.value = selectedEventGuid.value;
-      await fetchAndStoreSerialNumbers();
+      await Promise.all([
+        fetchAndStoreSerialNumbers(),
+        syncAccessLogs()
+      ]);
     }
     
     const response = await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
@@ -365,10 +394,36 @@ const fetchInitialData = async () => {
   }
 };
 
+// Modify the resetLocalState function
+const resetLocalState = () => {
+  scannedOffline.value.clear();
+  localAccessLogs.value.clear();
+  lastSyncTime.value = null;
+  lastLogsSyncTime.value = null;
+  scannedTickets.value.clear();
+  localStorage.removeItem(`scanned_tickets_${eventGuid.value}`);
+};
+
+// Modify the handleTestScan function
+const handleTestScan = async () => {
+  const testSerial = '987ab727-5e40-49bf-b6f4-0fc6bf14d344';
+  
+  // Check if already scanned
+  if (scannedTickets.value.has(testSerial) || scannedOffline.value.has(testSerial)) {
+    scanState.value = 'already_scanned';
+    scanTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return;
+  }
+
+  // Perform the test scan
+  await receiveNfcData(testSerial);
+};
+
 onMounted(async () => {
   (window as any).receiveNfcData = receiveNfcData;
   await fetchInitialData();
   await setupNFC();
+  loadScannedTickets(); // Load scanned tickets on mount
 
   // Start periodic sync and upload
   if (eventGuid.value) {
@@ -552,6 +607,17 @@ onUnmounted(() => {
           >
             {{ scanMode === 'nfc' ? $t('Switch to QR Code') : $t('Switch to NFC') }}
           </VBtn>
+
+          <!-- Test Scan Button -->
+          <VBtn
+            color="secondary"
+            variant="tonal"
+            class="test-button"
+            @click="handleTestScan"
+            prepend-icon="tabler-scan"
+          >
+            {{ $t('Test Scan') }}
+          </VBtn>
         </template>
         
         <template v-else-if="scanState === 'error'">
@@ -633,24 +699,6 @@ onUnmounted(() => {
           </template>
 
           <template v-else-if="scanState === 'already_scanned'">
-             <div class="result-animation already_scanned">
-               <div class="result-icon">
-                 <VIcon
-                   icon="tabler-alert-triangle"
-                   color="white"
-                   size="64"
-                 />
-               </div>
-             </div>
-
-             <h1 class="welcome-text">
-               {{ $t('Ticket Already Scanned!') }}
-             </h1>
-             
-             <h2 class="location-text">
-               {{ campaign?.campaignName || $t('Event Location') }}
-             </h2>
-
             <div class="scan-info">
               <div class="scan-row">
                 <span class="scan-label">{{ $t('SCANNED AT') }}</span>
