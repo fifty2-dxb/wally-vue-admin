@@ -1278,7 +1278,7 @@ const showAnalytics = computed(() => {
   </VCard>
 
   <!-- Stats and Charts Section -->
-  <VRow class="mb-5" v-if="campaignType === 'event' || campaignType === 'membership'">
+  <VRow class="mb-5" v-if="campaignType === 'event' || campaignType === 'membership'|| campaignType === 'stamp'">
     <VCol cols="12">
       <VCard class="modern-card">
         <VCardText>
@@ -1372,10 +1372,10 @@ const showAnalytics = computed(() => {
     </VCol>
   </VRow>
 
-  <VCard v-if="campaignType === 'membership'" class="modern-card mb-5">
+  <VCard v-if="campaignType === 'membership' || campaignType === 'stamp'" class="modern-card mb-5">
     <VCardTitle class="pa-6">
       <div class="d-flex flex-wrap justify-space-between align-center gap-y-4">
-        <h6 class="text-h6 mb-0">Members</h6>
+        <h6 class="text-h6 mb-0">{{ campaignType === 'membership' ? 'Members' : 'Customers' }}</h6>
         <div class="d-flex flex-wrap gap-3">
           <VTooltip
             :disabled="!isAddMemberDisabled"
