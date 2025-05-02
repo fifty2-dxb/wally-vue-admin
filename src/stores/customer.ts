@@ -35,6 +35,7 @@ interface Customer {
   isExpired?: boolean;
   logs?: any[];
   industry?: string;
+  eventGuid?: string;
 }
 
 interface UpdatePassDetails {
@@ -73,6 +74,7 @@ export const useCustomerStore = defineStore("customer", () => {
     platform: "",
     isExpired: false,
     industry: "",
+    eventGuid: "",
   });
   const serialNumberData = ref<any[]>([]);
   
@@ -178,7 +180,7 @@ export const useCustomerStore = defineStore("customer", () => {
   }
 
   const stamping = ref(false);
-  const stamp = async (count: any) => {
+  const stamp = async (count: any, eventGuid: string) => {
     stamping.value = true;
     try {
       const response = await $wallyApi(`/pass-value`, {
@@ -186,7 +188,8 @@ export const useCustomerStore = defineStore("customer", () => {
         body: {
           "serialNumber": customer.value.serialNumber,
           "value": count,
-          "type": "stamp"
+          "type": "stamp",
+          "eventGuid": eventGuid
         },
       });
       console.log("response", response);

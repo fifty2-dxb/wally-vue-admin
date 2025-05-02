@@ -191,7 +191,7 @@
           <div class="wizard-body">
             <template v-if="currentStep === 0">
               <h1 class="wizard-title">Add to Wallet</h1>
-              <p class="wizard-description">Choose your device to add this ticket to your digital wallet</p>
+              <p class="wizard-description">Choose your device to add this to your digital wallet</p>
 
               <div class="platform-options">
                 <div 

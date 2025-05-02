@@ -3,13 +3,42 @@ import { ref } from 'vue';
 import { useCustomerStore } from '@/stores/customer';
 import { QrcodeStream } from 'vue-qrcode-reader';
 
+interface DecodedCode {
+  rawValue: string;
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+interface CustomerDetails {
+  name?: string;
+  surname?: string;
+  email?: string;
+  phonenumber?: string;
+}
+
+interface SerialNumberData {
+  stampImageUrl?: string;
+  totalStamps: number;
+  redeemable: boolean;
+  customers_details?: CustomerDetails;
+}
+
 const cameraActive = ref(false);
-const loading = ref(true)
+const loading = ref(true);
 const customerStore = useCustomerStore();
 const selectedConstraints = ref({ facingMode: 'environment' });
 const result = ref('');
-const cameraError = ref(null);
+const cameraError = ref<string | null>(null);
 const customerLoaded = ref(false);
+const currentStamps = ref(1);
+
+const getSerialNumberData = () => {
+  return customerStore.serialNumberData as unknown as SerialNumberData;
+};
 
 const fetchCustomerDetails = async (serialNumber: string) => {
   try {
@@ -23,10 +52,8 @@ const fetchCustomerDetails = async (serialNumber: string) => {
 const receiveNfcData = async (data: string) => {
   if (data) {
     try {
-      console.log('data', data);
       await customerStore.fetchCustomerBySerialNumber(data);
-      console.log('customerStore', customerStore);
-      customerLoaded.value = true; 
+      customerLoaded.value = true;
     } catch (error) {
       customerLoaded.value = false;
     }
@@ -37,7 +64,7 @@ onMounted(() => {
   (window as any).receiveNfcData = receiveNfcData;
 });
 
-const onDecode = (decodedCodes) => {
+const onDecode = (decodedCodes: DecodedCode[]) => {
   const scannedCode = decodedCodes.map(code => code.rawValue).join(', ');
   result.value = scannedCode;
   customerStore.customer.serialNumber = scannedCode;
@@ -56,7 +83,7 @@ const onCameraReady = async () => {
   cameraError.value = videoDevices.length ? null : "No cameras found";
 };
 
-const paintBoundingBox = (detectedCodes, ctx) => {
+const paintBoundingBox = (detectedCodes: DecodedCode[], ctx: CanvasRenderingContext2D) => {
   ctx.strokeStyle = '#007bff';
   ctx.lineWidth = 2;
   detectedCodes.forEach(code => {
@@ -64,9 +91,8 @@ const paintBoundingBox = (detectedCodes, ctx) => {
     ctx.strokeRect(x, y, width, height);
   });
 };
-const currentStamps = ref(1);
 
-const updateStampCount = (increment) => {
+const updateStampCount = (increment: number) => {
   const newCount = currentStamps.value + increment;
   if (newCount <= 10 && newCount >= 1) {
     currentStamps.value = newCount;
@@ -74,8 +100,11 @@ const updateStampCount = (increment) => {
 };
 
 const addStamps = () => {
-  customerStore.stamp(currentStamps.value);
-  customerStore.serialNumberData.totalStamps += currentStamps.value;
+  customerStore.stamp(currentStamps.value, customerStore.customer.eventGuid || "");
+  const serialNumberData = getSerialNumberData();
+  if (serialNumberData) {
+    serialNumberData.totalStamps += currentStamps.value;
+  }
   currentStamps.value = 1;
 };
 
@@ -87,172 +116,187 @@ onBeforeRouteLeave((to, from, next) => {
   customerStore.resetCustomerData();
   next();
 });
-
 </script>
 
 <template>
-  <v-container class="d-flex justify-center align-center fill-height p-2">
-    <v-card class="card-container">
-      <v-icon size="24" class="p-2" @click="toggleCamera">tabler-camera</v-icon>
-      <v-icon size="24" class="p-2" @click="receiveNfcData">tabler-nfc</v-icon>
-      <qrcode-stream v-if="cameraActive" :constraints="selectedConstraints" :track="paintBoundingBox" @detect="onDecode"
-        @camera-on="onCameraReady" @error="error => { cameraError = error; cameraActive = false; }">
-        <template #loading>
-          <div class="loading-indicator" v-if="loading">{{ $t("Loading...") }}</div>
-        </template>
-      </qrcode-stream>
-
-      <v-img :src="customerStore.serialNumberData?.stampImageUrl" height="120px"
-        class="d-flex align-center justify-center mb-4">
-        <div class="stamps-overlay">
-          <v-icon v-for="n in 10" :key="n" class="stamp-icon">mdi-star</v-icon>
+  <VContainer class="fill-height pa-4">
+    <VCard class="mx-auto" max-width="500" elevation="2">
+      <!-- Header with Actions -->
+      <VCardItem class="d-flex justify-space-between align-center">
+        <VCardTitle class="text-h5">
+          {{ $t('Customer Card') }}
+        </VCardTitle>
+        <div class="d-flex gap-2">
+          <VBtn
+            icon
+            variant="text"
+            color="primary"
+            @click="toggleCamera"
+          >
+            <VIcon>tabler-camera</VIcon>
+          </VBtn>
+          <VBtn
+            icon
+            variant="text"
+            color="primary"
+            @click="receiveNfcData"
+          >
+            <VIcon>tabler-nfc</VIcon>
+          </VBtn>
         </div>
-      </v-img>
+      </VCardItem>
 
-      <v-row class="counter-section my-2">
-        <v-btn icon class="counter-btn" @click="updateStampCount(-1)">
-          <v-icon size="24">tabler-minus</v-icon>
-        </v-btn>
-        <span class="counter-text">{{ currentStamps }}</span>
-        <v-btn icon class="counter-btn" @click="updateStampCount(1)">
-          <v-icon size="24">tabler-plus</v-icon>
-        </v-btn>
-      </v-row>
+      <!-- QR Scanner -->
+      <VCardText v-if="cameraActive">
+        <qrcode-stream
+          :constraints="selectedConstraints"
+          :track="paintBoundingBox"
+          @detect="onDecode"
+          @camera-on="onCameraReady"
+          @error="error => { cameraError = error; cameraActive = false; }"
+        >
+          <template #loading>
+            <div class="d-flex justify-center align-center pa-4">
+              <VProgressCircular indeterminate />
+            </div>
+          </template>
+        </qrcode-stream>
+      </VCardText>
 
-      <v-row class="my-2" v-if="customerLoaded">
-        <v-col cols="6" class="px-1">
-          <v-btn block rounded="lg" color="success" @click="addStamps" :loading="customerStore.stamping"
-            :disabled="customerStore.serialNumberData.redeemable" class="text-h6 font-weight-medium add-redeem-card">
-            <v-icon size="22" class="mr-2">tabler-rubber-stamp</v-icon>
-            {{ $t("Stamp") }}
-          </v-btn>
-        </v-col>
-        <v-col cols="6" class="px-1">
-          <v-btn block rounded="lg" color="info" @click="customerStore.redeem()" :loading="customerStore.redeeming"
-            :disabled="!customerStore.serialNumberData.redeemable" class="text-h6 font-weight-medium add-redeem-card">
-            <v-icon size="22" class="mr-2">tabler-gift</v-icon>
-            {{ $t("Redeem") }}
-          </v-btn>
-        </v-col>
-      </v-row>
+      <!-- Card Image -->
+      <VCardText v-if="getSerialNumberData()?.stampImageUrl">
+        <div class="d-flex justify-center mb-4">
+          <VImg
+            :src="getSerialNumberData().stampImageUrl"
+            height="180"
+            width="300"
+            class="rounded-lg"
+          >
+            <template #placeholder>
+              <VRow class="fill-height ma-0" align="center" justify="center">
+                <VProgressCircular indeterminate />
+              </VRow>
+            </template>
+          </VImg>
+        </div>
 
-      <v-list dense class="info-list">
-        <v-list-item>
-          <v-list-item-content class="info-label">{{ $t('Name') }}:</v-list-item-content>
-          <v-list-item-content class="info-value">{{ customerStore.serialNumberData.customers_details?.name
-            }}</v-list-item-content>
-        </v-list-item>
-        <v-divider></v-divider>
+        <!-- Stamps Counter -->
+        <div class="d-flex justify-center align-center mb-4">
+          <VBtn
+            icon
+            variant="text"
+            :disabled="currentStamps <= 1"
+            @click="updateStampCount(-1)"
+          >
+            <VIcon>tabler-minus</VIcon>
+          </VBtn>
+          <span class="text-h4 mx-4">{{ currentStamps }}</span>
+          <VBtn
+            icon
+            variant="text"
+            :disabled="currentStamps >= 10"
+            @click="updateStampCount(1)"
+          >
+            <VIcon>tabler-plus</VIcon>
+          </VBtn>
+        </div>
 
-        <v-list-item>
-          <v-list-item-content class="info-label">{{ $t('Surname') }}:</v-list-item-content>
-          <v-list-item-content class="info-value">{{ customerStore.serialNumberData.customers_details?.surname
-            }}</v-list-item-content>
-        </v-list-item>
-        <v-divider></v-divider>
+        <!-- Action Buttons -->
+        <VRow v-if="customerLoaded" class="ma-0">
+          <VCol cols="6" class="pa-1">
+            <VBtn
+              block
+              color="success"
+              :loading="customerStore.stamping"
+              :disabled="getSerialNumberData()?.redeemable"
+              @click="addStamps"
+              class="text-body-1"
+            >
+              <VIcon start>tabler-rubber-stamp</VIcon>
+              {{ $t("Stamp") }}
+            </VBtn>
+          </VCol>
+          <VCol cols="6" class="pa-1">
+            <VBtn
+              block
+              color="info"
+              :loading="customerStore.redeeming"
+              :disabled="!getSerialNumberData()?.redeemable"
+              @click="customerStore.redeem()"
+              class="text-body-1"
+            >
+              <VIcon start>tabler-gift</VIcon>
+              {{ $t("Redeem") }}
+            </VBtn>
+          </VCol>
+        </VRow>
+      </VCardText>
 
-        <v-list-item>
-          <v-list-item-content class="info-label">{{ $t('Email') }}:</v-list-item-content>
-          <v-list-item-content class="info-value">{{ customerStore.serialNumberData.customers_details?.email
-            }}</v-list-item-content>
-        </v-list-item>
-        <v-divider></v-divider>
+      <!-- Customer Information -->
+      <VDivider />
+      <VCardText>
+        <VList class="pa-0">
+          <VListItem>
+            <template #prepend>
+              <VIcon color="primary" class="me-2">tabler-user</VIcon>
+            </template>
+            <VListItemTitle>{{ $t('Name') }}</VListItemTitle>
+            <VListItemSubtitle>{{ getSerialNumberData()?.customers_details?.name }}</VListItemSubtitle>
+          </VListItem>
 
-        <v-list-item>
-          <v-list-item-content class="info-label">{{ $t('Phone Number') }}:</v-list-item-content>
-          <v-list-item-content class="info-value">{{ customerStore.serialNumberData.customers_details?.phonenumber
-            }}</v-list-item-content>
-        </v-list-item>
-        <v-divider></v-divider>
-      </v-list>
-    </v-card>
-  </v-container>
+          <VDivider />
+
+          <VListItem>
+            <template #prepend>
+              <VIcon color="primary" class="me-2">tabler-user-circle</VIcon>
+            </template>
+            <VListItemTitle>{{ $t('Surname') }}</VListItemTitle>
+            <VListItemSubtitle>{{ getSerialNumberData()?.customers_details?.surname }}</VListItemSubtitle>
+          </VListItem>
+
+          <VDivider />
+
+          <VListItem>
+            <template #prepend>
+              <VIcon color="primary" class="me-2">tabler-mail</VIcon>
+            </template>
+            <VListItemTitle>{{ $t('Email') }}</VListItemTitle>
+            <VListItemSubtitle>{{ getSerialNumberData()?.customers_details?.email }}</VListItemSubtitle>
+          </VListItem>
+
+          <VDivider />
+
+          <VListItem>
+            <template #prepend>
+              <VIcon color="primary" class="me-2">tabler-phone</VIcon>
+            </template>
+            <VListItemTitle>{{ $t('Phone Number') }}</VListItemTitle>
+            <VListItemSubtitle>{{ getSerialNumberData()?.customers_details?.phonenumber }}</VListItemSubtitle>
+          </VListItem>
+        </VList>
+      </VCardText>
+    </VCard>
+  </VContainer>
 </template>
 
-<style scoped>
-.v-container {
-  background-color: #f7f7f7;
+<style lang="scss" scoped>
+.v-card {
+  border-radius: 12px;
 }
 
-.card-container {
-  max-width: 400px;
-  width: 100%;
-  padding: 16px;
+.v-list-item {
+  min-height: 48px;
 }
 
-.stamps-overlay {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-top: -30px;
+.v-list-item-title {
+  font-size: 0.875rem;
+  color: rgb(var(--v-theme-on-surface));
+  opacity: 0.6;
 }
 
-.stamp-icon {
-  font-size: 24px;
-  color: grey;
-}
-
-.add-redeem-card {
-  border: 1px solid #ccc;
-}
-
-.add-redeem-card.active {
-  border-color: #6200ea;
-}
-
-.counter-section {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.counter-btn {
-  background-color: #6200ea;
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-.counter-text {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0 12px;
-}
-
-.add-stamps-btn {
-  width: 100%;
-}
-
-.info-list {
-  width: 100%;
-  padding: 0;
-}
-
-.info-list .v-list-item-content {
-  display: flex;
-  justify-content: space-between;
-}
-
-.info-label {
-  color: #666;
+.v-list-item-subtitle {
+  font-size: 1rem;
   font-weight: 500;
-  flex-grow: 1;
-}
-
-.info-value {
-  color: #333;
-  font-weight: 600;
-  float: right;
-}
-
-.v-card .v-card-text {
-  line-height: 0.375rem !important;
-}
-
-.loading-indicator {
-  color: #6200ea;
-  text-align: center;
+  color: rgb(var(--v-theme-on-surface));
 }
 </style>
