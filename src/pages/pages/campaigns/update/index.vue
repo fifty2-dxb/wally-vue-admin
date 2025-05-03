@@ -51,12 +51,14 @@ const loyaltyData = ref({
 });
 
 const appleSettings = ref({
-  webServiceURL: 'https://dev-api.wally.ae/',
+  webServiceURL: 'https://api-v1.wally.ae/',
   teamIdentifier: '772239U7XT',
   sharingProhibited: true,
   passTypeIdentifier: 'pass.ae.wally.generic',
   authenticationToken: 'Lu@ByGo9G6QMepMKQxA4',
-  associatedStoreIdentifiers: []
+  associatedStoreIdentifiers: [],
+  nfcEnabled: true,
+  encryptionPublicKey: ''
 });
 
 const configStore = useConfigStore();
@@ -74,6 +76,7 @@ watch(() => campaignStore.campaign, (campaign) => {
 const fetchCampaignById = async (campaignGuid: string) => {
   try {
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
+    appleSettings.value = campaignStore.campaign?.styleSettings?.appleSettings || {};
     loading.value = false;
   } catch (error: any) {
     showSnackbar(error.response?._data?.message || 'Error fetching campaign', 'error');

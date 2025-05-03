@@ -345,12 +345,19 @@ const headers = [
 
 const fetchCampaignDetails = async (campaignGuid: string) => {
   try {
-    await campaignStore.fetchCampaignStatistics(campaignGuid);
-    statistics.value = campaignStore.statistics
 
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
     campaign.value = campaignStore.campaign;
     campaignType.value = campaign.value?.styleSettings.type;
+
+    //if campaign type is stamp, select the first event
+    if (campaignType.value === 'stamp') {
+      campaignStore.selectedEvent = campaignStore.events[0];
+      console.log("selectedEvent", campaignStore.selectedEvent);
+    }
+
+    await campaignStore.fetchCampaignStatistics(campaignStore.selectedEvent.eventGuid, campaignGuid);
+    statistics.value = campaignStore.statistics
 
     await campaignStore.fetchCustomerByCampaignGuid(campaignGuid);
     customers.value = campaignStore.customers;
