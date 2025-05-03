@@ -222,7 +222,7 @@ onBeforeRouteLeave((to, from, next) => {
               color="info"
               :loading="customerStore.redeeming"
               :disabled="!getSerialNumberData()?.redeemable"
-              @click="customerStore.redeem()"
+              @click="customerStore.redeem(1, customerStore.customer.eventGuid || '')"
               class="text-body-1"
             >
               <VIcon start>tabler-gift</VIcon>

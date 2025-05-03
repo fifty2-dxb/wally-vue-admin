@@ -205,12 +205,13 @@ export const useCustomerStore = defineStore("customer", () => {
   };
 
   const redeeming = ref(false);
-  const redeem = async (count: any = 1) => {
+  const redeem = async (count: any = 1, eventGuid: string) => {
     redeeming.value = true;
     try {
       const response = await $wallyApi(`/pass-value`, {
         method: "POST",
         body: {
+          "eventGuid": eventGuid,
           "serialNumber": customer.value.serialNumber,
           "value": count,
           "type": "redeem"
