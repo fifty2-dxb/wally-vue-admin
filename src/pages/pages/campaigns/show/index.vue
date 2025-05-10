@@ -63,7 +63,8 @@ const newEvent = ref({
   eventDescription: '',
   capacity: 100,
   eventBeginDt: new Date().toISOString().slice(0, 10),
-  eventEndDt: new Date().toISOString().slice(0, 10)
+  eventEndDt: new Date().toISOString().slice(0, 10),
+  timezone: '(GMT-08:00) Pacific Time (US & Canada)'
 });
 
 // Add these refs at the top with other refs
@@ -149,6 +150,105 @@ const removeAdditionalField = (index: number) => {
 // Add refs for time fields
 const eventBeginTime = ref('');
 const eventEndTime = ref('');
+// Add timezone ref
+const eventTimezone = ref('(GMT-08:00) Pacific Time (US & Canada)');
+
+// Add timezones list
+const timezones = [
+  '(GMT-11:00) International Date Line West',
+  '(GMT-11:00) Midway Island',
+  '(GMT-10:00) Hawaii',
+  '(GMT-09:00) Alaska',
+  '(GMT-08:00) Pacific Time (US & Canada)',
+  '(GMT-08:00) Tijuana',
+  '(GMT-07:00) Arizona',
+  '(GMT-07:00) Chihuahua',
+  '(GMT-07:00) La Paz',
+  '(GMT-07:00) Mazatlan',
+  '(GMT-07:00) Mountain Time (US & Canada)',
+  '(GMT-06:00) Central America',
+  '(GMT-06:00) Central Time (US & Canada)',
+  '(GMT-06:00) Guadalajara',
+  '(GMT-06:00) Mexico City',
+  '(GMT-06:00) Monterrey',
+  '(GMT-06:00) Saskatchewan',
+  '(GMT-05:00) Bogota',
+  '(GMT-05:00) Eastern Time (US & Canada)',
+  '(GMT-05:00) Indiana (East)',
+  '(GMT-05:00) Lima',
+  '(GMT-05:00) Quito',
+  '(GMT-04:00) Atlantic Time (Canada)',
+  '(GMT-04:00) Caracas',
+  '(GMT-04:00) La Paz',
+  '(GMT-04:00) Santiago',
+  '(GMT-03:30) Newfoundland',
+  '(GMT-03:00) Brasilia',
+  '(GMT-03:00) Buenos Aires',
+  '(GMT-03:00) Georgetown',
+  '(GMT-03:00) Greenland',
+  '(GMT-02:00) Mid-Atlantic',
+  '(GMT-01:00) Azores',
+  '(GMT-01:00) Cape Verde Is.',
+  '(GMT+00:00) Casablanca',
+  '(GMT+00:00) Dublin',
+  '(GMT+00:00) Edinburgh',
+  '(GMT+00:00) Lisbon',
+  '(GMT+00:00) London',
+  '(GMT+01:00) Amsterdam',
+  '(GMT+01:00) Berlin',
+  '(GMT+01:00) Brussels',
+  '(GMT+01:00) Madrid',
+  '(GMT+01:00) Paris',
+  '(GMT+01:00) Prague',
+  '(GMT+01:00) Rome',
+  '(GMT+01:00) Stockholm',
+  '(GMT+01:00) Vienna',
+  '(GMT+01:00) Warsaw',
+  '(GMT+02:00) Athens',
+  '(GMT+02:00) Bucharest',
+  '(GMT+02:00) Cairo',
+  '(GMT+02:00) Helsinki',
+  '(GMT+02:00) Istanbul',
+  '(GMT+02:00) Jerusalem',
+  '(GMT+02:00) Kyiv',
+  '(GMT+03:00) Minsk',
+  '(GMT+03:00) Moscow',
+  '(GMT+03:00) Riyadh',
+  '(GMT+03:30) Tehran',
+  '(GMT+04:00) Abu Dhabi',
+  '(GMT+04:00) Baku',
+  '(GMT+04:00) Muscat',
+  '(GMT+04:00) Tbilisi',
+  '(GMT+04:30) Kabul',
+  '(GMT+05:00) Karachi',
+  '(GMT+05:00) Tashkent',
+  '(GMT+05:30) Chennai',
+  '(GMT+05:30) Kolkata',
+  '(GMT+05:30) Mumbai',
+  '(GMT+05:30) New Delhi',
+  '(GMT+05:45) Kathmandu',
+  '(GMT+06:00) Almaty',
+  '(GMT+06:00) Dhaka',
+  '(GMT+06:30) Yangon',
+  '(GMT+07:00) Bangkok',
+  '(GMT+07:00) Jakarta',
+  '(GMT+08:00) Beijing',
+  '(GMT+08:00) Hong Kong',
+  '(GMT+08:00) Perth',
+  '(GMT+08:00) Singapore',
+  '(GMT+08:00) Taipei',
+  '(GMT+09:00) Osaka',
+  '(GMT+09:00) Seoul',
+  '(GMT+09:00) Tokyo',
+  '(GMT+09:30) Adelaide',
+  '(GMT+09:30) Darwin',
+  '(GMT+10:00) Brisbane',
+  '(GMT+10:00) Melbourne',
+  '(GMT+10:00) Sydney',
+  '(GMT+11:00) Noumea',
+  '(GMT+12:00) Auckland',
+  '(GMT+12:00) Wellington',
+];
 
 // Update handleEditEvent to handle time fields
 const handleEditEvent = (event: Event) => {
@@ -174,6 +274,10 @@ const handleEditEvent = (event: Event) => {
         artworkPreview.value = parsedData.images.artworkUrl || null;
         venueMapPreview.value = parsedData.images.venueMapUrl || null;
       }
+      // Set timezone if available
+      if (parsedData.timezone) {
+        eventTimezone.value = parsedData.timezone;
+      }
     } else if (event.additionalData && typeof event.additionalData === 'object') {
       additionalFields.value = event.additionalData.additionalInfoFields || [];
       if (event.additionalData.semantics) {
@@ -182,6 +286,10 @@ const handleEditEvent = (event: Event) => {
       if (event.additionalData.images) {
         artworkPreview.value = event.additionalData.images.artworkUrl || null;
         venueMapPreview.value = event.additionalData.images.venueMapUrl || null;
+      }
+      // Set timezone if available
+      if (event.additionalData.timezone) {
+        eventTimezone.value = event.additionalData.timezone;
       }
     } else {
       additionalFields.value = [];
@@ -542,7 +650,10 @@ const createEvent = async () => {
       ...newEvent.value,
       eventBeginDt: new Date(newEvent.value.eventBeginDt).toISOString(),
       eventEndDt: new Date(newEvent.value.eventEndDt).toISOString(),
-      campaignCampaignGuid: campaignGuid // Ensure campaignGuid is included directly here as well
+      campaignCampaignGuid: campaignGuid, // Ensure campaignGuid is included directly here as well
+      additionalData: JSON.stringify({
+        timezone: newEvent.value.timezone
+      })
     };
     
     console.log('Sending create event request with campaignGuid:', campaignGuid);
@@ -560,7 +671,8 @@ const createEvent = async () => {
         eventDescription: '',
         capacity: 100,
         eventBeginDt: new Date().toISOString().slice(0, 10),
-        eventEndDt: new Date().toISOString().slice(0, 10)
+        eventEndDt: new Date().toISOString().slice(0, 10),
+        timezone: '(GMT-08:00) Pacific Time (US & Canada)'
       };
       
       // Refresh events list
@@ -722,6 +834,7 @@ const updateEvent = async () => {
       additionalData: JSON.stringify({
         additionalInfoFields: additionalFields.value,
         semantics: eventSemantics.value,
+        timezone: eventTimezone.value,
         images: {
           artworkUrl: images.artworkUrl,
           venueMapUrl: images.venueMapUrl
@@ -1152,6 +1265,9 @@ const showAnalytics = computed(() => {
       </template>
       <template #item.eventBeginDt="{ item }">
         {{ item.eventBeginDt ? new Date(item.eventBeginDt).toLocaleDateString() : 'N/A' }}
+        <span class="text-caption text-medium-emphasis d-block">
+          {{ item.additionalData?.timezone || '(Local timezone)' }}
+        </span>
       </template>
       <template #item.actions="{ item }">
         <div class="d-flex gap-2">
@@ -1504,6 +1620,16 @@ const showAnalytics = computed(() => {
                 :disabled="isCreatingEvent"
               />
             </VCol>
+            <VCol cols="12" md="4">
+              <VSelect
+                v-model="newEvent.timezone"
+                label="Timezone"
+                :items="timezones"
+                :menu-props="{ maxHeight: 300 }"
+                required
+                :disabled="isCreatingEvent"
+              />
+            </VCol>
           </VRow>
         </VForm>
       </VCardText>
@@ -1765,6 +1891,23 @@ const showAnalytics = computed(() => {
                       />
                       <h6 class="text-h6 mb-0">Event Schedule</h6>
                     </div>
+                    
+                    <!-- Add timezone selector -->
+                    <VRow class="mb-4">
+                      <VCol cols="12">
+                        <VSelect
+                          v-model="eventTimezone"
+                          label="Timezone"
+                          :items="timezones"
+                          :menu-props="{ maxHeight: 300 }"
+                          placeholder="Select Timezone"
+                          variant="outlined"
+                          density="comfortable"
+                          :disabled="isEditingEvent"
+                        />
+                      </VCol>
+                    </VRow>
+                    
                     <VRow>
                       <VCol cols="12" md="6">
                         <div class="mb-4">
