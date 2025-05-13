@@ -453,7 +453,8 @@ const headers = [
 
 const fetchCampaignDetails = async (campaignGuid: string) => {
   try {
-
+    //fetch the campaign by campaign guid
+    console.log("fetching campaign details for campaignGuid", campaignGuid);
     await campaignStore.fetchCampaignByCampaignGuid(campaignGuid);
     campaign.value = campaignStore.campaign;
     campaignType.value = campaign.value?.styleSettings.type;
@@ -464,6 +465,13 @@ const fetchCampaignDetails = async (campaignGuid: string) => {
       console.log("selectedEvent", campaignStore.selectedEvent);
     }
 
+    //if campaign type is membership, select the first event
+    if (campaignType.value === 'membership') {
+      campaignStore.selectedEvent = campaignStore.events[0];
+      console.log("selectedEvent", campaignStore.selectedEvent);
+    }
+    
+    console.log("fetching campaign statistics for campaignGuid", campaignGuid);
     await campaignStore.fetchCampaignStatistics(campaignStore.selectedEvent.eventGuid, campaignGuid);
     statistics.value = campaignStore.statistics
 
