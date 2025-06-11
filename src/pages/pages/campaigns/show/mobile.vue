@@ -142,7 +142,8 @@ const fetchAndStoreSerialNumbers = async () => {
   try {
     const response = await $wallyApi(`/v1/passes/event/${eventGuid.value}/all`);
     if (response && Array.isArray(response)) {
-      const newSerialNumbers = new Set(response.map((pass: any) => pass.serialNumber));
+      //get only activated serial numbers
+      const newSerialNumbers = new Set(response.filter((pass: any) => pass.activated).map((pass: any) => pass.serialNumber));
       localSerialNumbers.value = newSerialNumbers;
       lastSyncTime.value = new Date();
       console.log(`Successfully synced ${localSerialNumbers.value.size} serial numbers.`);
@@ -406,7 +407,7 @@ const resetLocalState = () => {
 
 // Modify the handleTestScan function
 const handleTestScan = async () => {
-  const testSerial = '237f84e6-b0a0-40d9-a91d-b8b0865851d6';
+  const testSerial = '26c48ded-84cc-4893-a61d-7ec07614276c';
   
   // Check if already scanned
   if (scannedTickets.value.has(testSerial) || scannedOffline.value.has(testSerial)) {
