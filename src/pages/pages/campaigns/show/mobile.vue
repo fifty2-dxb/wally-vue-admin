@@ -609,7 +609,7 @@ onUnmounted(() => {
           </VBtn>
 
           <!-- Test Scan Button -->
-          <VBtn
+          <!-- <VBtn
             color="secondary"
             variant="tonal"
             class="test-button"
@@ -617,7 +617,7 @@ onUnmounted(() => {
             prepend-icon="tabler-scan"
           >
             {{ $t('Test Scan') }}
-          </VBtn>
+          </VBtn> -->
         </template>
         
         <template v-else-if="scanState === 'error'">
