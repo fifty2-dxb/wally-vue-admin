@@ -14,7 +14,19 @@
   const wallyDarkLogo = new URL('@images/wally-new-dark.png', import.meta.url).href
   const wallyWhiteLogo = new URL('@images/wally-white.png', import.meta.url).href
 
-  const platformData = ref({})
+  interface PlatformData {
+    eventName?: string
+    eventDescription?: string
+    campaign?: {
+      styleSettings?: {
+        properties?: {
+          logo?: string
+        }
+      }
+    }
+  }
+
+  const platformData = ref<PlatformData>({})
   const route = useRoute()
   const googleLoading = ref(false)
   const appleLoading = ref(false)
@@ -107,6 +119,12 @@
       console.error('Error fetching apple card link', error)
     } finally {
       appleLoading.value = false
+    }
+  }
+
+  const handleAppleClick = () => {
+    if (!appleLoading.value) {
+      downloadAppleCard()
     }
   }
 
@@ -256,14 +274,23 @@
                     </VBtn>
 
                     <div v-else class="apple-button-container">
-                      <img
-                        v-if="!appleLoading"
-                        :src="wallets[selectedPlatform].logo"
-                        alt="Apple Wallet"
-                        class="apple-button"
-                        @click="downloadAppleCard"
-                      />
-                      <VBtn v-if="appleLoading" :loading variant="text" color="primary" />
+                      <div class="apple-wallet-button" @click="handleAppleClick" :class="{ 'loading': appleLoading }">
+                        <img
+                          v-if="!appleLoading"
+                          :src="wallets[selectedPlatform].logo"
+                          alt="Apple Wallet"
+                          class="apple-button"
+                        />
+                        <VBtn 
+                          v-if="appleLoading" 
+                          :loading="true" 
+                          variant="text" 
+                          color="primary"
+                          size="large"
+                        >
+                          Adding to Apple Wallet...
+                        </VBtn>
+                      </div>
                     </div>
                   </div>
 
@@ -615,6 +642,19 @@
     justify-content: center;
   }
 
+  .apple-wallet-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 52px;
+    cursor: pointer;
+  }
+
+  .apple-wallet-button.loading {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
   .apple-button {
     height: 52px;
     cursor: pointer;
@@ -622,6 +662,10 @@
   }
 
   .apple-button:hover {
+    transform: scale(1.05);
+  }
+
+  .apple-wallet-button:has(.apple-button):hover .apple-button {
     transform: scale(1.05);
   }
 

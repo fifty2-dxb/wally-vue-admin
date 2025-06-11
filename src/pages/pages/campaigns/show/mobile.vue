@@ -66,7 +66,7 @@ const isSyncing = ref(false); // Indicates if fetching serials or uploading scan
 const lastSyncTime = ref<Date | null>(null);
 let syncIntervalId: number | null = null;
 let uploadIntervalId: number | null = null;
-const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const SYNC_INTERVAL = 2 * 60 * 1000; // 1 minute
 const UPLOAD_INTERVAL = 1 * 60 * 1000; // 1 minute
 
 // --- Access Logs Sync State ---
@@ -74,7 +74,7 @@ const localAccessLogs = ref<Set<string>>(new Set());
 const isLogsSyncing = ref(false);
 const lastLogsSyncTime = ref<Date | null>(null);
 let logsSyncIntervalId: number | null = null;
-const LOGS_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const LOGS_SYNC_INTERVAL = 2 * 60 * 1000; // 2 minutes
 
 // --- End Offline Sync State ---
 
@@ -406,7 +406,7 @@ const resetLocalState = () => {
 
 // Modify the handleTestScan function
 const handleTestScan = async () => {
-  const testSerial = '987ab727-5e40-49bf-b6f4-0fc6bf14d344';
+  const testSerial = '237f84e6-b0a0-40d9-a91d-b8b0865851d6';
   
   // Check if already scanned
   if (scannedTickets.value.has(testSerial) || scannedOffline.value.has(testSerial)) {
@@ -1099,6 +1099,6 @@ onUnmounted(() => {
 
 /* Ensure content doesn't overlap */
 .content-container {
-  padding-top: 120px;
+  padding-top: 70px;
 }
 </style> 
