@@ -280,6 +280,41 @@ const handleEventChange = async () => {
   ]);
 };
 
+// Validate ticket via API and get customer name
+const validateTicketApi = async (serialNumber: string) => {
+  try {
+    const response = await $wallyApi(`/event-access`, {
+      method: 'POST',
+      body: {
+        serialNumber: serialNumber,
+        campaignGuid: campaignGuid,
+      }
+    });
+    
+    if (response && response.customerName) {
+      return {
+        isValid: true,
+        customerName: response.customerName,
+        data: response
+      };
+    } else {
+      return {
+        isValid: false,
+        customerName: null,
+        data: null
+      };
+    }
+  } catch (error) {
+    console.error('Error validating ticket via API:', error);
+    return {
+      isValid: false,
+      customerName: null,
+      data: null,
+      error: error
+    };
+  }
+};
+
 // Modify the receiveNfcData function
 const receiveNfcData = async (scannedData: string) => {
   const serialNumber = scannedData.trim();
@@ -290,6 +325,18 @@ const receiveNfcData = async (scannedData: string) => {
   }
 
   console.log(`Scanned: ${serialNumber}`);
+
+  // Start API validation in background (non-blocking)
+  validateTicketApi(serialNumber).then(validationResult => {
+    if (validationResult.isValid && validationResult.customerName) {
+      console.log(`API validation completed for ${serialNumber}. Customer: ${validationResult.customerName}`);
+      eventCustomerName.value = validationResult.customerName;
+    } else {
+      console.log(`API validation failed for ${serialNumber}`);
+    }
+  }).catch(error => {
+    console.error(`API validation error for ${serialNumber}:`, error);
+  });
 
   // 1. Check against local list
   if (localSerialNumbers.value.has(serialNumber)) {
@@ -407,7 +454,7 @@ const resetLocalState = () => {
 
 // Modify the handleTestScan function
 const handleTestScan = async () => {
-  const testSerial = '26c48ded-84cc-4893-a61d-7ec07614276c';
+  const testSerial = '3262735d-8e48-4135-ae26-ed805b2303d6';
   
   // Check if already scanned
   if (scannedTickets.value.has(testSerial) || scannedOffline.value.has(testSerial)) {
@@ -610,7 +657,7 @@ onUnmounted(() => {
           </VBtn>
 
           <!-- Test Scan Button -->
-          <!-- <VBtn
+          <VBtn
             color="secondary"
             variant="tonal"
             class="test-button"
@@ -618,7 +665,7 @@ onUnmounted(() => {
             prepend-icon="tabler-scan"
           >
             {{ $t('Test Scan') }}
-          </VBtn> -->
+          </VBtn>
         </template>
         
         <template v-else-if="scanState === 'error'">
@@ -663,6 +710,10 @@ onUnmounted(() => {
           <h2 class="location-text">
             {{ campaign?.campaignName || $t('Event Location') }}
           </h2>
+
+          <h1 class="guest-name-text">
+            {{ eventCustomerName }}
+          </h1>
 
           <template v-if="scanState === 'success'">
             <div class="ticket-info">
@@ -855,6 +906,14 @@ onUnmounted(() => {
 }
 
 .location-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+}
+
+.guest-name-text {
   color: rgba(255, 255, 255, 0.9);
   font-size: 1.25rem;
   font-weight: 400;
