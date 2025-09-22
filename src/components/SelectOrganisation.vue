@@ -20,31 +20,48 @@ const merchant = ref<string>('');
 
 await organisationStore.fetchOrganizations();
 
-organisations.value = organisationStore.organizations.map((org: any) => org.organisationName);
-organisation.value = organisationStore.organizations[0]?.organisationName || '';
-configStore.activeOrganisation = organisationStore.organizations[0] || {};
+interface Organization {
+  organisationName: string;
+  merchant?: any[];
+}
 
-if (organisationStore.organizations[0]?.merchant?.length > 0) {
-  merchants.value = organisationStore.organizations[0]?.merchant;
-  merchant.value = merchants.value[0]?.merchantName || '';
-  configStore.activeMerchant = merchants.value[0] || {};
+const orgs = (organisationStore.organizations as unknown as Organization[]);
+const sortedOrgs = [...orgs].sort(
+  (a: Organization, b: Organization) => a.organisationName.localeCompare(b.organisationName, undefined, { sensitivity: 'base' })
+);
+
+organisations.value = sortedOrgs.map((org: any) => org.organisationName);
+organisation.value = sortedOrgs[0]?.organisationName || '';
+configStore.activeOrganisation = (sortedOrgs[0] as any) || {};
+
+if ((sortedOrgs[0]?.merchant?.length || 0) > 0) {
+  const sortedMerchants = [...(sortedOrgs[0]?.merchant as any[] || [])].sort(
+    (a: any, b: any) => a.merchantName.localeCompare(b.merchantName, undefined, { sensitivity: 'base' })
+  );
+  merchants.value = sortedMerchants;
+  merchant.value = sortedMerchants[0]?.merchantName || '';
+  configStore.activeMerchant = sortedMerchants[0] || {};
 }
 
 function changeOrganisation() {
-  const selectedOrganisation = organisationStore.organizations.find(
-    (org: any) => org.organisationName === organisation.value
+  const selectedOrganisation = orgs.find(
+    (org: Organization) => org.organisationName === organisation.value
   );
 
   if (selectedOrganisation) {
-    configStore.activeOrganisation = selectedOrganisation;
-    merchants.value = selectedOrganisation.merchant;
-    merchant.value = selectedOrganisation.merchant[0]?.merchantName || '';
-    configStore.activeMerchant = selectedOrganisation.merchant[0] || {};
+    configStore.activeOrganisation = selectedOrganisation as any;
+    const sortedMerchants = [...(selectedOrganisation.merchant || [])].sort(
+      (a: any, b: any) => a.merchantName.localeCompare(b.merchantName, undefined, { sensitivity: 'base' })
+    );
+    merchants.value = sortedMerchants;
+    merchant.value = sortedMerchants[0]?.merchantName || '';
+    configStore.activeMerchant = sortedMerchants[0] || {};
   }
 }
 
 function merchantChanged() {
-  const selectedMerchant = configStore.activeOrganisation.merchant.find(
+  const merchantsList = ((configStore.activeOrganisation as any)?.merchant as any[]) || [];
+  const selectedMerchant = merchantsList.find(
     (m: any) => m.merchantName === merchant.value
   );
 
